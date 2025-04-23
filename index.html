@@ -120,8 +120,9 @@ function displayResults(results) {
 document.getElementById("searchInput").addEventListener("input", function() {
   const query = this.value.toLowerCase().trim();
   const filtered = data.filter(item =>
-    (item.Id && item.Id.toLowerCase().includes(query)) ||
-    (item.sizes && item.sizes.toLowerCase().includes(query))
+    (item.id && String(item.id).toLowerCase().includes(query)) ||
+    (item.sizes && String(item.sizes).toLowerCase().includes(query))
+
   );
   displayResults(filtered);
 });
