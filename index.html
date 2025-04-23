@@ -1,42 +1,54 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>بحث عن المواد</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jood ALabbas Store</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f0f0;
+      background-color: #f9f9f9;
       margin: 0;
-      padding: 20px;
+      padding: 0;
     }
     header {
-      background-color: #2196F3;
+      background-color: #0D47A1;
       color: white;
-      padding: 10px;
+      padding: 20px 10px;
       text-align: center;
-      font-size: 24px;
-      border-radius: 10px;
+      font-size: 28px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    header img {
+      height: 50px;
+      border-radius: 8px;
+    }
+    .container {
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
     }
     .search-box {
-      margin: 20px auto;
-      max-width: 500px;
       display: flex;
+      flex-direction: column;
       gap: 10px;
+      margin-bottom: 20px;
     }
     .search-box input {
-      flex: 1;
       padding: 10px;
       font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
     }
     .search-box button {
-      padding: 10px 15px;
+      padding: 10px;
       font-size: 16px;
-      background-color: #2196F3;
+      background-color: #0D47A1;
       color: white;
       border: none;
       border-radius: 8px;
@@ -45,47 +57,60 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
       background-color: white;
       border-radius: 10px;
       overflow: hidden;
     }
     th, td {
       padding: 12px;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #eee;
       text-align: center;
     }
     th {
-      background-color: #f2f2f2;
+      background-color: #E3F2FD;
     }
-    img {
+    img.product {
       max-width: 80px;
       border-radius: 5px;
+    }
+
+    @media (min-width: 600px) {
+      .search-box {
+        flex-direction: row;
+        align-items: center;
+      }
+      .search-box input {
+        flex: 1;
+      }
     }
   </style>
 </head>
 <body>
 
-<header>البحث عن المواد</header>
+<header>
+  <img src="https://cdn-icons-png.flaticon.com/512/3534/3534061.png" alt="شعار المتجر" />
+  Jood ALabbas Store
+</header>
 
-<div class="search-box">
-  <input type="text" id="searchInput" placeholder="ابحث عن طريق ID أو القياس">
-  <button onclick="resetSearch()">إعادة تعيين</button>
+<div class="container">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="ابحث عن طريق ID أو القياس">
+    <button onclick="resetSearch()">إعادة تعيين</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>الاسم</th>
+        <th>الصورة</th>
+        <th>القياسات</th>
+        <th>السعر</th>
+      </tr>
+    </thead>
+    <tbody id="resultsBody"></tbody>
+  </table>
 </div>
-
-<table id="resultsTable">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>الاسم</th>
-      <th>الصورة</th>
-      <th>القياسات</th>
-      <th>السعر</th>
-    </tr>
-  </thead>
-  <tbody id="resultsBody">
-  </tbody>
-</table>
 
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
@@ -109,7 +134,7 @@ function displayResults(results) {
     row.innerHTML = `
       <td>${item.Id}</td>
       <td>${item.name}</td>
-      <td><img src="${item.picture}" alt="صورة"></td>
+      <td><img class="product" src="${item.picture}" alt="صورة المنتج" /></td>
       <td>${item.sizes}</td>
       <td>${item.price}</td>
     `;
@@ -117,13 +142,12 @@ function displayResults(results) {
   });
 }
 
-document.getElementById("searchInput").addEventListener("input", function() {
+document.getElementById("searchInput").addEventListener("input", function () {
   const query = this.value.toLowerCase().trim();
-  const filtered = data.filter(item => {
-    const id = item.Id ? String(item.Id).toLowerCase() : "";
-    const sizes = item.sizes ? String(item.sizes).toLowerCase() : "";
-    return id.includes(query) || sizes.includes(query);
-  });
+  const filtered = data.filter(item =>
+    (item.Id && String(item.Id).toLowerCase().includes(query)) ||
+    (item.sizes && String(item.sizes).toLowerCase().includes(query))
+  );
   displayResults(filtered);
 });
 
