@@ -1,137 +1,107 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
+  <title>البحث عن الملابس</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>بحث عن المواد</title>
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f0f0;
-      margin: 0;
-      padding: 20px;
-    }
-    header {
-      background-color: #2196F3;
-      color: white;
-      padding: 10px;
-      text-align: center;
-      font-size: 24px;
-      border-radius: 10px;
-    }
-    .search-box {
-      margin: 20px auto;
-      max-width: 500px;
-      display: flex;
-      gap: 10px;
-    }
-    .search-box input {
-      flex: 1;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    .search-box button {
-      padding: 10px 15px;
-      font-size: 16px;
-      background-color: #2196F3;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background-color: white;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid #ddd;
-      text-align: center;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    img {
-      max-width: 80px;
-      border-radius: 5px;
-    }
+    body { font-family:'Segoe UI',sans-serif; background:#f0f0f0; margin:0; padding:20px }
+    header { background:#2196F3; color:#fff; padding:10px; text-align:center; border-radius:8px }
+    .search-box { display:flex; justify-content:center; gap:10px; margin:20px 0 }
+    .search-box input { flex:1; padding:10px; font-size:16px; border:1px solid #ccc; border-radius:5px }
+    .search-box button { padding:10px 20px; background:#2196F3; color:#fff; border:none; border-radius:5px; cursor:pointer }
+    table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden }
+    th, td { padding:12px; border-bottom:1px solid #ddd; text-align:center }
+    th { background:#f2f2f2 }
+    img { max-height:80px }
   </style>
 </head>
 <body>
 
-<header>البحث عن المواد</header>
+<header>البحث عن الملابس</header>
 
 <div class="search-box">
-  <input type="text" id="searchInput" placeholder="ابحث عن طريق ID أو القياس">
-  <button onclick="resetSearch()">إعادة تعيين</button>
+  <input id="searchInput" type="text" placeholder="اكتب رقم التعريف أو القياس...">
+  <button id="resetBtn">إعادة تعيين</button>
 </div>
 
-<table id="resultsTable">
+<table>
   <thead>
     <tr>
-      <th>ID</th>
-      <th>الاسم</th>
-      <th>الصورة</th>
-      <th>القياسات</th>
-      <th>السعر</th>
+      <th>الرقم</th><th>الاسم</th><th>الصورة</th><th>القياسات</th><th>السعر</th>
     </tr>
   </thead>
-  <tbody id="resultsBody">
-  </tbody>
+  <tbody id="tableBody"></tbody>
 </table>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
-let data = [];
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
+  let data = [];
 
-async function fetchData() {
-  try {
-    const response = await fetch(API_URL);
-    data = await response.json();
-    displayResults(data);
-  } catch (error) {
-    console.error("فشل تحميل البيانات:", error);
+  async function fetchData() {
+    try {
+      const resp = await fetch(API_URL);
+      data = await resp.json();
+      filterAndDisplay();
+    } catch (e) {
+      console.error('خطأ في جلب البيانات:', e);
+      document.getElementById('tableBody').innerHTML = 
+        "<tr><td colspan='5'>فشل في تحميل البيانات</td></tr>";
+    }
   }
-}
 
-function displayResults(results) {
-  const tbody = document.getElementById("resultsBody");
-  tbody.innerHTML = "";
-  results.forEach(item => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${item.Id}</td>
-      <td>${item.name}</td>
-      <td><img src="${item.picture}" alt="صورة"></td>
-      <td>${item.sizes}</td>
-      <td>${item.price}</td>
-    `;
-    tbody.appendChild(row);
-  });
-}
+  function filterAndDisplay() {
+    const term = document.getElementById('searchInput')
+                     .value.trim().toLowerCase();
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
 
-document.getElementById("searchInput").addEventListener("input", function() {
-  const query = this.value.toLowerCase().trim();
-  const filtered = data.filter(item =>
-    (item.Id && item.Id.toLowerCase().includes(query)) ||
-    (item.sizes && item.sizes.toLowerCase().includes(query))
-  );
-  displayResults(filtered);
-});
+    
+    const idKey = data.length
+      ? Object.keys(data[0]).find(k => k.toLowerCase()==='id')
+      : 'id';
 
-function resetSearch() {
-  document.getElementById("searchInput").value = "";
-  displayResults(data);
-}
+    const filtered = data.filter(item => {
+      const idVal   = (item[idKey] || '').toString().toLowerCase();
+      const sizesVal= (item.sizes || item.Sizes || '').toLowerCase();
+      return term === '' ||
+             idVal.includes(term) ||
+             sizesVal.includes(term);
+    });
 
-fetchData();
+    if (!filtered.length) {
+      tbody.innerHTML = "<tr><td colspan='5'>لا توجد نتائج.</td></tr>";
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(item => {
+      const idVal    = item[idKey] || '';
+      const nameVal  = item.name  || item.Name || '';
+      const picVal   = item.picture|| item.Picture || '';
+      const sizesVal = item.sizes || item.Sizes || '';
+      const priceVal = item.price || item.Price || '';
+      return `
+        <tr>
+          <td>${idVal}</td>
+          <td>${nameVal}</td>
+          <td><img src="${picVal}" alt></td>
+          <td>${sizesVal}</td>
+          <td>${priceVal}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('searchInput')
+    .addEventListener('input', filterAndDisplay);
+
+  document.getElementById('resetBtn')
+    .addEventListener('click', () => {
+      document.getElementById('searchInput').value = '';
+      filterAndDisplay();
+    });
+
+  fetchData();
+  setInterval(fetchData, 30000);   
 </script>
 
 </body>
