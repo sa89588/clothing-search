@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بحث عن المواد</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+    }
+    header {
+      background-color: #2196F3;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-size: 24px;
+      border-radius: 10px;
+    }
+    .search-box {
+      margin: 20px auto;
+      max-width: 500px;
+      display: flex;
+      gap: 10px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .search-box button {
+      padding: 10px 15px;
+      font-size: 16px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    img {
+      max-width: 80px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<header>البحث عن المواد</header>
+
+<div class="search-box">
+  <input type="text" id="searchInput" placeholder="ابحث عن طريق ID أو القياس">
+  <button onclick="resetSearch()">إعادة تعيين</button>
+</div>
+
+<table id="resultsTable">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>الاسم</th>
+      <th>الصورة</th>
+      <th>القياسات</th>
+      <th>السعر</th>
+    </tr>
+  </thead>
+  <tbody id="resultsBody">
+  </tbody>
+</table>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
+let data = [];
+
+async function fetchData() {
+  try {
+    const response = await fetch(API_URL);
+    data = await response.json();
+    displayResults(data);
+  } catch (error) {
+    console.error("فشل تحميل البيانات:", error);
+  }
+}
+
+function displayResults(results) {
+  const tbody = document.getElementById("resultsBody");
+  tbody.innerHTML = "";
+  results.forEach(item => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item.Id}</td>
+      <td>${item.name}</td>
+      <td><img src="${item.picture}" alt="صورة"></td>
+      <td>${item.sizes}</td>
+      <td>${item.price}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+document.getElementById("searchInput").addEventListener("input", function() {
+  const query = this.value.toLowerCase().trim();
+  const filtered = data.filter(item =>
+    (item.Id && item.Id.toLowerCase().includes(query)) ||
+    (item.sizes && item.sizes.toLowerCase().includes(query))
+  );
+  displayResults(filtered);
+});
+
+function resetSearch() {
+  document.getElementById("searchInput").value = "";
+  displayResults(data);
+}
+
+fetchData();
+</script>
+
+</body>
+</html>
