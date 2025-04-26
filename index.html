@@ -1,86 +1,199 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jood ALabbas Store</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f9f9f9;
+      background-color: #f0f0f0;
       margin: 0;
       padding: 0;
     }
     header {
-      background-color: #0D47A1;
+      background-color: #2196F3;
       color: white;
-      padding: 20px 10px;
+      padding: 20px;
       text-align: center;
       font-size: 28px;
       font-weight: bold;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
     header img {
-      height: 50px;
-      border-radius: 8px;
+      max-width: 150px;
+      height: auto;
+      margin-bottom: 10px;
     }
-    .container {
-      padding: 20px;
-      max-width: 900px;
-      margin: auto;
+    .welcome-message {
+      text-align: center;
+      padding: 15px;
+      font-size: 22px;
+      background: #e3f2fd;
+      color: #0b7dda;
+      animation: fadeIn 2s;
+    }
+    .floating-buttons {
+      position: fixed;
+      top: 20px;
+      left: 10px;
+      display: flex;
+      gap: 10px;
+      z-index: 1100;
+    }
+    .floating-buttons button {
+      padding: 10px;
+      background-color: #2196F3;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      transition: background 0.3s;
+    }
+    .floating-buttons button:hover {
+      background-color: #0b7dda;
+    }
+    .filter-box {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .filter-box select {
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 14px;
+      border: 1px solid #ccc;
     }
     .search-box {
+      margin: 20px auto;
+      max-width: 500px;
       display: flex;
-      flex-direction: column;
       gap: 10px;
-      margin-bottom: 20px;
+      padding: 0 10px;
     }
-    .search-box input {
+    .search-box input, .search-box button {
+      flex: 1;
       padding: 10px;
       font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
     }
     .search-box button {
-      padding: 10px;
-      font-size: 16px;
-      background-color: #0D47A1;
+      background-color: #2196F3;
       color: white;
-      border: none;
-      border-radius: 8px;
       cursor: pointer;
+      border: none;
     }
     table {
-      width: 100%;
-      border-collapse: collapse;
-      background-color: white;
-      border-radius: 10px;
+      width: 95%;
+      margin: 20px auto;
+      background: white;
+      border-radius: 12px;
       overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      animation: fadeIn 0.8s;
     }
     th, td {
       padding: 12px;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #ddd;
       text-align: center;
     }
     th {
-      background-color: #E3F2FD;
+      background-color: #f9f9f9;
+      font-weight: bold;
     }
     img.product {
       max-width: 80px;
-      border-radius: 5px;
+      transition: transform 0.3s ease;
+      border-radius: 8px;
     }
-
-    @media (min-width: 600px) {
+    img.product:hover {
+      transform: scale(1.1);
+    }
+    .floating-panel {
+      display: none;
+      position: fixed;
+      top: 80px;
+      left: 10px;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 300px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      z-index: 1050;
+      animation: slideIn 0.5s;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(-100px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .contact-icons a {
+      display: inline-block;
+      margin: 10px;
+      font-size: 32px;
+      color: #2196F3;
+      text-decoration: none;
+    }
+    .contact-icons a:hover {
+      color: #0b7dda;
+    }
+    .whatsapp-button {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background-color: #25D366;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+    .whatsapp-button:hover {
+      background-color: #1ebe5b;
+    }
+    .no-results {
+      text-align: center;
+      padding: 20px;
+      font-size: 20px;
+      color: #555;
+      background: #ffe0e0;
+      border-radius: 10px;
+    }
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 14px;
+      background-color: #2196F3;
+      color: white;
+      margin-top: 40px;
+    }
+    .results-counter {
+      text-align: center;
+      margin: 10px;
+      font-size: 16px;
+      color: #555;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @media screen and (max-width: 600px) {
       .search-box {
-        flex-direction: row;
-        align-items: center;
+        flex-direction: column;
       }
-      .search-box input {
-        flex: 1;
+      .floating-buttons {
+        top: 10px;
+        left: 5px;
       }
     }
   </style>
@@ -88,29 +201,63 @@
 <body>
 
 <header>
-  <img src="https://cdn-icons-png.flaticon.com/512/3534/3534061.png" alt="شعار المتجر" />
-  Jood ALabbas Store
+  <img src="https://drive.google.com/uc?export=view&id=1r75l3IRIyps7Ta85PIjLuykhg0-oaWWy" alt="شعار المتجر">
+  متجر جود العباس <br> Jood ALabbas Store
 </header>
 
-<div class="container">
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="ابحث عن طريق ID أو القياس">
-    <button onclick="resetSearch()">إعادة تعيين</button>
-  </div>
+<div class="welcome-message" id="welcome">أهلاً بك في متجر جود العباس! تسوق سعيد 🌟</div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>الاسم</th>
-        <th>الصورة</th>
-        <th>القياسات</th>
-        <th>السعر</th>
-      </tr>
-    </thead>
-    <tbody id="resultsBody"></tbody>
-  </table>
+<div class="floating-buttons">
+  <button onclick="togglePanel('about')"><i class="fas fa-store"></i></button>
+  <button onclick="togglePanel('contact')"><i class="fas fa-envelope"></i></button>
 </div>
+
+<div class="search-box">
+  <input type="text" id="searchInput" placeholder="ابحث عن طريق ID أو القياس">
+  <button onclick="resetSearch()">إعادة تعيين</button>
+</div>
+
+<div class="filter-box">
+  <select id="sortSelect" onchange="sortResults()">
+    <option value="">-- ترتيب حسب --</option>
+    <option value="price-asc">السعر من الأقل</option>
+    <option value="price-desc">السعر من الأعلى</option>
+  </select>
+</div>
+
+<div class="results-counter" id="counter">عدد النتائج: 0</div>
+
+<div class="floating-panel" id="about">
+  <h3>عن المتجر</h3>
+  <p>متجر جود العباس هو وجهتك المثالية لشراء ملابس الأطفال بأحدث التصاميم والجودة العالية، مع خدمة عملاء مميزة وتجربة شراء سلسة.</p>
+</div>
+
+<div class="floating-panel" id="contact">
+  <h3>تواصل معنا:</h3>
+  <div class="contact-icons">
+    <a href="https://wa.me/9647700000000" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>
+    <a href="https://www.instagram.com/joodalabbasstore" target="_blank" title="انستقرام"><i class="fab fa-instagram"></i></a>
+    <a href="https://www.facebook.com/joodalabbasstore" target="_blank" title="فيسبوك"><i class="fab fa-facebook"></i></a>
+  </div>
+</div>
+
+<table id="resultsTable">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>الاسم</th>
+      <th>الصورة</th>
+      <th>القياسات</th>
+      <th>السعر</th>
+      <th>طلب</th>
+    </tr>
+  </thead>
+  <tbody id="resultsBody"></tbody>
+</table>
+
+<footer>
+  &copy; 2025 متجر جود العباس - جميع الحقوق محفوظة
+</footer>
 
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
@@ -129,32 +276,63 @@ async function fetchData() {
 function displayResults(results) {
   const tbody = document.getElementById("resultsBody");
   tbody.innerHTML = "";
+  document.getElementById("counter").textContent = `عدد النتائج: ${results.length}`;
+
+  if (results.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="no-results">لا توجد نتائج مطابقة لبحثك.</td></tr>';
+    return;
+  }
+
   results.forEach(item => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td>${item.Id}</td>
-      <td>${item.name}</td>
-      <td><img class="product" src="${item.picture}" alt="صورة المنتج" /></td>
-      <td>${item.sizes}</td>
-      <td>${item.price}</td>
+      <td>${item.Id || ''}</td>
+      <td>${item.name || ''}</td>
+      <td><img class="product" src="${item.picture || ''}" alt="صورة"></td>
+      <td>${item.sizes || ''}</td>
+      <td>${item.price || ''}</td>
+      <td><a class="whatsapp-button" href="https://wa.me/9647700000000?text=مرحباً، أرغب بشراء المنتج التالي ID: ${item.Id || ''} - الاسم: ${item.name || ''}" target="_blank">اطلب عبر واتساب</a></td>
     `;
     tbody.appendChild(row);
   });
 }
 
-document.getElementById("searchInput").addEventListener("input", function () {
-  const query = this.value.toLowerCase().trim();
-  const filtered = data.filter(item =>
-    (item.Id && String(item.Id).toLowerCase().includes(query)) ||
-    (item.sizes && String(item.sizes).toLowerCase().includes(query))
-  );
-  displayResults(filtered);
-});
+function sortResults() {
+  const sortOption = document.getElementById("sortSelect").value;
+  let sortedData = [...data];
+
+  if (sortOption === "price-asc") {
+    sortedData.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+  } else if (sortOption === "price-desc") {
+    sortedData.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+  }
+
+  displayResults(sortedData);
+}
+
+function togglePanel(id) {
+  const panel = document.getElementById(id);
+  const panels = document.querySelectorAll('.floating-panel');
+  panels.forEach(p => { if (p !== panel) p.style.display = 'none'; });
+  panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+}
 
 function resetSearch() {
   document.getElementById("searchInput").value = "";
   displayResults(data);
 }
+
+// تحسين البحث الفوري
+const searchInput = document.getElementById("searchInput");
+searchInput.addEventListener("input", function() {
+  const query = this.value.toLowerCase().trim();
+  const filtered = data.filter(item => {
+    const id = item.Id ? item.Id.toString().toLowerCase() : "";
+    const size = item.sizes ? item.sizes.toString().toLowerCase() : "";
+    return id.includes(query) || size.includes(query);
+  });
+  displayResults(filtered);
+});
 
 fetchData();
 </script>
