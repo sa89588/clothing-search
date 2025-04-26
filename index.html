@@ -60,6 +60,31 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
       transition: background 0.3s;
     }
+.scroll-buttons {
+  position: fixed;
+  bottom: 20px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1100;
+}
+.scroll-buttons button {
+  padding: 10px;
+  background-color: #2196F3;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  transition: background 0.3s;
+}
+.scroll-buttons button:hover {
+  background-color: #0b7dda;
+}
     .floating-buttons button:hover {
       background-color: #0b7dda;
     }
@@ -204,7 +229,7 @@
   متجر جود العباس <br> Jood ALabbas Store
 </header>
 
-<div class="welcome-message" id="welcome">أهلاً بك في متجر جود العباس! تسوق سعيد 🌟</div>
+<div class="welcome-message" id="welcome">أهلاً بكم في متجر جود العباس! تسوق سعيد 🌟</div>
 
 <div class="floating-buttons">
   <button onclick="togglePanel('about')"><i class="fas fa-store"></i></button>
@@ -234,9 +259,9 @@
 <div class="floating-panel" id="contact">
   <h3>تواصل معنا:</h3>
   <div class="contact-icons">
-    <a href="https://wa.me/9647700000000" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>
-    <a href="https://www.instagram.com/joodalabbasstore" target="_blank" title="انستقرام"><i class="fab fa-instagram"></i></a>
-    <a href="https://www.facebook.com/joodalabbasstore" target="_blank" title="فيسبوك"><i class="fab fa-facebook"></i></a>
+    <a href="https://wa.me/9647766142936" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>
+    <a href="https://www.instagram.com/jaiq19_" target="_blank" title="انستقرام"><i class="fab fa-instagram"></i></a>
+    <a href="https://www.facebook.com/profile.php?id=61573593535175" target="_blank" title="فيسبوك"><i class="fab fa-facebook"></i></a>
   </div>
 </div>
 
@@ -264,6 +289,14 @@ let data = [];
 
 async function fetchData() {
   try {
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function scrollToBottom() {
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
     const response = await fetch(API_URL);
     data = await response.json();
     displayResults(data);
@@ -290,7 +323,7 @@ function displayResults(results) {
       <td><img class="product" src="${item.picture || ''}" alt="صورة"></td>
       <td>${item.sizes || ''}</td>
       <td>${item.price || ''}</td>
-      <td><a class="whatsapp-button" href="https://wa.me/9647700000000?text=مرحباً، أرغب بشراء المنتج التالي ID: ${item.Id || ''} - الاسم: ${item.name || ''}" target="_blank">اطلب عبر واتساب</a></td>
+      <td><a class="whatsapp-button" href="https://wa.me/9647766142936?text=مرحباً، أرغب بشراء المنتج التالي ID: ${item.Id || ''} - الاسم: ${item.name || ''}" target="_blank">اطلب عبر واتساب</a></td>
     `;
     tbody.appendChild(row);
   });
@@ -337,4 +370,9 @@ fetchData();
 </script>
 
 </body>
+<div class="scroll-buttons">
+  <button onclick="scrollToTop()" title="أعلى"><i class="fas fa-arrow-up"></i></button>
+  <button onclick="scrollToBottom()" title="أسفل"><i class="fas fa-arrow-down"></i></button>
+</div>
+
 </html>
