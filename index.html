@@ -1,378 +1,463 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jood ALabbas Store</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f0f0;
-      margin: 0;
-      padding: 0;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jood ALabbas Store</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #2196F3;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        header img {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        .welcome-message {
+            text-align: center;
+            padding: 15px;
+            font-size: 22px;
+            background: #e3f2fd;
+            color: #0b7dda;
+            animation: fadeIn 2s;
+        }
+        .floating-buttons {
+            position: fixed;
+            top: 20px;
+            left: 10px;
+            display: flex;
+            gap: 10px;
+            z-index: 1100;
+        }
+        .floating-buttons button {
+            padding: 10px;
+            background-color: #2196F3;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: background 0.3s;
+        }
+        .scroll-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1100;
+        }
+        .scroll-buttons button {
+            padding: 10px;
+            background-color: #2196F3;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: background 0.3s;
+        }
+        .scroll-buttons button:hover {
+            background-color: #0b7dda;
+        }
+        .floating-buttons button:hover {
+            background-color: #0b7dda;
+        }
+        .filter-box {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .filter-box select {
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+        }
+        .search-box {
+            margin: 20px auto;
+            max-width: 500px;
+            display: flex;
+            gap: 10px;
+            padding: 0 10px;
+        }
+        .search-box input, .search-box button {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .search-box button {
+            background-color: #2196F3;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        table {
+            width: 95%;
+            margin: 20px auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            animation: fadeIn 0.8s;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+        /* زيادة عرض خلية الصورة */
+        th:nth-child(2),
+        td:nth-child(2) {
+            width: 150px; /* يمكنك تعديل هذه القيمة حسب الحاجة */
+        }
+        img.product {
+            max-width: 100%; /* التأكد من أن الصورة لا تتجاوز عرض الخلية */
+            height: auto;
+            transition: transform 0.3s ease;
+            border-radius: 8px;
+        }
+        img.product:hover {
+            transform: scale(1.1);
+        }
+        .floating-panel {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 300px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            z-index: 1050;
+            animation: slideIn 0.5s;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+@media screen and (max-width: 600px) {
     header {
-      background-color: #2196F3;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
+        font-size: 22px;
+        padding: 15px;
     }
-    header img {
-      max-width: 150px;
-      height: auto;
-      margin-bottom: 10px;
-    }
+
     .welcome-message {
-      text-align: center;
-      padding: 15px;
-      font-size: 22px;
-      background: #e3f2fd;
-      color: #0b7dda;
-      animation: fadeIn 2s;
+        font-size: 18px;
+        padding: 10px;
     }
-    .floating-buttons {
-      position: fixed;
-      top: 20px;
-      left: 10px;
-      display: flex;
-      gap: 10px;
-      z-index: 1100;
-    }
-    .floating-buttons button {
-      padding: 10px;
-      background-color: #2196F3;
-      border: none;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      color: white;
-      cursor: pointer;
-      font-size: 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-      transition: background 0.3s;
-    }
-.scroll-buttons {
-  position: fixed;
-  bottom: 20px;
-  right: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 1100;
-}
-.scroll-buttons button {
-  padding: 10px;
-  background-color: #2196F3;
-  border: none;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  color: white;
-  font-size: 20px;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-  transition: background 0.3s;
-}
-.scroll-buttons button:hover {
-  background-color: #0b7dda;
-}
-    .floating-buttons button:hover {
-      background-color: #0b7dda;
-    }
-    .filter-box {
-      text-align: center;
-      margin-top: 10px;
-    }
-    .filter-box select {
-      padding: 8px;
-      border-radius: 6px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-    }
+
     .search-box {
-      margin: 20px auto;
-      max-width: 500px;
-      display: flex;
-      gap: 10px;
-      padding: 0 10px;
-    }
-    .search-box input, .search-box button {
-      flex: 1;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    .search-box button {
-      background-color: #2196F3;
-      color: white;
-      cursor: pointer;
-      border: none;
-    }
-    table {
-      width: 95%;
-      margin: 20px auto;
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      animation: fadeIn 0.8s;
-    }
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid #ddd;
-      text-align: center;
-    }
-    th {
-      background-color: #f9f9f9;
-      font-weight: bold;
-    }
-    img.product {
-      max-width: 80px;
-      transition: transform 0.3s ease;
-      border-radius: 8px;
-    }
-    img.product:hover {
-      transform: scale(1.1);
-    }
-    .floating-panel {
-      display: none;
-      position: fixed;
-      top: 80px;
-      left: 10px;
-      background-color: white;
-      border: 1px solid #ccc;
-      border-radius: 12px;
-      padding: 20px;
-      max-width: 300px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      z-index: 1050;
-      animation: slideIn 0.5s;
-    }
-    @keyframes slideIn {
-      from { transform: translateX(-100px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    .contact-icons a {
-      display: inline-block;
-      margin: 10px;
-      font-size: 32px;
-      color: #2196F3;
-      text-decoration: none;
-    }
-    .contact-icons a:hover {
-      color: #0b7dda;
-    }
-    .whatsapp-button {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 8px 12px;
-      background-color: #25D366;
-      color: white;
-      border-radius: 6px;
-      text-decoration: none;
-      font-size: 14px;
-      transition: background 0.3s;
-    }
-    .whatsapp-button:hover {
-      background-color: #1ebe5b;
-    }
-    .no-results {
-      text-align: center;
-      padding: 20px;
-      font-size: 20px;
-      color: #555;
-      background: #ffe0e0;
-      border-radius: 10px;
-    }
-    footer {
-      text-align: center;
-      padding: 15px;
-      font-size: 14px;
-      background-color: #2196F3;
-      color: white;
-      margin-top: 40px;
-    }
-    .results-counter {
-      text-align: center;
-      margin: 10px;
-      font-size: 16px;
-      color: #555;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @media screen and (max-width: 600px) {
-      .search-box {
         flex-direction: column;
-      }
-      .floating-buttons {
+        padding: 0 5px;
+    }
+
+    .search-box input, .search-box button {
+        width: 100%;
+        font-size: 15px;
+    }
+
+    .filter-box {
+        margin-top: 10px;
+    }
+
+    .filter-box select {
+        width: 90%;
+        font-size: 15px;
+    }
+
+    .floating-buttons {
+        flex-direction: column;
         top: 10px;
         left: 5px;
-      }
     }
-  </style>
+
+    .floating-buttons button,
+    .scroll-buttons button {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .scroll-buttons {
+        right: 5px;
+        bottom: 10px;
+    }
+
+    table {
+        width: 100%;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    .whatsapp-button {
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+
+    .contact-icons a {
+        font-size: 28px;
+        margin: 5px;
+    }
+
+    .floating-panel {
+        width: 90%;
+        max-width: 90%;
+        left: 5%;
+        padding: 15px;
+    }
+}
+
+        .contact-icons a {
+            display: inline-block;
+            margin: 10px;
+            font-size: 32px;
+            color: #2196F3;
+            text-decoration: none;
+        }
+        .contact-icons a:hover {
+            color: #0b7dda;
+        }
+        .whatsapp-button {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background-color: #25D366;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .whatsapp-button:hover {
+            background-color: #1ebe5b;
+        }
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            font-size: 20px;
+            color: #555;
+            background: #ffe0e0;
+            border-radius: 10px;
+        }
+        footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 14px;
+            background-color: #2196F3;
+            color: white;
+            margin-top: 40px;
+        }
+        .results-counter {
+            text-align: center;
+            margin: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @media screen and (max-width: 600px) {
+            .search-box {
+                flex-direction: column;
+            }
+            .floating-buttons {
+                top: 10px;
+                left: 5px;
+            }
+        }
+    </style>
 </head>
 <body>
 
 <header>
-  متجر جود العباس <br> Jood ALabbas Store
+    متجر جود العباس <br> Jood ALabbas Store
 </header>
 
 <div class="welcome-message" id="welcome">أهلاً بكم في متجر جود العباس! تسوق سعيد 🌟</div>
 
 <div class="floating-buttons">
-  <button onclick="togglePanel('about')"><i class="fas fa-store"></i></button>
-  <button onclick="togglePanel('contact')"><i class="fas fa-envelope"></i></button>
+    <button onclick="togglePanel('about')"><i class="fas fa-store"></i></button>
+    <button onclick="togglePanel('contact')"><i class="fas fa-envelope"></i></button>
 </div>
 
 <div class="search-box">
-  <input type="text" id="searchInput" placeholder="ابحث عن طريق ID أو القياس">
-  <button onclick="resetSearch()">إعادة تعيين</button>
+    <input type="text" id="searchInput" placeholder="ابحث عن طريق ID أو القياس">
+    <button onclick="resetSearch()">إعادة تعيين</button>
 </div>
 
 <div class="filter-box">
-  <select id="sortSelect" onchange="sortResults()">
-    <option value="">-- ترتيب حسب --</option>
-    <option value="price-asc">السعر من الأقل</option>
-    <option value="price-desc">السعر من الأعلى</option>
-  </select>
+    <select id="sortSelect" onchange="sortResults()">
+        <option value="">-- ترتيب حسب --</option>
+        <option value="price-asc">السعر من الأقل</option>
+        <option value="price-desc">السعر من الأعلى</option>
+    </select>
 </div>
 
 <div class="results-counter" id="counter">عدد النتائج: 0</div>
 
 <div class="floating-panel" id="about">
-  <h3>عن المتجر</h3>
-  <p>متجر جود العباس هو وجهتك المثالية لشراء ملابس الأطفال بأحدث التصاميم والجودة العالية، مع خدمة عملاء مميزة وتجربة شراء سلسة.</p>
+    <h3>عن المتجر</h3>
+    <p>متجر جود العباس هو وجهتك المثالية لشراء ملابس الأطفال بأحدث التصاميم والجودة العالية، مع خدمة عملاء مميزة وتجربة شراء سلسة.</p>
 </div>
 
 <div class="floating-panel" id="contact">
-  <h3>تواصل معنا:</h3>
-  <div class="contact-icons">
-    <a href="https://wa.me/9647766142936" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>
-    <a href="https://www.instagram.com/jaiq19_" target="_blank" title="انستقرام"><i class="fab fa-instagram"></i></a>
-    <a href="https://www.facebook.com/profile.php?id=61573593535175" target="_blank" title="فيسبوك"><i class="fab fa-facebook"></i></a>
-  </div>
+    <h3>تواصل معنا:</h3>
+    <div class="contact-icons">
+        <a href="https://wa.me/9647766142936" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://www.instagram.com/jaiq19_" target="_blank" title="انستقرام"><i class="fab fa-instagram"></i></a>
+        <a href="https://www.facebook.com/profile.php?id=61573593535175" target="_blank" title="فيسبوك"><i class="fab fa-facebook"></i></a>
+    </div>
 </div>
 
 <table id="resultsTable">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>الاسم</th>
-      <th>الصورة</th>
-      <th>القياسات</th>
-      <th>السعر</th>
-      <th>طلب</th>
-    </tr>
-  </thead>
-  <tbody id="resultsBody"></tbody>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>الصورة</th>
+            <th>القياسات</th>
+            <th>السعر</th>
+            <th>طلب</th>
+        </tr>
+    </thead>
+    <tbody id="resultsBody"></tbody>
 </table>
 
 <footer>
-  &copy; 2025 متجر جود العباس - جميع الحقوق محفوظة
+    &copy; 2025 متجر جود العباس - جميع الحقوق محفوظة
 </footer>
 
+<div class="scroll-buttons">
+    <button onclick="scrollToTop()" title="أعلى"><i class="fas fa-arrow-up"></i></button>
+    <button onclick="scrollToBottom()" title="أسفل"><i class="fas fa-arrow-down"></i></button>
+</div>
+
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
-let data = [];
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
+    let data = [];
 
-async function fetchData() {
-  try {
-function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+    async function fetchData() {
+        try {
+            const response = await fetch(API_URL);
+            data = await response.json();
+            displayResults(data);
+        } catch (error) {
+            console.error("فشل تحميل البيانات:", error);
+        }
+    }
 
-function scrollToBottom() {
-  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-}
+    function displayResults(results) {
+        const tbody = document.getElementById("resultsBody");
+        tbody.innerHTML = "";
+        document.getElementById("counter").textContent = `عدد النتائج: ${results.length}`;
 
-    const response = await fetch(API_URL);
-    data = await response.json();
-    displayResults(data);
-  } catch (error) {
-    console.error("فشل تحميل البيانات:", error);
-  }
-}
+        if (results.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="no-results">لا توجد نتائج مطابقة لبحثك.</td></tr>';
+            return;
+        }
 
-function displayResults(results) {
-  const tbody = document.getElementById("resultsBody");
-  tbody.innerHTML = "";
-  document.getElementById("counter").textContent = `عدد النتائج: ${results.length}`;
+        results.forEach(item => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${item.Id || ''}</td>
+                <td><img class="product" src="${item.picture || ''}" alt="صورة"></td>
+                <td>${item.sizes || ''}</td>
+                <td>${item.price || ''}</td>
+                <td><a class="whatsapp-button" href="https://wa.me/9647766142936?text=مرحباً، أرغب بشراء المنتج التالي ID: ${item.Id || ''} - القياس: ${item.sizes || ''}" target="_blank">اطلب عبر واتساب</a></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
 
-  if (results.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="no-results">لا توجد نتائج مطابقة لبحثك.</td></tr>';
-    return;
-  }
+    function sortResults() {
+        const sortOption = document.getElementById("sortSelect").value;
+        let sortedData = [...data];
 
-  results.forEach(item => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${item.Id || ''}</td>
-      <td>${item.name || ''}</td>
-      <td><img class="product" src="${item.picture || ''}" alt="صورة"></td>
-      <td>${item.sizes || ''}</td>
-      <td>${item.price || ''}</td>
-      <td><a class="whatsapp-button" href="https://wa.me/9647766142936?text=مرحباً، أرغب بشراء المنتج التالي ID: ${item.Id || ''} - الاسم: ${item.name || ''}" target="_blank">اطلب عبر واتساب</a></td>
-    `;
-    tbody.appendChild(row);
-  });
-}
+        if (sortOption === "price-asc") {
+            sortedData.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+        } else if (sortOption === "price-desc") {
+            sortedData.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+        }
 
-function sortResults() {
-  const sortOption = document.getElementById("sortSelect").value;
-  let sortedData = [...data];
+        displayResults(sortedData);
+    }
 
-  if (sortOption === "price-asc") {
-    sortedData.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-  } else if (sortOption === "price-desc") {
-    sortedData.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-  }
+    function togglePanel(id) {
+        const panel = document.getElementById(id);
+        const panels = document.querySelectorAll('.floating-panel');
+        panels.forEach(p => { if (p !== panel) p.style.display = 'none'; });
+        panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+    }
 
-  displayResults(sortedData);
-}
+    function resetSearch() {
+        document.getElementById("searchInput").value = "";
+        displayResults(data);
+    }
 
-function togglePanel(id) {
-  const panel = document.getElementById(id);
-  const panels = document.querySelectorAll('.floating-panel');
-  panels.forEach(p => { if (p !== panel) p.style.display = 'none'; });
-  panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
-}
+    // تحسين البحث الفوري
+    const searchInput = document.getElementById("searchInput");
+    searchInput.addEventListener("input", function() {
+        const query = this.value.toLowerCase().trim();
+        const filtered = data.filter(item => {
+            const id = item.Id ? item.Id.toString().toLowerCase() : "";
+            const size = item.sizes ? item.sizes.toString().toLowerCase() : "";
+            return id.includes(query) || size.includes(query);
+        });
+        displayResults(filtered);
+    });
 
-function resetSearch() {
-  document.getElementById("searchInput").value = "";
-  displayResults(data);
-}
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-// تحسين البحث الفوري
-const searchInput = document.getElementById("searchInput");
-searchInput.addEventListener("input", function() {
-  const query = this.value.toLowerCase().trim();
-  const filtered = data.filter(item => {
-    const id = item.Id ? item.Id.toString().toLowerCase() : "";
-    const size = item.sizes ? item.sizes.toString().toLowerCase() : "";
-    return id.includes(query) || size.includes(query);
-  });
-  displayResults(filtered);
-});
+    function scrollToBottom() {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
 
-fetchData();
+    fetchData();
 </script>
 
 </body>
-<div class="scroll-buttons">
-  <button onclick="scrollToTop()" title="أعلى"><i class="fas fa-arrow-up"></i></button>
-  <button onclick="scrollToBottom()" title="أسفل"><i class="fas fa-arrow-down"></i></button>
+
 </div>
 
 </html>
