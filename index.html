@@ -6,6 +6,57 @@
     <title>Jood ALabbas Store</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+>div id="welcome"></div>
+window.addEventListener("DOMContentLoaded", () => {
+  const hour = new Date().getHours();
+  const welcome = document.getElementById("welcome");
+  if (!welcome) return;
+  if (hour < 12) welcome.textContent = "☀️ صباح الخير! تسوق ممتع!";
+  else if (hour < 18) welcome.textContent = "🌤️ مساء الخير! أهلاً بك!";
+  else welcome.textContent = "🌙 ليلة سعيدة! تسوق براحتك!";
+});
+
+body.dark-mode {
+    background-color: #121212;
+    color: #f0f0f0;
+}
+body.dark-mode header,
+body.dark-mode footer {
+    background-color: #1e1e1e;
+}
+body.dark-mode .welcome-message {
+    background-color: #333;
+    color: #fdd835;
+}
+body.dark-mode .floating-panel {
+    background-color: #2c2c2c;
+    color: #f0f0f0;
+}
+body.dark-mode table {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+}
+body.dark-mode th {
+    background-color: #2c2c2c;
+}
+body.dark-mode td {
+    border-color: #444;
+}
+body.dark-mode .search-box input,
+body.dark-mode .search-box button,
+body.dark-mode select {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555;
+}
+body.dark-mode .scroll-buttons button,
+body.dark-mode .floating-buttons button {
+    background-color: #444;
+}
+body.dark-mode .scroll-buttons button:hover,
+body.dark-mode .floating-buttons button:hover {
+    background-color: #666;
+}
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f0f0;
@@ -139,8 +190,15 @@
         /* زيادة عرض خلية الصورة */
         th:nth-child(2),
         td:nth-child(2) {
-            width: 150px; /* يمكنك تعديل هذه القيمة حسب الحاجة */
+            width: 250px; /* يمكنك تعديل هذه القيمة حسب الحاجة */
         }
+      th:nth-child(3),
+td:nth-child(3) {
+    width: 100px; /* أو القيمة التي تراها مناسبة لتقليل العرض */
+    word-wrap: break-word;
+    white-space: normal;
+}
+
         img.product {
             max-width: 100%; /* التأكد من أن الصورة لا تتجاوز عرض الخلية */
             height: auto;
@@ -216,13 +274,43 @@
         bottom: 10px;
     }
 
+ @media screen and (max-width: 600px) {
     table {
         width: 100%;
-        display: block;
         overflow-x: auto;
+        display: block;
         white-space: nowrap;
         font-size: 14px;
+        border-collapse: collapse;
     }
+
+    th, td {
+        padding: 10px 8px;
+        min-width: 100px;
+        text-align: center;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+        min-width: 160px;
+    }
+
+    img.product {
+        max-width: 100px;
+        height: auto;
+    }
+
+    .search-box,
+    .filter-box,
+    .results-counter {
+        padding: 0 10px;
+    }
+
+    .search-box input, .search-box button {
+        font-size: 15px;
+    }
+}
+
 
     th, td {
         padding: 10px;
@@ -257,16 +345,22 @@
             color: #0b7dda;
         }
         .whatsapp-button {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 8px 12px;
-            background-color: #25D366;
-            color: white;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    background-color: #25D366;
+    color: white;
+    border-radius: 8px;
+    font-size: 20px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+.whatsapp-button:hover {
+    background-color: #1ebe5b;
+}
+
         .whatsapp-button:hover {
             background-color: #1ebe5b;
         }
@@ -318,6 +412,7 @@
 <div class="floating-buttons">
     <button onclick="togglePanel('about')"><i class="fas fa-store"></i></button>
     <button onclick="togglePanel('contact')"><i class="fas fa-envelope"></i></button>
+   <button onclick="toggleDarkMode()" id="themeToggle"><i class="fas fa-moon"></i></button>
 </div>
 
 <div class="search-box">
@@ -374,6 +469,18 @@
 <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
     let data = [];
+function toggleDarkMode() {
+    const body = document.body;
+    const themeToggle = document.getElementById("themeToggle");
+    body.classList.toggle("dark-mode");
+
+    // تغيير الأيقونة بين القمر والشمس
+    if (body.classList.contains("dark-mode")) {
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    } else {
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+    }
+}
 
     async function fetchData() {
         try {
@@ -402,7 +509,11 @@
                 <td><img class="product" src="${item.picture || ''}" alt="صورة"></td>
                 <td>${item.sizes || ''}</td>
                 <td>${item.price || ''}</td>
-                <td><a class="whatsapp-button" href="https://wa.me/9647766142936?text=مرحباً، أرغب بشراء المنتج التالي ID: ${item.Id || ''} - القياس: ${item.sizes || ''}" target="_blank">اطلب عبر واتساب</a></td>
+             <td>
+               <a class="whatsapp-button" href="https://wa.me/9647766142936?text=مرحباً، أرغب بشراء المنتج التالي ID: ${item.Id || ''} - القياس: ${item.sizes || ''}" target="_blank" title="اطلب عبر واتساب">
+                <i class="fab fa-whatsapp"></i>
+              </a>
+           </td>
             `;
             tbody.appendChild(row);
         });
