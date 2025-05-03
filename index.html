@@ -6,16 +6,6 @@
     <title>Jood ALabbas Store</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
->div id="welcome"></div>
-window.addEventListener("DOMContentLoaded", () => {
-  const hour = new Date().getHours();
-  const welcome = document.getElementById("welcome");
-  if (!welcome) return;
-  if (hour < 12) welcome.textContent = "☀️ صباح الخير! تسوق ممتع!";
-  else if (hour < 18) welcome.textContent = "🌤️ مساء الخير! أهلاً بك!";
-  else welcome.textContent = "🌙 ليلة سعيدة! تسوق براحتك!";
-});
-
 body.dark-mode {
     background-color: #121212;
     color: #f0f0f0;
@@ -399,6 +389,100 @@ td:nth-child(3) {
                 left: 5px;
             }
         }
+/* أنماط لعرض النتائج كبطاقات */
+.product-card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* لإنشاء تخطيط متجاوب */
+    gap: 20px;
+    width: 95%;
+    margin: 20px auto;
+    padding: 15px;
+}
+
+.product-card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+    transform: scale(1.05);
+}
+
+.product-image-container {
+    width: 100%;
+    height: auto; /* الحفاظ على نسبة الأبعاد */
+    overflow: hidden;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: center; /* توسيط الصورة أفقياً */
+    align-items: center; /* توسيط الصورة عمودياً (إذا لزم الأمر) */
+}
+
+.product-card img.product {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px 8px 0 0;
+}
+
+.product-details {
+    padding: 15px;
+    text-align: center;
+}
+
+.product-id {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.product-sizes {
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.product-price {
+    color: #2196F3;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.product-order-button {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #25D366;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.product-order-button:hover {
+    background-color: #1ebe5b;
+}
+
+/* تعديل استعلامات @media لتناسب تصميم البطاقات */
+@media screen and (max-width: 600px) {
+    .product-card-container {
+        grid-template-columns: 1fr; /* عرض بطاقة واحدة في كل صف على الشاشات الصغيرة */
+    }
+    .product-card img.product {
+        max-height: 200px; /* تحديد ارتفاع أقصى للصورة على الشاشات الصغيرة */
+        object-fit: contain; /* احتواء الصورة داخل الحاوية مع الحفاظ على نسبة الأبعاد */
+    }
+}
+
+/* إخفاء الجدول القديم إذا كنت ستعتمد على البطاقات فقط */
+#resultsTable {
+    display: none;
+}
     </style>
 </head>
 <body>
@@ -429,6 +513,8 @@ td:nth-child(3) {
 </div>
 
 <div class="results-counter" id="counter">عدد النتائج: 0</div>
+
+<div id="productsContainer"></div>
 
 <div class="floating-panel" id="about">
     <h3>عن المتجر</h3>
@@ -492,32 +578,71 @@ function toggleDarkMode() {
         }
     }
 
-    function displayResults(results) {
-        const tbody = document.getElementById("resultsBody");
-        tbody.innerHTML = "";
-        document.getElementById("counter").textContent = `عدد النتائج: ${results.length}`;
+function displayResults(results) {
+    const resultsContainer = document.getElementById("resultsBody");
+    resultsContainer.innerHTML = ""; // مسح أي نتائج قديمة في الجدول (سيتم إخفاء الجدول لاحقًا)
+    document.getElementById("counter").textContent = `عدد النتائج: ${results.length}`;
 
-        if (results.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="no-results">لا توجد نتائج مطابقة لبحثك.</td></tr>';
-            return;
-        }
-
-        results.forEach(item => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${item.Id || ''}</td>
-                <td><img class="product" src="${item.picture || ''}" alt="صورة"></td>
-                <td>${item.sizes || ''}</td>
-                <td>${item.price || ''}</td>
-             <td>
-               <a class="whatsapp-button" href="https://wa.me/9647766142936?text=مرحباً، أرغب بشراء المنتج التالي ID: ${item.Id || ''} - القياس: ${item.sizes || ''}" target="_blank" title="اطلب عبر واتساب">
-                <i class="fab fa-whatsapp"></i>
-              </a>
-           </td>
-            `;
-            tbody.appendChild(row);
-        });
+    if (results.length === 0) {
+        resultsContainer.innerHTML = '<div class="no-results">لا توجد نتائج مطابقة لبحثك.</div>';
+        return;
     }
+
+    const cardsContainer = document.createElement('div');
+    cardsContainer.className = 'product-card-container';
+
+    results.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'product-image-container';
+        const img = document.createElement('img');
+        img.className = 'product';
+        img.src = item.picture || '';
+        img.alt = 'صورة المنتج';
+        imageContainer.appendChild(img);
+        card.appendChild(imageContainer);
+
+        const details = document.createElement('div');
+        details.className = 'product-details';
+
+        const idElement = document.createElement('div');
+        idElement.className = 'product-id';
+        idElement.textContent = item.Id || '';
+        details.appendChild(idElement);
+
+        const sizesElement = document.createElement('div');
+        sizesElement.className = 'product-sizes';
+        sizesElement.textContent = item.sizes ? `القياسات: ${item.sizes}` : '';
+        details.appendChild(sizesElement);
+
+        const priceElement = document.createElement('div');
+        priceElement.className = 'product-price';
+        priceElement.textContent = item.price ? `${item.price} دينار` : ''; // يمكنك إضافة الوحدة هنا
+        details.appendChild(priceElement);
+
+        const orderButton = document.createElement('a');
+        orderButton.className = 'product-order-button';
+        orderButton.href = `https://wa.me/9647766142936?text=مرحباً، أرغب بشراء المنتج التالي ID: ${item.Id || ''} - القياس: ${item.sizes || ''}`;
+        orderButton.target = '_blank';
+        orderButton.title = 'اطلب عبر واتساب';
+        orderButton.innerHTML = '<i class="fab fa-whatsapp"></i> طلب';
+        details.appendChild(orderButton);
+
+        card.appendChild(details);
+        cardsContainer.appendChild(card);
+    });
+
+    // الحصول على الحاوية الجديدة وإضافة البطاقات إليها
+    const productsContainer = document.getElementById('productsContainer');
+    productsContainer.innerHTML = ''; // مسح أي محتوى سابق في الحاوية
+    productsContainer.appendChild(cardsContainer);
+
+    // إخفاء الجدول القديم (كما هو موجود)
+    const resultsTable = document.getElementById('resultsTable');
+    resultsTable.style.display = 'none';
+}
 
     function sortResults() {
         const sortOption = document.getElementById("sortSelect").value;
@@ -568,7 +693,5 @@ function toggleDarkMode() {
 </script>
 
 </body>
-
-</div>
 
 </html>
