@@ -473,11 +473,12 @@ td:nth-child(3) {
     .product-card-container {
         grid-template-columns: 1fr; /* عرض بطاقة واحدة في كل صف على الشاشات الصغيرة */
     }
-    .product-card img.product {
-        max-height: 200px; /* تحديد ارتفاع أقصى للصورة على الشاشات الصغيرة */
-        object-fit: contain; /* احتواء الصورة داخل الحاوية مع الحفاظ على نسبة الأبعاد */
+ .product-card img.product {
+        width: 100%; /* اجعل عرض الصورة 100% من حاويتها */
+        height: auto; /* الحفاظ على نسبة الأبعاد */
+        max-height: 200px; /* احتفظ بالحد الأقصى للارتفاع إذا كنت ترغب في ذلك */
+        object-fit: contain; /* هذا سيجعل الصورة تغطي الحاوية مع قص الأجزاء الزائدة إذا لزم الأمر */
     }
-}
 
 /* إخفاء الجدول القديم إذا كنت ستعتمد على البطاقات فقط */
 #resultsTable {
@@ -505,6 +506,19 @@ td:nth-child(3) {
 </div>
 
 <div class="filter-box">
+    <select id="typeFilter" onchange="applyFilters()">
+        <option value="">-- اختر النوع --</option>
+        <option value="بناتي">بناتي</option>
+        <option value="ولادي">ولادي</option>
+    </select>
+
+    <select id="seasonFilter" onchange="applyFilters()">
+        <option value="">-- اختر الموسم --</option>
+        <option value="صيفي">صيفي</option>
+        <option value="شتوي">شتوي</option>
+        <option value="بهاري">بهاري</option>
+    </select>
+
     <select id="sortSelect" onchange="sortResults()">
         <option value="">-- ترتيب حسب --</option>
         <option value="price-asc">السعر من الأقل</option>
@@ -577,6 +591,19 @@ function toggleDarkMode() {
             console.error("فشل تحميل البيانات:", error);
         }
     }
+
+function applyFilters() {
+    const typeValue = document.getElementById("typeFilter").value;
+    const seasonValue = document.getElementById("seasonFilter").value;
+
+    const filteredData = data.filter(item => {
+        const typeMatch = !typeValue || item.type === typeValue;
+        const seasonMatch = !seasonValue || item.season === seasonValue;
+        return typeMatch && seasonMatch;
+    });
+
+    displayResults(filteredData);
+}
 
 function displayResults(results) {
     const resultsContainer = document.getElementById("resultsBody");
@@ -664,10 +691,12 @@ function displayResults(results) {
         panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
     }
 
-    function resetSearch() {
-        document.getElementById("searchInput").value = "";
-        displayResults(data);
-    }
+function resetSearch() {
+    document.getElementById("searchInput").value = "";
+    document.getElementById("typeFilter").value = ""; // إعادة تعيين فلتر النوع
+    document.getElementById("seasonFilter").value = ""; // إعادة تعيين فلتر الموسم
+    displayResults(data); // عرض جميع البيانات الأصلية
+}
 
     // تحسين البحث الفوري
     const searchInput = document.getElementById("searchInput");
