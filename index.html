@@ -285,8 +285,11 @@ td:nth-child(3) {
     }
 
     .product-card-container {
-        grid-template-columns: 1fr; /* عرض بطاقة واحدة في كل صف على الشاشات الصغيرة */
-    }
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* محاولة عرض عمودين أو أكثر حسب المساحة */
+    /* أو بشكل ثابت: */
+    /* grid-template-columns: repeat(2, 1fr); */ /* سيحاول دائمًا عرض عمودين */
+    /* ... أنماط أخرى ... */
+  }
 
     .product-image-container {
         width: 100%;
@@ -424,12 +427,12 @@ td:nth-child(3) {
 }
 
 .product-details {
-    padding: 15px;
+    padding: 10px;
     text-align: center;
 }
 
 .product-id {
-    font-size: 1.1em;
+    font-size: 1em;
     font-weight: bold;
     color: #333;
     margin-bottom: 8px;
@@ -442,7 +445,7 @@ td:nth-child(3) {
 
 .product-price {
     color: #2196F3;
-    font-size: 1.2em;
+    font-size: 1.1em;
     font-weight: bold;
     margin-bottom: 10px;
 }
@@ -464,7 +467,12 @@ td:nth-child(3) {
 /* تعديل استعلامات @media لتناسب تصميم البطاقات */
 @media screen and (max-width: 600px) {
     .product-card-container {
-        grid-template-columns: 2fr; /* عرض بطاقة واحدة في كل صف على الشاشات الصغيرة */
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* محاولة عرض عمودين أو أكثر */
+        gap: 10px; /* إضافة تباعد بين البطاقات */
+        width: 98%; /* زيادة طفيفة في العرض إذا لزم الأمر */
+        margin: 10px auto; /* تقليل الهوامش إذا لزم الأمر */
+        padding: 10px;
     }
  .product-card img.product {
         width: 100%; /* اجعل عرض الصورة 100% من حاويتها */
