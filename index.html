@@ -91,12 +91,6 @@ body.dark-mode td {
     border-color: #444; /* لون حدود أغمق */
 }
 
-body.dark-mode img.product {
-    /* يمكنك تعديل هذه الأنماط إذا كنت تريد تغيير مظهر الصور في الدارك مود */
-    /* على سبيل المثال: */
-    /* opacity: 0.9; */
-    /* filter: grayscale(0.2); */
-}
 body.dark-mode .product-card button {
     background-color: #444;
     color: #fff;
@@ -990,7 +984,7 @@ function displayResults(results) {
         img.className = 'product';
         img.src = item.picture || '';
         img.alt = 'صورة المنتج';
-       loading="lazy"
+        img.loading="lazy"
         imageContainer.appendChild(img);
         card.appendChild(imageContainer);
         const details = document.createElement('div');
@@ -1076,7 +1070,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const savedCart = localStorage.getItem("cartItems");
   if (savedCart) {
     cartItems = JSON.parse(savedCart);
-    updateCartIcon(); // تحديث العدّاد أو عرض السلة
+    updateCartIcon();
   }
 });
 
@@ -1089,7 +1083,7 @@ function addToCart(productId, size, price) {
         return;
     }
     cartItems.push(item);
-localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    localStorage.setItem('cartItems', JSON.stringify(cartItems));
     updateCartIcon(); // تحديث عداد أو شكل السلة (يمكنك تركها فارغة الآن)
     showNotification("تمت إضافة المنتج إلى السلة!", "success"); // استخدام الإشعار الجديد
 }
@@ -1141,6 +1135,8 @@ function checkout() {
     }
 }
 function showNotification(message, type = 'info') {
+    const old = document.querySelector('.notification');
+    if (old) old.remove();
     const notificationDiv = document.createElement('div');
     notificationDiv.className = `notification ${type}`;
     notificationDiv.textContent = message;
@@ -1259,7 +1255,8 @@ function filterSizeOptions() {
 }
 
 function confirmAddToCart() {
-    const sizeInput = document.getElementById('sizeInput').value;
+    let sizeInput = document.getElementById('sizeInput').value.trim();
+    sizeInput = toEnglishDigits(sizeInput); // تحويل الأرقام العربية إلى إنجليزية
     if (sizeInput && currentProductSizeOptions.includes(sizeInput)) {
         addToCart(currentProductId, sizeInput, currentProductPrice);
         closeAddToCartDialog();
@@ -1300,9 +1297,14 @@ function closeCheckoutDialog() {
 
 function submitOrder() {
     const name = document.getElementById("customerName").value.trim();
-    const phone = document.getElementById("customerPhone").value.trim();
+    let phone = document.getElementById("customerPhone").value.trim();
+    phone = toEnglishDigits(phone); // تحويل الأرقام العربية إلى إنجليزية
     const address = document.getElementById("customerAddress").value.trim();
 
+if (!/^07\d{9}$/.test(phone)) {
+    showNotification("يرجى إدخال رقم هاتف عراقي صحيح يبدأ بـ 07 ويتكون من 11 رقم.", "warning");
+    return;
+}
     if (!name || !phone || !address) {
         showNotification("يرجى إدخال جميع المعلومات المطلوبة.", "warning");
         return;
@@ -1323,6 +1325,10 @@ function submitOrder() {
 
     closeCheckoutDialog();
     showNotification("تم إرسال الطلب عبر واتساب", "success");
+    cartItems = [];
+localStorage.removeItem('cartItems');
+updateCartIcon();
+document.getElementById('cartDetailsPanel').style.display = 'none';
 }
 window.addEventListener('offline', () => {
     showNotification("أنت غير متصل بالإنترنت!", "warning");
@@ -1331,11 +1337,12 @@ window.addEventListener('offline', () => {
 window.addEventListener('online', () => {
     showNotification("تم استعادة الاتصال بالإنترنت.", "success");
 });
+let allProducts = [];
 let currentIndex = 0;
 const pageSize = 20;
 
 function renderNextBatch() {
-    const container = document.getElementById("productContainer");
+    const container = document.getElementById("productsContainer");
     const productsToShow = allProducts.slice(currentIndex, currentIndex + pageSize);
     productsToShow.forEach(p => {
         const card = createProductCard(p); // دالة لإنشاء كرت المنتج
@@ -1349,6 +1356,11 @@ window.addEventListener("scroll", () => {
         renderNextBatch();
     }
 });
+// دالة تحويل الأرقام العربية إلى إنجليزية
+function toEnglishDigits(str) {
+    if (!str) return "";
+    return str.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+}
 
 </script>
 <button class="cart-float-button" onclick="viewCart()">
@@ -1357,7 +1369,7 @@ window.addEventListener("scroll", () => {
 </button>
 <div id="sizeInputDialog" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1003; text-align: center;">
     <h3>أدخل القياس المطلوب</h3>
-    <input type="text" id="sizeInput" autocomplete="off" oninput="filterSizeOptions()">
+    <input type="text" id="sizeInput" inputmode="numeric" dir="ltr" autocomplete="off">
     <div id="sizeSuggestions" style="display: none; position: absolute; left: 0; right: 0; top: 100%; background-color: white; border: 1px solid #ccc; border-top: none; list-style-type: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto;"></div>
     <button onclick="confirmAddToCart()">إضافة</button>
     <button onclick="cancelAddToCart()">إلغاء</button>
@@ -1368,7 +1380,7 @@ background-color: white; padding: 20px; border-radius: 10px; width: 90%; max-wid
 box-shadow: 0 0 15px rgba(0,0,0,0.3); z-index: 2000;">
   <h3 style="margin-bottom: 10px;">معلومات الزبون</h3>
   <input type="text" id="customerName" placeholder="الاسم الكامل" style="width: 100%; padding: 8px; margin-bottom: 8px;">
-  <input type="tel" id="customerPhone" placeholder="رقم الهاتف" style="width: 100%; padding: 8px; margin-bottom: 8px;">
+  <input type="tel" id="customerPhone" inputmode="numeric" dir="ltr" placeholder="رقم الهاتف" style="width: 100%; padding: 8px; margin-bottom: 8px;">
   <textarea id="customerAddress" placeholder="العنوان: المحافظة، المدينة، الحي، أقرب نقطة دالة" rows="3"
     style="width: 100%; padding: 8px; margin-bottom: 8px;"></textarea>
   <button onclick="submitOrder()" style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer;">تأكيد الطلب</button>
