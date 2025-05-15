@@ -950,6 +950,7 @@ function toggleDarkMode() {
         try {
             const response = await fetch(API_URL);
             data = await response.json();
+            localStorage.setItem('productsCache', JSON.stringify(data));
             displayResults(data);
         } catch (error) {
             console.error("فشل تحميل البيانات:", error);
@@ -1065,7 +1066,6 @@ function resetSearch() {
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
 let cartItems = [];
-
 window.addEventListener("DOMContentLoaded", () => {
   const savedCart = localStorage.getItem("cartItems");
   if (savedCart) {
@@ -1121,7 +1121,7 @@ function toggleCartDetails() {
 function removeFromCart(productId, size) {
     if (!confirm("هل أنت متأكد من حذف هذا المنتج من السلة؟")) return;
     cartItems = cartItems.filter(item => !(item.productId === productId && item.size === size));
-localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    localStorage.setItem('cartItems', JSON.stringify(cartItems));
     updateCartIcon(); // تحديث أيقونة السلة
     viewCart(); // إعادة عرض تفاصيل السلة بعد الحذف
     showNotification("تم حذف المنتج من السلة.", "success");
@@ -1281,13 +1281,13 @@ function closeAddToCartDialog() {
 
 function addToCart(productId, size, price) {
     const item = { productId, size, price };
-    // التحقق إذا كان المنتج مكرر
     const existing = cartItems.find(i => i.productId === productId && i.size === size && i.productId === productId);
     if (existing) {
         showNotification("المنتج موجود بالفعل في السلة.", "warning");
         return;
     }
     cartItems.push(item);
+    localStorage.setItem('cartItems', JSON.stringify(cartItems)); // تحديث التخزين
     updateCartIcon();
     showNotification(`تمت إضافة المنتج ${productId} بالقياس ${size} إلى السلة!`, "success");
 }
