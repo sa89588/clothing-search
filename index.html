@@ -237,6 +237,78 @@ body.dark-mode .contact-option:hover {
 body.dark-mode .contact-option:hover i {
     color: #222 !important;
 }
+body.dark-mode .scroll-buttons button[onclick*="location.reload"] {
+    background-color: #444 !important;
+    color: #fff !important;
+    border: none;
+}
+body.dark-mode .scroll-buttons button[onclick*="location.reload"]:hover {
+    background-color: #2196F3 !important;
+    color: #fff !important;
+}
+body.dark-mode #checkoutDialog {
+    background-color: #222;
+    color: #f0f0f0;
+    border: 1px solid #444;
+}
+
+body.dark-mode #checkoutDialog input,
+body.dark-mode #checkoutDialog textarea {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555;
+}
+
+body.dark-mode #checkoutDialog button {
+    background-color: #444;
+    color: #fff;
+    border: 1px solid #666;
+}
+
+body.dark-mode #checkoutDialog button:hover {
+    background-color: #2196F3;
+    color: #fff;
+}
+#checkoutDialog {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    z-index: 2000;
+    text-align: right;
+}
+#checkoutDialog input,
+#checkoutDialog textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+}
+#checkoutDialog button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 5px;
+}
+#checkoutDialog button:last-child {
+    background-color: #ccc;
+    color: #222;
+}
+#checkoutDialog button:hover {
+    opacity: 0.9;
+}
 .add-to-cart-button {
     display: inline-flex; /* لجعل الأيقونة والنص في نفس السطر */
     justify-content: center; /* توسيط المحتوى أفقياً */
@@ -713,6 +785,7 @@ td:nth-child(3) {
 <div class="welcome-message" id="welcome">أهلاً بكم في متجر جود العباس! تسوق سعيد 🌟</div>
 <div class="floating-buttons">
     <button onclick="toggleContactOptions()"><i class="fas fa-envelope"></i> </button>
+    <div id="contactOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1200;"></div>
     <div id="contactOptions" style="display: none;">
         <a href="https://wa.me/9647766142936" class="contact-option" target="_blank" title=""><i class="fab fa-whatsapp"></i> </a>
         <a href="https://www.instagram.com/jaiq19_/" class="contact-option" target="_blank" title=""><i class="fab fa-instagram"></i> </a>
@@ -772,6 +845,7 @@ td:nth-child(3) {
         <a href="https://www.facebook.com/profile.php?id=61573593535175" target="_blank" title="فيسبوك"><i class="fab fa-facebook"></i></a>
     </div>
 </div>
+<div id="cartOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000;"></div>
 <div class="cart-details-panel" id="cartDetailsPanel">
     <h3><i class="fas fa-shopping-cart"></i> تفاصيل السلة</h3>
     <ul id="cartItemsList">
@@ -782,6 +856,7 @@ td:nth-child(3) {
     <button class="close-cart-button" onclick="toggleCartDetails()">
         <i class="fas fa-times"></i> إغلاق
     </button>
+
 </div>
 <style>
 .measurements-float-button {
@@ -1161,21 +1236,34 @@ function viewCart() {
         cartItemsList.innerHTML = '<li>السلة فارغة.</li>';
     } else {
         cartItems.forEach((item, index) => {
+            const product = data.find(p => p.Id == item.productId);
+            const imgSrc = product && product.picture ? product.picture : 'placeholder.jpg';
             const listItem = document.createElement('li');
             listItem.innerHTML = `
+                <img src="${imgSrc}" alt="صورة" style="width:40px;height:40px;border-radius:6px;margin-left:8px;">
                 <div class="item-details">
                     ID: ${item.productId} - القياس: ${item.size} - السعر: ${item.price} دينار
                 </div>
                 <button class="remove-button" onclick="removeFromCart('${item.productId}', '${item.size}')"><i class="fas fa-trash-alt"></i></button>
-            `;
+           `;
+           
             cartItemsList.appendChild(listItem);
         });
     }
     cartDetailsPanel.style.display = 'block';
+    document.getElementById('cartOverlay').style.display = 'block'; // أضف هذا السطر
 }
 function toggleCartDetails() {
     const cartDetailsPanel = document.getElementById('cartDetailsPanel');
     cartDetailsPanel.style.display = (cartDetailsPanel.style.display === 'block') ? 'none' : 'block';
+    const cartOverlay = document.getElementById('cartOverlay');
+    if (cartDetailsPanel.style.display === 'block') {
+        cartDetailsPanel.style.display = 'none';
+        cartOverlay.style.display = 'none'; // عند الإغلاق
+    } else {
+        cartDetailsPanel.style.display = 'block';
+        cartOverlay.style.display = 'block'; // عند الفتح
+    }
 }
 function removeFromCart(productId, size) {
     if (!confirm("هل أنت متأكد من حذف هذا المنتج من السلة؟")) return;
@@ -1186,9 +1274,119 @@ function removeFromCart(productId, size) {
     showNotification("تم حذف المنتج من السلة.", "success");
 }
     fetchData();
+function setupCheckoutDialogKeyboard() {
+    const nameInput = document.getElementById("customerName");
+    const phoneInput = document.getElementById("customerPhone");
+    const addressInput = document.getElementById("customerAddress");
+
+    // إضافة عناصر رسالة الخطأ إذا لم تكن موجودة
+    let nameError = document.getElementById("nameError");
+    if (!nameError && nameInput) {
+        nameError = document.createElement("span");
+        nameError.id = "nameError";
+        nameError.style.color = "red";
+        nameError.style.fontSize = "13px";
+        nameError.style.display = "none";
+        nameInput.parentNode.insertBefore(nameError, nameInput.nextSibling);
+    }
+    let phoneError = document.getElementById("phoneError");
+    if (!phoneError && phoneInput) {
+        phoneError = document.createElement("span");
+        phoneError.id = "phoneError";
+        phoneError.style.color = "red";
+        phoneError.style.fontSize = "13px";
+        phoneError.style.display = "none";
+        phoneInput.parentNode.insertBefore(phoneError, phoneInput.nextSibling);
+    }
+    let addressError = document.getElementById("addressError");
+    if (!addressError && addressInput) {
+        addressError = document.createElement("span");
+        addressError.id = "addressError";
+        addressError.style.color = "red";
+        addressError.style.fontSize = "13px";
+        addressError.style.display = "none";
+        addressInput.parentNode.insertBefore(addressError, addressInput.nextSibling);
+    }
+
+    if (nameInput && phoneInput && addressInput) {
+        nameInput.onkeydown = function(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                phoneInput.focus();
+            }
+        };
+        phoneInput.onkeydown = function(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                addressInput.focus();
+            }
+        };
+        addressInput.onkeydown = function(e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submitOrder();
+            }
+        };
+
+        // تحقق فوري من صحة الاسم
+        nameInput.addEventListener("input", function() {
+            if (this.value.trim().length < 2) {
+                this.style.borderColor = "red";
+                if (nameError) {
+                    nameError.textContent = "يرجى إدخال الاسم الكامل";
+                    nameError.style.display = "block";
+                }
+            } else {
+                this.style.borderColor = "#4CAF50";
+                if (nameError) {
+                    nameError.textContent = "";
+                    nameError.style.display = "none";
+                }
+            }
+        });
+
+        // تحقق فوري من صحة رقم الهاتف
+        phoneInput.addEventListener("input", function() {
+            const value = toEnglishDigits(this.value.trim());
+            if (!/^07\d{9}$/.test(value)) {
+                this.style.borderColor = "red";
+                if (phoneError) {
+                    phoneError.textContent = "يرجى إدخال رقم عراقي صحيح يبدأ بـ 07 ويتكون من 11 رقم";
+                    phoneError.style.display = "block";
+                }
+            } else {
+                this.style.borderColor = "#4CAF50";
+                if (phoneError) {
+                    phoneError.textContent = "";
+                    phoneError.style.display = "none";
+                }
+            }
+        });
+
+        // تحقق فوري من صحة العنوان
+        addressInput.addEventListener("input", function() {
+            if (this.value.trim().length < 15) {
+                this.style.borderColor = "red";
+                if (addressError) {
+                    addressError.textContent = "يرجى إدخال العنوان كامل";
+                    addressError.style.display = "block";
+                }
+            } else {
+                this.style.borderColor = "#4CAF50";
+                if (addressError) {
+                    addressError.textContent = "";
+                    addressError.style.display = "none";
+                }
+            }
+        });
+    }
+}
 function checkout() {
     if (cartItems.length > 0) {
         document.getElementById("checkoutDialog").style.display = "block";
+        document.getElementById("checkoutOverlay").style.display = "block"; // إظهار الـ overlay
+        setupCheckoutDialogKeyboard();
+        document.getElementById("customerName").focus();
     } else {
         showNotification("السلة فارغة، لا يوجد منتجات لإتمام شرائها.", "warning");
     }
@@ -1199,43 +1397,64 @@ function showNotification(message, type = 'info') {
     const notificationDiv = document.createElement('div');
     notificationDiv.className = `notification ${type}`;
     notificationDiv.textContent = message;
-    // يمكنك إضافة أنماط CSS مباشرة هنا إذا كنت لا تفضل وضعها في ملف CSS
-    notificationDiv.style.position = 'fixed';
-    notificationDiv.style.top = '20px';
-    notificationDiv.style.left = '50%';
-    notificationDiv.style.transform = 'translateX(-50%)';
-    notificationDiv.style.backgroundColor = '#f8f9fa';
-    notificationDiv.style.color = '#333';
-    notificationDiv.style.padding = '15px 20px';
-    notificationDiv.style.borderRadius = '8px';
-    notificationDiv.style.zIndex = '1000';
-    notificationDiv.style.opacity = '0';
-    notificationDiv.style.transition = 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out';
-    notificationDiv.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-    if (type === 'success') {
-        notificationDiv.style.backgroundColor = '#d4edda';
-        notificationDiv.style.color = '#155724';
-    } else if (type === 'warning') {
-        notificationDiv.style.backgroundColor = '#fff3cd';
-        notificationDiv.style.color = '#85640a';
-    } else if (type === 'error') {
-        notificationDiv.style.backgroundColor = '#f8d7da';
-        notificationDiv.style.color = '#721c24';
+
+    // إشعار التحديث التلقائي: صغير في الزاوية السفلية اليسرى
+    if (message.includes("تم تحديث البيانات تلقائياً")) {
+        notificationDiv.style.position = 'fixed';
+        notificationDiv.style.bottom = '20px';
+        notificationDiv.style.left = '20px';
+        notificationDiv.style.top = '';
+        notificationDiv.style.transform = '';
+        notificationDiv.style.backgroundColor = '#e3f2fd';
+        notificationDiv.style.color = '#2196F3';
+        notificationDiv.style.padding = '8px 14px';
+        notificationDiv.style.fontSize = '14px';
+        notificationDiv.style.borderRadius = '6px';
+        notificationDiv.style.zIndex = '1000';
+        notificationDiv.style.opacity = '0.85';
+        notificationDiv.style.boxShadow = '0 2px 5px rgba(0,0,0,0.08)';
+    } else {
+        // باقي الإشعارات: في الأعلى
+        notificationDiv.style.position = 'fixed';
+        notificationDiv.style.top = '20px';
+        notificationDiv.style.left = '50%';
+        notificationDiv.style.transform = 'translateX(-50%)';
+        notificationDiv.style.backgroundColor = '#f8f9fa';
+        notificationDiv.style.color = '#333';
+        notificationDiv.style.padding = '15px 20px';
+        notificationDiv.style.borderRadius = '8px';
+        notificationDiv.style.zIndex = '1000';
+        notificationDiv.style.opacity = '0';
+        notificationDiv.style.transition = 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out';
+        notificationDiv.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+        if (type === 'success') {
+            notificationDiv.style.backgroundColor = '#d4edda';
+            notificationDiv.style.color = '#155724';
+        } else if (type === 'warning') {
+            notificationDiv.style.backgroundColor = '#fff3cd';
+            notificationDiv.style.color = '#85640a';
+        } else if (type === 'error') {
+            notificationDiv.style.backgroundColor = '#f8d7da';
+            notificationDiv.style.color = '#721c24';
+        }
     }
+
     document.body.appendChild(notificationDiv);
+
     // إظهار الإشعار بعد جزء من الثانية لتفعيل الانتقال
     setTimeout(() => {
         notificationDiv.style.opacity = '1';
-        notificationDiv.style.transform = 'translateY(0)';
+        notificationDiv.style.transform = notificationDiv.style.transform || 'translateY(0)';
     }, 50);
+
     // إزالة الإشعار بعد فترة زمنية قصيرة
     setTimeout(() => {
         notificationDiv.style.opacity = '0';
-        notificationDiv.style.transform = 'translateY(-20px)';
+        notificationDiv.style.transform = notificationDiv.style.transform || 'translateY(-20px)';
         setTimeout(() => {
             notificationDiv.remove();
-        }, 300); // تأخير بسيط لإكمال تأثير التلاشي
-    }, 3000); // 3 ثواني (يمكن تعديل هذه المدة)
+        }, 300);
+    }, message.includes("تم تحديث البيانات تلقائياً") ? 1200 : 3000); // إشعار التحديث يختفي بسرعة
 }
 // عناصر سلة التسوق (بافتراض وجودها)
 const cartButton = document.querySelector('.cart-float-button');
@@ -1352,6 +1571,7 @@ function addToCart(productId, size, price) {
 }
 function closeCheckoutDialog() {
     document.getElementById("checkoutDialog").style.display = "none";
+    document.getElementById("checkoutOverlay").style.display = "none";
 }
 
 function submitOrder() {
@@ -1360,10 +1580,6 @@ function submitOrder() {
     phone = toEnglishDigits(phone); // تحويل الأرقام العربية إلى إنجليزية
     const address = document.getElementById("customerAddress").value.trim();
 
-if (!/^07\d{9}$/.test(phone)) {
-    showNotification("يرجى إدخال رقم هاتف عراقي صحيح يبدأ بـ 07 ويتكون من 11 رقم.", "warning");
-    return;
-}
     if (!name || !phone || !address) {
         showNotification("يرجى إدخال جميع المعلومات المطلوبة.", "warning");
         return;
@@ -1420,7 +1636,78 @@ function toEnglishDigits(str) {
     if (!str) return "";
     return str.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
 }
+function autoRefreshData() {
+    setInterval(async () => {
+        try {
+            const response = await fetch(API_URL);
+            const newData = await response.json();
+            data = newData;
+            localStorage.setItem('productsCache', JSON.stringify(data));
+            displayResults(data);
+            showNotification("تم تحديث البيانات تلقائياً.", "info");
 
+            // تحقق من توفر المنتجات في السلة
+            let removedItems = [];
+            cartItems = cartItems.filter(item => {
+                const found = data.find(p => p.Id == item.productId);
+                // تحقق من توفر القياس
+                if (!found || !found.sizes || !found.sizes.includes(item.size)) {
+                    removedItems.push(item);
+                    return false;
+                }
+                return true;
+            });
+            if (removedItems.length > 0) {
+            localStorage.setItem('cartItems', JSON.stringify(cartItems));
+            updateCartIcon();
+            viewCart();
+            // بناء رسالة مفصلة لكل منتج محذوف
+            const removedMsg = removedItems.map(item => `ID: ${item.productId} - القياس: ${item.size}`).join(' | ');
+            showNotification(`تم حذف المنتجات التالية من السلة لأنها لم تعد متوفرة: ${removedMsg}`, "warning");
+            }
+        } catch (error) {
+            console.error("فشل التحديث التلقائي للبيانات:", error);
+        }
+    }, 20000); // 20000ms = 20 ثانية (يمكنك تغييرها إلى 30000 لـ 30 ثانية)
+}
+
+// استدعاء التحديث التلقائي عند تحميل الصفحة
+window.addEventListener("DOMContentLoaded", () => {
+    autoRefreshData();
+    document.getElementById("checkoutOverlay").onclick = closeCheckoutDialog;
+    document.getElementById("cartOverlay").onclick = function() {
+        document.getElementById("cartDetailsPanel").style.display = "none";
+        document.getElementById("cartOverlay").style.display = "none";
+    };
+    document.getElementById("contactOverlay").onclick = function() {
+        document.getElementById("contactOptions").style.display = "none";
+        document.getElementById("contactOverlay").style.display = "none";
+    };
+});
+function showAddToCartDialog(productId, sizeOptions, price) {
+    currentProductId = productId;
+    currentProductSizeOptions = sizeOptions;
+    currentProductPrice = price;
+    const sizeInputDialog = document.getElementById('sizeInputDialog');
+    sizeInputDialog.style.display = 'block';
+    const sizeInput = document.getElementById('sizeInput');
+    sizeInput.value = '';
+    document.getElementById('sizeSuggestions').style.display = 'none';
+
+    // التركيز على حقل الإدخال
+    sizeInput.focus();
+
+    // إزالة أي مستمع سابق لتجنب التكرار
+    sizeInput.onkeydown = function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            confirmAddToCart();
+        } else if (e.key === "Escape") {
+            e.preventDefault();
+            cancelAddToCart();
+        }
+    };
+}
 </script>
 <button class="cart-float-button" onclick="viewCart()">
     <i class="fas fa-shopping-cart"></i> السلة
@@ -1433,18 +1720,14 @@ function toEnglishDigits(str) {
     <button onclick="confirmAddToCart()">إضافة</button>
     <button onclick="cancelAddToCart()">إلغاء</button>
 </div>
-
-<!-- نافذة إدخال بيانات الزبون -->
-<div id="checkoutDialog" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-background-color: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px;
-box-shadow: 0 0 15px rgba(0,0,0,0.3); z-index: 2000;">
-  <h3 style="margin-bottom: 10px;">معلومات الزبون</h3>
-  <input type="text" id="customerName" placeholder="الاسم الكامل" style="width: 100%; padding: 8px; margin-bottom: 8px;">
-  <input type="tel" id="customerPhone" inputmode="numeric" dir="ltr" placeholder="رقم الهاتف" style="width: 100%; padding: 8px; margin-bottom: 8px;">
-  <textarea id="customerAddress" placeholder="العنوان: المحافظة، المدينة، الحي، أقرب نقطة دالة" rows="3"
-    style="width: 100%; padding: 8px; margin-bottom: 8px;"></textarea>
-  <button onclick="submitOrder()" style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer;">تأكيد الطلب</button>
-  <button onclick="closeCheckoutDialog()" style="margin-right: 10px; background-color: #ccc; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer;">إلغاء</button>
+<div id="checkoutOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1999;"></div>
+<div id="checkoutDialog">
+  <h3>معلومات الزبون</h3>
+  <input type="text" id="customerName" placeholder="الاسم الكامل" tabindex="0">
+  <input type="tel" id="customerPhone" inputmode="numeric" dir="ltr" placeholder="رقم الهاتف" tabindex="0">
+  <textarea id="customerAddress" placeholder="العنوان..." rows="3" tabindex="0"></textarea>
+  <button onclick="submitOrder()" tabindex="0" aria-label="تأكيد الطلب">تأكيد الطلب</button>
+  <button onclick="closeCheckoutDialog()" tabindex="0" aria-label="إلغاء">إلغاء</button>
 </div>
 </body>
-</html> 
+</html>
