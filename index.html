@@ -34,7 +34,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jood ALabbas Store</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
 <style>
 body.dark-mode {
     background-color: #121212;
@@ -52,16 +52,6 @@ body.dark-mode .floating-panel {
     background-color: #2c2c2c;
     color: #f0f0f0;
 }
-body.dark-mode table {
-    background-color: #1e1e1e;
-    color: #f0f0f0;
-}
-body.dark-mode th {
-    background-color: #2c2c2c;
-}
-body.dark-mode td {
-    border-color: #444;
-}
 body.dark-mode .search-box input,
 body.dark-mode .search-box button,
 body.dark-mode select {
@@ -77,20 +67,6 @@ body.dark-mode .scroll-buttons button:hover,
 body.dark-mode .floating-buttons button:hover {
     background-color: #666;
 }
-body.dark-mode table {
-    background-color: #1e1e1e; /* خلفية أغمق للجدول */
-    color: #f0f0f0; /* نص أفتح */
-    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1); /* ظل أفتح */
-}
-
-body.dark-mode th {
-    background-color: #2c2c2c; /* خلفية أغمق لرأس الجدول */
-}
-
-body.dark-mode td {
-    border-color: #444; /* لون حدود أغمق */
-}
-
 body.dark-mode .product-card button {
     background-color: #444;
     color: #fff;
@@ -457,35 +433,6 @@ body.dark-mode #checkoutDialog button:hover {
             border: none;
     white-space: nowrap; /* لمنع النص من الالتفاف */
         }
-        table {
-            width: 95%;
-            margin: 20px auto;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            animation: fadeIn 0.8s;
-        }
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-            text-align: center;
-        }
-        th {
-            background-color: #f9f9f9;
-            font-weight: bold;
-        }
-        /* زيادة عرض خلية الصورة */
-        th:nth-child(2),
-        td:nth-child(2) {
-            width: 250px; /* يمكنك تعديل هذه القيمة حسب الحاجة */
-        }
-      th:nth-child(3),
-td:nth-child(3) {
-    width: 100px; /* أو القيمة التي تراها مناسبة لتقليل العرض */
-    word-wrap: break-word;
-    white-space: normal;
-}
         img.product {
             max-width: 200%; /* التأكد من أن الصورة لا تتجاوز عرض الخلية */
             height: auto;
@@ -560,23 +507,6 @@ td:nth-child(3) {
     .scroll-buttons {
         right: 5px;
         bottom: 10px;
-    }
-    table {
-        width: 100%;
-        overflow-x: auto;
-        display: block;
-        white-space: nowrap;
-        font-size: 14px;
-        border-collapse: collapse;
-    }
-    th, td {
-        padding: 10px 8px;
-        min-width: 100px;
-        text-align: center;
-    }
-    th:nth-child(2),
-    td:nth-child(2) {
-        min-width: 160px;
     }
     .product-card-container {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* محاولة عرض عمودين أو أكثر حسب المساحة */
@@ -772,10 +702,6 @@ td:nth-child(3) {
         max-height: 200px; /* احتفظ بالحد الأقصى للارتفاع إذا كنت ترغب في ذلك */
         object-fit: contain; /* هذا سيجعل الصورة تغطي الحاوية مع قص الأجزاء الزائدة إذا لزم الأمر */
     }
-/* إخفاء الجدول القديم إذا كنت ستعتمد على البطاقات فقط */
-#resultsTable {
-    display: none;
-}
     </style>
 </head>
 <body>
@@ -798,9 +724,6 @@ td:nth-child(3) {
 </button>
 <div class="measurement-list-panel" id="measurementListPanel">
     <h3><i class="fas fa-ruler-vertical"></i> دليل القياسات</h3>
-    <button class="close-measurements-button" onclick="toggleMeasurementsList()">
-        <i class="fas fa-times"></i> إغلاق
-    </button>
     <ul>
         <li>80 - 1 year</li>
         <li>90 - 2 years</li>
@@ -853,10 +776,6 @@ td:nth-child(3) {
     <button class="checkout-button" onclick="checkout()">
         <i class="fab fa-whatsapp"></i> إتمام الشراء
     </button>
-    <button class="close-cart-button" onclick="toggleCartDetails()">
-        <i class="fas fa-times"></i> إغلاق
-    </button>
-
 </div>
 <style>
 .measurements-float-button {
@@ -1044,18 +963,6 @@ td:nth-child(3) {
     }
 }
 </style>
-<table id="resultsTable">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>الصورة</th>
-            <th>القياسات</th>
-            <th>السعر</th>
-            <th>طلب</th>
-        </tr>
-    </thead>
-    <tbody id="resultsBody"></tbody>
-</table>
 <footer>
     &copy; 2025 متجر جود العباس - جميع الحقوق محفوظة
 </footer>
@@ -1101,41 +1008,52 @@ function applyFilters() {
     displayResults(filteredData);
 }
 function displayResults(results) {
-    const resultsContainer = document.getElementById("resultsBody");
-    resultsContainer.innerHTML = ""; // مسح أي نتائج قديمة في الجدول (سيتم إخفاء الجدول لاحقًا)
+    const productsContainer = document.getElementById('productsContainer');
     document.getElementById("counter").textContent = `عدد النتائج: ${results.length}`;
+    productsContainer.innerHTML = ''; // مسح أي محتوى سابق في الحاوية
+
     if (results.length === 0) {
-        resultsContainer.innerHTML = '<div class="no-results">لا توجد نتائج مطابقة لبحثك.</div>';
+        productsContainer.innerHTML = '<div class="no-results">لا توجد نتائج مطابقة لبحثك.</div>';
         return;
     }
+
     const cardsContainer = document.createElement('div');
     cardsContainer.className = 'product-card-container';
+
     results.forEach(item => {
         const card = document.createElement('div');
         card.className = 'product-card';
+
         const imageContainer = document.createElement('div');
         imageContainer.className = 'product-image-container';
         const img = document.createElement('img');
         img.className = 'product';
         img.src = item.picture || '';
         img.alt = 'صورة المنتج';
-        img.loading="lazy"
+        img.loading = "lazy";
+        img.width = 200;
+        img.height = 200;
         imageContainer.appendChild(img);
         card.appendChild(imageContainer);
+
         const details = document.createElement('div');
         details.className = 'product-details';
+
         const idElement = document.createElement('div');
         idElement.className = 'product-id';
         idElement.textContent = item.Id || '';
         details.appendChild(idElement);
+
         const sizesElement = document.createElement('div');
         sizesElement.className = 'product-sizes';
         sizesElement.textContent = item.sizes ? `القياسات: ${item.sizes}` : '';
         details.appendChild(sizesElement);
+
         const priceElement = document.createElement('div');
         priceElement.className = 'product-price';
-        priceElement.textContent = item.price ? `${item.price} دينار` : ''; // يمكنك إضافة الوحدة هنا
+        priceElement.textContent = item.price ? `${item.price} دينار` : '';
         details.appendChild(priceElement);
+
         const orderButton = document.createElement('a');
         orderButton.className = 'product-order-button';
         orderButton.href = `https://wa.me/9647766142936?text=مرحباً، أرغب بشراء المنتج التالي ID: ${item.Id || ''} - القياس: ${item.sizes || ''}`;
@@ -1143,24 +1061,21 @@ function displayResults(results) {
         orderButton.title = 'اطلب عبر واتساب';
         orderButton.innerHTML = '<i class="fab fa-whatsapp"></i> طلب';
         details.appendChild(orderButton);
-// إضافة زر "إضافة إلى السلة" هنا
-const addToCartButton = document.createElement('button');
-addToCartButton.className = 'add-to-cart-button';
-addToCartButton.innerHTML = '<i class="fas fa-shopping-cart"></i> إضافة للسلة';
-addToCartButton.onclick = () => {
-    showAddToCartDialog(item.Id, item.sizes, item.price);
-};
-details.appendChild(addToCartButton);
-card.appendChild(details);
-cardsContainer.appendChild(card);
-});
-    // الحصول على الحاوية الجديدة وإضافة البطاقات إليها
-    const productsContainer = document.getElementById('productsContainer');
-    productsContainer.innerHTML = ''; // مسح أي محتوى سابق في الحاوية
+
+        // زر إضافة للسلة
+        const addToCartButton = document.createElement('button');
+        addToCartButton.className = 'add-to-cart-button';
+        addToCartButton.innerHTML = '<i class="fas fa-shopping-cart"></i> إضافة للسلة';
+        addToCartButton.onclick = () => {
+            showAddToCartDialog(item.Id, item.sizes, item.price);
+        };
+        details.appendChild(addToCartButton);
+
+        card.appendChild(details);
+        cardsContainer.appendChild(card);
+    });
+
     productsContainer.appendChild(cardsContainer);
-    // إخفاء الجدول القديم (كما هو موجود)
-    const resultsTable = document.getElementById('resultsTable');
-    resultsTable.style.display = 'none';
 }
     function sortResults() {
         const sortOption = document.getElementById("sortSelect").value;
@@ -1708,6 +1623,16 @@ function showAddToCartDialog(productId, sizeOptions, price) {
         }
     };
 }
+document.addEventListener('keydown', function(e) {
+    if (e.key === "Escape") {
+        closeCheckoutDialog();
+        document.getElementById("cartDetailsPanel").style.display = "none";
+        document.getElementById("cartOverlay").style.display = "none";
+        document.getElementById("contactOptions").style.display = "none";
+        document.getElementById("contactOverlay").style.display = "none";
+        document.getElementById("measurementListPanel").style.display = "none";
+    }
+});
 </script>
 <button class="cart-float-button" onclick="viewCart()">
     <i class="fas fa-shopping-cart"></i> السلة
