@@ -696,7 +696,7 @@ body.dark-mode #checkoutDialog button:hover {
         margin: 10px auto; /* تقليل الهوامش إذا لزم الأمر */
         padding: 10px;
     }
- .product-card img.product {
+    .product-card img.product {
         width: 100%; /* اجعل عرض الصورة 100% من حاويتها */
         height: auto; /* الحفاظ على نسبة الأبعاد */
         max-height: 200px; /* احتفظ بالحد الأقصى للارتفاع إذا كنت ترغب في ذلك */
@@ -1409,18 +1409,6 @@ let currentProductId = null;
 let currentProductSizeOptions = null;
 let currentProductPrice = null;
 
-function showAddToCartDialog(productId, sizeOptions, price) {
-    currentProductId = productId;
-    currentProductSizeOptions = sizeOptions; // تخزين خيارات القياس المتاحة
-    currentProductPrice = price;
-    const sizeInputDialog = document.getElementById('sizeInputDialog');
-    sizeInputDialog.style.display = 'block';
-    document.getElementById('sizeInput').value = ''; // مسح القيمة السابقة
-    document.getElementById('sizeSuggestions').style.display = 'none'; // إخفاء الاقتراحات
-
-    console.log("Size Options:", currentProductSizeOptions); // تحقق من البيانات هنا
-}
-
 function filterSizeOptions() {
     const input = document.getElementById('sizeInput').value.toLowerCase();
     const suggestionsDiv = document.getElementById('sizeSuggestions');
@@ -1558,14 +1546,15 @@ function autoRefreshData() {
             const newData = await response.json();
             data = newData;
             localStorage.setItem('productsCache', JSON.stringify(data));
-            displayResults(data);
             showNotification("تم تحديث البيانات تلقائياً.", "info");
+
+            // إعادة تطبيق البحث والفلاتر والترتيب الحالية
+            reApplyFiltersAndSearch();
 
             // تحقق من توفر المنتجات في السلة
             let removedItems = [];
             cartItems = cartItems.filter(item => {
                 const found = data.find(p => p.Id == item.productId);
-                // تحقق من توفر القياس
                 if (!found || !found.sizes || !found.sizes.includes(item.size)) {
                     removedItems.push(item);
                     return false;
@@ -1573,17 +1562,48 @@ function autoRefreshData() {
                 return true;
             });
             if (removedItems.length > 0) {
-            localStorage.setItem('cartItems', JSON.stringify(cartItems));
-            updateCartIcon();
-            viewCart();
-            // بناء رسالة مفصلة لكل منتج محذوف
-            const removedMsg = removedItems.map(item => `ID: ${item.productId} - القياس: ${item.size}`).join(' | ');
-            showNotification(`تم حذف المنتجات التالية من السلة لأنها لم تعد متوفرة: ${removedMsg}`, "warning");
+                localStorage.setItem('cartItems', JSON.stringify(cartItems));
+                updateCartIcon();
+                viewCart();
+                const removedMsg = removedItems.map(item => `ID: ${item.productId} - القياس: ${item.size}`).join(' | ');
+                showNotification(`تم حذف المنتجات التالية من السلة لأنها لم تعد متوفرة: ${removedMsg}`, "warning");
             }
         } catch (error) {
             console.error("فشل التحديث التلقائي للبيانات:", error);
         }
-    }, 20000); // 20000ms = 20 ثانية (يمكنك تغييرها إلى 30000 لـ 30 ثانية)
+    }, 20000);
+}
+
+// دالة جديدة لإعادة تطبيق البحث والفلاتر والترتيب
+function reApplyFiltersAndSearch() {
+    const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
+    const seasonValue = document.getElementById("seasonFilter").value;
+    const sortValue = document.getElementById("sortSelect").value;
+
+    let filtered = [...data];
+
+    // فلترة حسب الموسم
+    if (seasonValue) {
+        filtered = filtered.filter(item => item.season === seasonValue);
+    }
+
+    // بحث نصي
+    if (searchValue) {
+        filtered = filtered.filter(item => {
+            const id = item.Id ? item.Id.toString().toLowerCase() : "";
+            const size = item.sizes ? item.sizes.toString().toLowerCase() : "";
+            return id.includes(searchValue) || size.includes(searchValue);
+        });
+    }
+
+    // ترتيب
+    if (sortValue === "price-asc") {
+        filtered.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+    } else if (sortValue === "price-desc") {
+        filtered.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+    }
+
+    displayResults(filtered);
 }
 
 // استدعاء التحديث التلقائي عند تحميل الصفحة
