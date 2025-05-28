@@ -1054,14 +1054,6 @@ function displayResults(results) {
         priceElement.textContent = item.price ? `${item.price} دينار` : '';
         details.appendChild(priceElement);
 
-        const orderButton = document.createElement('a');
-        orderButton.className = 'product-order-button';
-        orderButton.href = `https://wa.me/9647766142936?text=مرحباً، أرغب بشراء المنتج التالي ID: ${item.Id || ''} - القياس: ${item.sizes || ''}`;
-        orderButton.target = '_blank';
-        orderButton.title = 'اطلب عبر واتساب';
-        orderButton.innerHTML = '<i class="fab fa-whatsapp"></i> طلب';
-        details.appendChild(orderButton);
-
         // زر إضافة للسلة
         const addToCartButton = document.createElement('button');
         addToCartButton.className = 'add-to-cart-button';
