@@ -108,11 +108,6 @@ body.dark-mode .product-card .whatsapp-button {
 body.dark-mode .product-card .whatsapp-button:hover {
     background-color: #777 ;
 }
-body.dark-mode .measurement-list-panel {
-    background-color: #1e1e1e;
-    color: #f0f0f0;
-    border: 1px solid #444;
-}
 body.dark-mode .measurements-float-button {
     background-color: #444;
     color: #fff;
@@ -722,24 +717,7 @@ body.dark-mode #checkoutDialog button:hover {
         </div>
     <button onclick="toggleDarkMode()" id="themeToggle"><i class="fas fa-moon"></i></button>
 </div>
-<button class="measurements-float-button" onclick="toggleMeasurementsList()">
-    <i class="fas fa-ruler-vertical"></i> <span class="measurements-count" id="measurementsCounter">?</span>
-</button>
-<div class="measurement-list-panel" id="measurementListPanel">
-    <h3><i class="fas fa-ruler-vertical"></i> دليل القياسات</h3>
-    <ul>
-        <li>80 - 1 year</li>
-        <li>90 - 2 years</li>
-        <li>100 - 3 years</li>
-        <li>110 - 4 years</li>
-        <li>120 - 4-5 years</li>
-        <li>130 - 6-7 years</li>
-        <li>140 - 8-9 years</li>
-        <li>150 - 10-11 years</li>
-        <li>160 - 12-13 years</li>
-        <li>170 - 14-15 years</li>
-    </ul>
-</div>
+
 <div class="search-box">
     <input type="text" id="searchInput" placeholder="ابحث عن القياس أو ID">
     <button onclick="resetSearch()">إعادة تعيين</button>
@@ -781,64 +759,6 @@ body.dark-mode #checkoutDialog button:hover {
     </button>
 </div>
 <style>
-.measurements-float-button {
-    position: fixed;
-    bottom: 80px; /* يمكنك تعديل هذا الموضع ليكون بجوار زر السلة */
-    left: 20px; /* نفس موضع زر السلة أو تعديله حسب الحاجة */
-    background-color: #ffc107; /* لون أصفر مميز */
-    color: #333;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 50px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    font-size: 16px;
-    z-index: 998; /* أقل من زر السلة قليلاً إذا كان هناك تداخل */
-    cursor: pointer;
-}
-.measurements-float-button i {
-    margin-left: 6px;
-}
-.measurement-list-panel {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    z-index: 1002; /* أعلى من أي شيء آخر تقريبًا */
-    display: none; /* مخفي بشكل افتراضي */
-    text-align: right;
-}
-.measurement-list-panel h3 {
-    margin-bottom: 15px;
-}
-.measurement-list-panel ul {
-    list-style: none;
-    padding: 0;
-    margin-bottom: 15px;
-    max-height: 300px;
-    overflow-y: auto;
-}
-.measurement-list-panel li {
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-}
-.measurement-list-panel li:last-child {
-    border-bottom: none;
-}
-.close-measurements-button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
-    background-color: #f44336;
-    color: white;
-}
 #contactOptions {
     display: flex;
     flex-direction: column;
@@ -880,12 +800,17 @@ body.dark-mode #checkoutDialog button:hover {
     transform: translate(-50%, -50%);
     background-color: white;
     border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 18px 10px 10px 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
     z-index: 1001;
-    display: none; /* مخفي بشكل افتراضي */
+    display: none;
     text-align: right;
+    width: 95vw;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    font-size: 16px;
 }
 .contact-option:hover {
     background: #2196F3;
@@ -893,76 +818,96 @@ body.dark-mode #checkoutDialog button:hover {
     transform: scale(1.1);
 }
 .cart-details-panel h3 {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
+    font-size: 1.2em;
+    color: #2196F3;
+    text-align: center;
 }
+
 .cart-details-panel ul {
     list-style: none;
     padding: 0;
     margin-bottom: 15px;
-    max-height: 300px; /* تحديد أقصى ارتفاع مع شريط تمرير إذا لزم الأمر */
-    overflow-y: auto;}
+    max-height: 300px;
+    overflow-y: auto;
+}
 .cart-details-panel li {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 8px;
     padding: 8px 0;
     border-bottom: 1px solid #eee;
+    font-size: 15px;
+    flex-wrap: wrap;
 }
 .cart-details-panel li:last-child {
     border-bottom: none;
 }
-.cart-details-panel .item-details {
-    flex-grow: 1;
-    margin-right: 10px;
+.cart-details-panel img {
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    object-fit: cover;
+    margin-left: 6px;
+    border: 1px solid #ddd;
 }
+
+.cart-details-panel .item-details {
+    flex: 1 1 120px;
+    min-width: 0;
+    color: #333;
+    font-size: 15px;
+    word-break: break-word;
+}
+
 .cart-details-panel .remove-button {
     background: none;
     border: none;
-    color: red;
+    color: #f44336;
     cursor: pointer;
     font-size: 1.2em;
+    padding: 0 6px;
+    transition: color 0.2s;
+}
+.cart-details-panel .remove-button:hover {
+    color: #b71c1c;
 }
 .checkout-button, .close-cart-button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
-}
-.checkout-button {
-    background-color: #28a745;
+    width: 100%;
+    background-color: #25D366;
     color: white;
-    margin-left: 10px;
+    padding: 12px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
 }
+.checkout-button:hover {
+    background-color: #1ebe5b;
+}
+
 .close-cart-button {
     background-color: #f44336;
     color: white;
 }
 
-#sizeSuggestions div {
-    padding: 10px;
-    cursor: pointer;
-}
-
-#sizeSuggestions div:hover {
-    background-color: #f0f0f0;
-}
-@media screen and (max-width: 600px) {
-    #contactOptions {
-        top: 50px;
-        left: 0;
-        right: auto;
-        padding: 6px;
-        gap: 8px;
+@media (max-width: 600px) {
+    .cart-details-panel {
+        max-width: 98vw;
+        padding: 10px 2vw 10px 2vw;
+        font-size: 15px;
     }
-    .contact-option {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
+    .cart-details-panel h3 {
+        font-size: 1em;
     }
-    .contact-option i {
-        font-size: 30px;
+    .cart-details-panel .item-details {
+        font-size: 14px;
+    }
+    .checkout-button {
+        font-size: 1em;
+        padding: 10px 0;
     }
 }
 </style>
@@ -1369,10 +1314,6 @@ function showNotification(message, type = 'info') {
 // عناصر سلة التسوق (بافتراض وجودها)
 const cartButton = document.querySelector('.cart-float-button');
 const cartDetailsPanel = document.getElementById('cartDetailsPanel');
-// عناصر القياسات
-const measurementsButton = document.querySelector('.measurements-float-button');
-const measurementListPanel = document.getElementById('measurementListPanel');
-const closeMeasurementsButton = document.querySelector('.close-measurements-button'); // احصل على مرجع لزر الإغلاق
 function togglePanel(panel, button) {
     const isVisible = panel.style.display === 'block';
     panel.style.display = isVisible ? 'none' : 'block';
@@ -1387,19 +1328,7 @@ if (cartButton && cartDetailsPanel) {
         }
     });
 }
-if (measurementsButton && measurementListPanel) {
-    measurementsButton.addEventListener('click', () => togglePanel(measurementListPanel, measurementsButton));
-    // أغلق لوحة القياسات عند النقر خارجها
-    document.addEventListener('click', (event) => {
-        if (measurementListPanel.style.display === 'block' && !measurementListPanel.contains(event.target) && event.target !== measurementsButton) {
-            measurementListPanel.style.display = 'none';
-        }
-    });
-    // أضف مستمع حدث لزر الإغلاق الداخلي
-    if (closeMeasurementsButton) {
-        closeMeasurementsButton.addEventListener('click', () => togglePanel(measurementListPanel, measurementsButton));
-    }
-}
+
 let currentProductId = null;
 let currentProductSizeOptions = null;
 let currentProductPrice = null;
@@ -1645,7 +1574,6 @@ document.addEventListener('keydown', function(e) {
         document.getElementById("cartOverlay").style.display = "none";
         document.getElementById("contactOptions").style.display = "none";
         document.getElementById("contactOverlay").style.display = "none";
-        document.getElementById("measurementListPanel").style.display = "none";
     }
 });
 </script>
@@ -1655,6 +1583,22 @@ document.addEventListener('keydown', function(e) {
 </button>
 <div id="sizeInputDialog" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1003; text-align: center;">
     <h3>أدخل القياس المطلوب</h3>
+    <!-- دليل القياسات كشرح فقط -->
+    <div id="sizesHelp" style="margin: 10px 0; text-align: right; font-size: 15px; color: #555;">
+        <strong>دليل القياسات:</strong>
+        <ul style="margin: 5px 0 0 0; padding: 0; list-style: none;">
+            <li>80 - 1 سنة</li>
+            <li>90 - 2 سنة</li>
+            <li>100 - 3 سنوات</li>
+            <li>110 - 4 سنوات</li>
+            <li>120 - 4-5 سنوات</li>
+            <li>130 - 6-7 سنوات</li>
+            <li>140 - 8-9 سنوات</li>
+            <li>150 - 10-11 سنوات</li>
+            <li>160 - 12-13 سنوات</li>
+            <li>170 - 14-15 سنوات</li>
+        </ul>
+    </div>
     <input type="text" id="sizeInput" inputmode="numeric" dir="ltr" autocomplete="off">
     <div id="sizeSuggestions" style="display: none; position: absolute; left: 0; right: 0; top: 100%; background-color: white; border: 1px solid #ccc; border-top: none; list-style-type: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto;"></div>
     <button onclick="confirmAddToCart()">إضافة</button>
