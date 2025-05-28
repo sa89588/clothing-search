@@ -1543,9 +1543,25 @@ window.addEventListener("DOMContentLoaded", () => {
         document.getElementById("contactOverlay").style.display = "none";
     };
 });
+const sizeExplanations = {
+    "80": "1 سنة",
+    "90": "2 سنة",
+    "100": "3 سنوات",
+    "110": "4 سنوات",
+    "120": "4-5 سنوات",
+    "130": "6-7 سنوات",
+    "140": "8-9 سنوات",
+    "150": "10-11 سنوات",
+    "160": "12-13 سنوات",
+    "170": "14-15 سنوات"
+};
+
 function showAddToCartDialog(productId, sizeOptions, price) {
     currentProductId = productId;
-    currentProductSizeOptions = sizeOptions;
+    // استخدم split('-') للفصل الصحيح
+    currentProductSizeOptions = typeof sizeOptions === "string"
+        ? sizeOptions.split('-').map(s => s.trim())
+        : Array.isArray(sizeOptions) ? sizeOptions : [];
     currentProductPrice = price;
     const sizeInputDialog = document.getElementById('sizeInputDialog');
     sizeInputDialog.style.display = 'block';
@@ -1553,10 +1569,19 @@ function showAddToCartDialog(productId, sizeOptions, price) {
     sizeInput.value = '';
     document.getElementById('sizeSuggestions').style.display = 'none';
 
-    // التركيز على حقل الإدخال
+    // تعبئة دليل القياسات فقط للقياسات المتوفرة
+    const sizesHelpList = document.getElementById('sizesHelpList');
+    sizesHelpList.innerHTML = '';
+    currentProductSizeOptions.forEach(size => {
+        if (sizeExplanations[size]) {
+            const li = document.createElement('li');
+            li.textContent = `${size} - ${sizeExplanations[size]}`;
+            sizesHelpList.appendChild(li);
+        }
+    });
+
     sizeInput.focus();
 
-    // إزالة أي مستمع سابق لتجنب التكرار
     sizeInput.onkeydown = function(e) {
         if (e.key === "Enter") {
             e.preventDefault();
@@ -1585,19 +1610,8 @@ document.addEventListener('keydown', function(e) {
     <h3>أدخل القياس المطلوب</h3>
     <!-- دليل القياسات كشرح فقط -->
     <div id="sizesHelp" style="margin: 10px 0; text-align: right; font-size: 15px; color: #555;">
-        <strong>دليل القياسات:</strong>
-        <ul style="margin: 5px 0 0 0; padding: 0; list-style: none;">
-            <li>80 - 1 سنة</li>
-            <li>90 - 2 سنة</li>
-            <li>100 - 3 سنوات</li>
-            <li>110 - 4 سنوات</li>
-            <li>120 - 4-5 سنوات</li>
-            <li>130 - 6-7 سنوات</li>
-            <li>140 - 8-9 سنوات</li>
-            <li>150 - 10-11 سنوات</li>
-            <li>160 - 12-13 سنوات</li>
-            <li>170 - 14-15 سنوات</li>
-        </ul>
+    <strong>دليل القياسات:</strong>
+    <ul id="sizesHelpList" style="margin: 5px 0 0 0; padding: 0; list-style: none;"></ul>
     </div>
     <input type="text" id="sizeInput" inputmode="numeric" dir="ltr" autocomplete="off">
     <div id="sizeSuggestions" style="display: none; position: absolute; left: 0; right: 0; top: 100%; background-color: white; border: 1px solid #ccc; border-top: none; list-style-type: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto;"></div>
