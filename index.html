@@ -716,6 +716,9 @@ body.dark-mode #checkoutDialog button:hover {
         <a href="https://www.facebook.com/profile.php?id=61573593535175" class="contact-option" target="_blank" title=""><i class="fab fa-facebook"></i> </a>
         </div>
     <button onclick="toggleDarkMode()" id="themeToggle"><i class="fas fa-moon"></i></button>
+    <button class="measurements-float-button" onclick="toggleMeasurementsPanel()" title="شرح القياسات">
+        <i class="fas fa-ruler"></i>
+    </button>
 </div>
 
 <div class="search-box">
@@ -1601,6 +1604,10 @@ document.addEventListener('keydown', function(e) {
         document.getElementById("contactOverlay").style.display = "none";
     }
 });
+function toggleMeasurementsPanel() {
+    const panel = document.getElementById('measurementsPanel');
+    panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+}
 </script>
 <button class="cart-float-button" onclick="viewCart()">
     <i class="fas fa-shopping-cart"></i> السلة
@@ -1627,5 +1634,60 @@ document.addEventListener('keydown', function(e) {
   <button onclick="submitOrder()" tabindex="0" aria-label="تأكيد الطلب">تأكيد الطلب</button>
   <button onclick="closeCheckoutDialog()" tabindex="0" aria-label="إلغاء">إلغاء</button>
 </div>
+<div class="floating-panel" id="measurementsPanel" style="display:none;">
+    <h3>شرح القياسات</h3>
+    <ul style="padding-right:0; list-style: none;">
+        <li>80 - 1 سنة</li>
+        <li>90 - 2 سنة</li>
+        <li>100 - 3 سنوات</li>
+        <li>110 - 4 سنوات</li>
+        <li>120 - 4-5 سنوات</li>
+        <li>130 - 6-7 سنوات</li>
+        <li>140 - 8-9 سنوات</li>
+        <li>150 - 10-11 سنوات</li>
+        <li>160 - 12-13 سنوات</li>
+        <li>170 - 14-15 سنوات</li>
+    </ul>
+    <button onclick="toggleMeasurementsPanel()" style="margin-top:10px;">إغلاق</button>
+</div>
+<div id="tutorialPanel" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.45); z-index:3000; align-items:center; justify-content:center;">
+  <div id="tutorialContent" style="background:#fff; color:#222; border-radius:14px; max-width:350px; width:90vw; margin:auto; padding:28px 18px 18px 18px; box-shadow:0 4px 24px rgba(0,0,0,0.18); text-align:right; position:relative;">
+    <div id="tutorialStepText" style="font-size:1.15em; margin-bottom:18px;"></div>
+    <button id="tutorialNextBtn" style="background:#2196F3; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:1em; cursor:pointer; margin-left:8px;">التالي</button>
+    <button id="tutorialHideBtn" style="background:#ccc; color:#222; border:none; border-radius:7px; padding:8px 18px; font-size:1em; cursor:pointer;">إخفاء</button>
+  </div>
+</div>
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  // شرح خطوات الموقع
+  const tutorialSteps = [
+    "👕 <b>شرح القياسات:</b><br>ستجد زر <b>شرح القياسات</b> (أيقونة المسطرة) في الأعلى، اضغط عليه لمعرفة الأعمار المناسبة لكل قياس.",
+    "🔍 <b>حقل البحث:</b><br>اكتب رقم القياس أو رقم المنتج (ID) أو جزء من القياس في مربع البحث لعرض المنتجات بسرعة.",
+    "🛒 <b>زر أضف للسلة:</b><br>اضغط على زر <b>إضافة للسلة</b> لأي منتج، ثم اختر القياس المناسب من النافذة المنبثقة.",
+    "🛍️ <b>السلة وإتمام الشراء:</b><br>اضغط على زر <b>السلة</b> أسفل يسار الشاشة لمراجعة طلبك، ثم اضغط <b>إتمام الشراء</b> وأدخل بياناتك لإرسال الطلب عبر واتساب."
+  ];
+  let tutorialStep = 0;
+
+  function showTutorialPanel() {
+    document.getElementById('tutorialPanel').style.display = 'flex';
+    showTutorialStep(0);
+  }
+  function showTutorialStep(step) {
+    tutorialStep = step;
+    document.getElementById('tutorialStepText').innerHTML = tutorialSteps[step];
+    document.getElementById('tutorialNextBtn').style.display = (step < tutorialSteps.length - 1) ? 'inline-block' : 'none';
+  }
+  document.getElementById('tutorialNextBtn').onclick = function() {
+    if (tutorialStep < tutorialSteps.length - 1) {
+      showTutorialStep(tutorialStep + 1);
+    }
+  };
+  document.getElementById('tutorialHideBtn').onclick = function() {
+    document.getElementById('tutorialPanel').style.display = 'none';
+  };
+
+  setTimeout(showTutorialPanel, 800); // تظهر النافذة دائمًا بعد ثانية من تحميل الصفحة
+});
+</script>
 </body>
 </html>
