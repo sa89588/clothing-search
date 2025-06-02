@@ -497,7 +497,7 @@ body.dark-mode #checkoutDialog button:hover {
     .scroll-buttons button {
         width: 40px;
         height: 40px;
-        font-size: 18px;
+        font-size: 14px;
     }
     .scroll-buttons {
         right: 5px;
@@ -706,21 +706,21 @@ body.dark-mode #checkoutDialog button:hover {
 <header>
     متجر جود العباس <br> Jood ALabbas Store
 </header>
+<div class="promo-banner" id="promoBanner">
+    🎉 عرض خاص: خصم 20% على جميع المنتجات الصيفية! استخدم كود <b> ali1 </b> عند الطلب. <button onclick="closePromoBanner()" aria-label="إغلاق" class="close-banner-btn">&times;</button>
+</div>
 <div class="welcome-message" id="welcome">أهلاً بكم في متجر جود العباس! تسوق سعيد 🌟</div>
 <div class="floating-buttons">
     <button onclick="toggleContactOptions()"><i class="fas fa-envelope"></i> </button>
     <div id="contactOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1200;"></div>
     <div id="contactOptions" style="display: none;">
         <a href="https://wa.me/9647766142936" class="contact-option" target="_blank" title=""><i class="fab fa-whatsapp"></i> </a>
+        <a href="https://t.me/jaiq19" class="contact-option" target="_blank" title="تليجرام"><i class="fab fa-telegram"></i> </a>
         <a href="https://www.instagram.com/jaiq19_/" class="contact-option" target="_blank" title=""><i class="fab fa-instagram"></i> </a>
         <a href="https://www.facebook.com/profile.php?id=61573593535175" class="contact-option" target="_blank" title=""><i class="fab fa-facebook"></i> </a>
         </div>
     <button onclick="toggleDarkMode()" id="themeToggle"><i class="fas fa-moon"></i></button>
-    <button class="measurements-float-button" onclick="toggleMeasurementsPanel()" title="شرح القياسات">
-        <i class="fas fa-ruler"></i>
-    </button>
 </div>
-
 <div class="search-box">
     <input type="text" id="searchInput" placeholder="ابحث عن القياس أو ID">
     <button onclick="resetSearch()">إعادة تعيين</button>
@@ -748,6 +748,7 @@ body.dark-mode #checkoutDialog button:hover {
     <h3>تواصل معنا:</h3>
     <div class="contact-icons">
         <a href="https://wa.me/9647766142936" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://t.me/jaiq19" target="_blank" title="تليجرام"><i class="fab fa-telegram"></i></a>
         <a href="https://www.instagram.com/jaiq19_" target="_blank" title="انستقرام"><i class="fab fa-instagram"></i></a>
         <a href="https://www.facebook.com/profile.php?id=61573593535175" target="_blank" title="فيسبوك"><i class="fab fa-facebook"></i></a>
     </div>
@@ -757,6 +758,13 @@ body.dark-mode #checkoutDialog button:hover {
     <h3><i class="fas fa-shopping-cart"></i> تفاصيل السلة</h3>
     <ul id="cartItemsList">
         </ul>
+    <div style="margin: 10px 0;">
+    <label for="promoCodeInput" style="font-size:15px;">كود الخصم:</label>
+    <input type="text" id="promoCodeInput" placeholder="أدخل كود البروموكود" style="padding:6px; border-radius:6px; border:1px solid #ccc; width:60%; font-size:15px;">
+    <button onclick="applyPromoCode()" style="padding:6px 12px; border-radius:6px; background:#2196F3; color:#fff; border:none; font-size:15px; cursor:pointer;">تطبيق</button>
+</div>
+<div id="promoMessage" style="color:#d32f2f; font-size:14px; margin-bottom:6px;"></div>
+<div id="cartTotal" style="font-size:17px; margin-bottom:10px;"></div>
     <button class="checkout-button" onclick="checkout()">
         <i class="fab fa-whatsapp"></i> إتمام الشراء
     </button>
@@ -911,6 +919,76 @@ body.dark-mode #checkoutDialog button:hover {
     .checkout-button {
         font-size: 1em;
         padding: 10px 0;
+    }
+}
+.measurements-float-button {
+    position: fixed;
+    left: 20px;
+    bottom: 80px; /* فوق زر السلة */
+    z-index: 1200;
+    background-color: #f32121;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: background 0.3s;
+}
+@media (max-width: 600px) {
+    .measurements-float-button {
+        width: 48px;
+        height: 48px;
+        font-size: 22px;
+        left: 12px;
+        bottom: 70px;
+    }
+}
+.promo-banner {
+    background: linear-gradient(90deg, #fdd835 60%, #2196F3 100%);
+    color: #222;
+    font-size: 1.1em;
+    padding: 14px 18px;
+    text-align: center;
+    border-radius: 0 0 18px 18px;
+    margin: 0 auto 18px auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    position: relative;
+    max-width: 700px;
+    width: 95vw;
+    animation: fadeIn 1s;
+}
+.promo-banner b {
+    color: #d32f2f;
+    font-weight: bold;
+}
+.close-banner-btn {
+    position: absolute;
+    left: 10px;
+    top: 8px;
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    color: #222;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+.close-banner-btn:hover {
+    opacity: 1;
+}
+@media (max-width: 600px) {
+    .promo-banner {
+        font-size: 0.98em;
+        padding: 10px 6px;
+        border-radius: 0 0 12px 12px;
+    }
+    .close-banner-btn {
+        font-size: 1.2em;
+        left: 6px;
+        top: 4px;
     }
 }
 </style>
@@ -1088,8 +1166,9 @@ function updateCartIcon() {
 function viewCart() {
     const cartDetailsPanel = document.getElementById('cartDetailsPanel');
     const cartItemsList = document.getElementById('cartItemsList');
-    // مسح القائمة القديمة
     cartItemsList.innerHTML = '';
+    let totalPrice = 0;
+
     if (cartItems.length === 0) {
         cartItemsList.innerHTML = '<li>السلة فارغة.</li>';
     } else {
@@ -1104,12 +1183,48 @@ function viewCart() {
                 </div>
                 <button class="remove-button" onclick="removeFromCart('${item.productId}', '${item.size}')"><i class="fas fa-trash-alt"></i></button>
            `;
-           
             cartItemsList.appendChild(listItem);
+            totalPrice += parseFloat(item.price);
         });
     }
+
+    // حساب الخصم إذا كان هناك كود مفعّل
+    let discount = 0;
+    let promoCode = (window.currentPromoCode || "").toLowerCase();
+    if (promoCode === "ali1") {
+        discount = totalPrice * 0.2; // خصم 20%
+    }
+    // تكلفة النقل
+    const shipping = 5000;
+    // المجموع النهائي
+    const finalTotal = Math.max(0, totalPrice - discount) + shipping;
+
+    // عرض المجموع
+    document.getElementById('cartTotal').innerHTML =
+        `المجموع: <span style="color:#2196F3;">${totalPrice.toLocaleString()} دينار</span><br>` +
+        (discount > 0 ? `الخصم: <span style="color:#d32f2f;">-${discount.toLocaleString()} دينار</span><br>` : "") +
+        `تكلفة النقل: <span style="color:#2196F3;">${shipping.toLocaleString()} دينار</span><br>` +
+        `<b>المجموع النهائي: <span style="color:#388e3c;">${finalTotal.toLocaleString()} دينار</span></b>`;
+    
     cartDetailsPanel.style.display = 'block';
-    document.getElementById('cartOverlay').style.display = 'block'; // أضف هذا السطر
+    document.getElementById('cartOverlay').style.display = 'block';
+}
+function applyPromoCode() {
+    const input = document.getElementById('promoCodeInput').value.trim().toLowerCase();
+    const promoMsg = document.getElementById('promoMessage');
+    if (input === "ali1") {
+        window.currentPromoCode = input;
+        promoMsg.textContent = "تم تطبيق كود الخصم بنجاح! خصم 20% على المجموع.";
+        promoMsg.style.color = "#388e3c";
+    } else if (input === "") {
+        window.currentPromoCode = "";
+        promoMsg.textContent = "";
+    } else {
+        window.currentPromoCode = "";
+        promoMsg.textContent = "الكود غير صحيح أو منتهي الصلاحية.";
+        promoMsg.style.color = "#d32f2f";
+    }
+    viewCart();
 }
 function toggleCartDetails() {
     const cartDetailsPanel = document.getElementById('cartDetailsPanel');
@@ -1404,10 +1519,10 @@ function closeCheckoutDialog() {
     document.getElementById("checkoutOverlay").style.display = "none";
 }
 
-function submitOrder() {
+function submitOrder(method) {
     const name = document.getElementById("customerName").value.trim();
     let phone = document.getElementById("customerPhone").value.trim();
-    phone = toEnglishDigits(phone); // تحويل الأرقام العربية إلى إنجليزية
+    phone = toEnglishDigits(phone);
     const address = document.getElementById("customerAddress").value.trim();
 
     if (!name || !phone || !address) {
@@ -1421,19 +1536,42 @@ function submitOrder() {
         message += `- ID: ${item.productId}، القياس: ${item.size}، السعر: ${item.price} دينار\n`;
         totalPrice += parseFloat(item.price);
     });
-    message += `\nالإجمالي: ${totalPrice} دينار\n\n`;
+
+    // حساب الخصم وكود البروموكود
+    let discount = 0;
+    let promoCode = (window.currentPromoCode || "").toLowerCase();
+    if (promoCode === "ali1") {
+        discount = totalPrice * 0.2;
+    }
+    const shipping = 5000;
+    const finalTotal = Math.max(0, totalPrice - discount) + shipping;
+
+    message += `\nالمجموع: ${totalPrice.toLocaleString()} دينار\n`;
+    if (discount > 0) {
+        message += `الخصم (${promoCode}): -${discount.toLocaleString()} دينار\n`;
+    }
+    message += `تكلفة النقل: ${shipping.toLocaleString()} دينار\n`;
+    message += `المجموع النهائي: ${finalTotal.toLocaleString()} دينار\n\n`;
+
     message += `معلومات الزبون:\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${address}`;
 
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappURL = `https://wa.me/9647766142936?text=${encodedMessage}`;
-    window.open(whatsappURL, '_blank');
+    if (method === 'whatsapp') {
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappURL = `https://wa.me/9647766142936?text=${encodedMessage}`;
+        window.open(whatsappURL, '_blank');
+        showNotification("تم إرسال الطلب عبر واتساب", "success");
+    } else if (method === 'telegram') {
+        const encodedMessage = encodeURIComponent(message);
+        const telegramURL = `https://t.me/jaiq19?text=${encodedMessage}`;
+        window.open(telegramURL, '_blank');
+        showNotification("تم إرسال الطلب عبر تليجرام", "success");
+    }
 
     closeCheckoutDialog();
-    showNotification("تم إرسال الطلب عبر واتساب", "success");
     cartItems = [];
-localStorage.removeItem('cartItems');
-updateCartIcon();
-document.getElementById('cartDetailsPanel').style.display = 'none';
+    localStorage.removeItem('cartItems');
+    updateCartIcon();
+    document.getElementById('cartDetailsPanel').style.display = 'none';
 }
 window.addEventListener('offline', () => {
     showNotification("أنت غير متصل بالإنترنت!", "warning");
@@ -1609,6 +1747,9 @@ function toggleMeasurementsPanel() {
     panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
 }
 </script>
+<button class="measurements-float-button" onclick="toggleMeasurementsPanel()" title="شرح القياسات" id="measurementsBtn" style="position: fixed; bottom: 80px; left: 20px; z-index: 1200;">
+    <i class="fas fa-ruler"></i>
+</button>
 <button class="cart-float-button" onclick="viewCart()">
     <i class="fas fa-shopping-cart"></i> السلة
     <span class="cart-count" id="cartCounter">0</span>
@@ -1631,8 +1772,14 @@ function toggleMeasurementsPanel() {
   <input type="text" id="customerName" placeholder="الاسم الكامل" tabindex="0">
   <input type="tel" id="customerPhone" inputmode="numeric" dir="ltr" placeholder="رقم الهاتف" tabindex="0">
   <textarea id="customerAddress" placeholder="العنوان..." rows="3" tabindex="0"></textarea>
-  <button onclick="submitOrder()" tabindex="0" aria-label="تأكيد الطلب">تأكيد الطلب</button>
-  <button onclick="closeCheckoutDialog()" tabindex="0" aria-label="إلغاء">إلغاء</button>
+<div id="orderMethod" style="margin: 10px 0; text-align: center;">
+    <button type="button" class="order-method-btn" onclick="submitOrder('whatsapp')">
+      <i class="fab fa-whatsapp"></i> واتساب
+    </button>
+    <button type="button" class="order-method-btn" onclick="submitOrder('telegram')">
+      <i class="fab fa-telegram"></i> تليجرام
+    </button>
+  </div>  <button onclick="closeCheckoutDialog()" tabindex="0" aria-label="إلغاء">إلغاء</button>
 </div>
 <div class="floating-panel" id="measurementsPanel" style="display:none;">
     <h3>شرح القياسات</h3>
@@ -1661,10 +1808,10 @@ function toggleMeasurementsPanel() {
 window.addEventListener('DOMContentLoaded', function() {
   // شرح خطوات الموقع
   const tutorialSteps = [
-    "👕 <b>شرح القياسات:</b><br>ستجد زر <b>شرح القياسات</b> (أيقونة المسطرة) في الأعلى، اضغط عليه لمعرفة الأعمار المناسبة لكل قياس.",
+    "👕 <b>شرح القياسات:</b><br>ستجد زر <b>شرح القياسات</b> (أيقونة المسطرة) في أسفل يسار الشاشة، اضغط عليه لمعرفة الأعمار المناسبة لكل قياس.",
     "🔍 <b>حقل البحث:</b><br>اكتب رقم القياس أو رقم المنتج (ID) أو جزء من القياس في مربع البحث لعرض المنتجات بسرعة.",
     "🛒 <b>زر أضف للسلة:</b><br>اضغط على زر <b>إضافة للسلة</b> لأي منتج، ثم اختر القياس المناسب من النافذة المنبثقة.",
-    "🛍️ <b>السلة وإتمام الشراء:</b><br>اضغط على زر <b>السلة</b> أسفل يسار الشاشة لمراجعة طلبك، ثم اضغط <b>إتمام الشراء</b> وأدخل بياناتك لإرسال الطلب عبر واتساب."
+    "🛍️ <b>السلة وإتمام الشراء:</b><br>اضغط على زر <b>السلة</b> أسفل يسار الشاشة لمراجعة طلبك، ثم اضغط <b>إتمام الشراء</b> وأدخل بياناتك لإرسال الطلب عبر واتساب او تلكرام."
   ];
   let tutorialStep = 0;
 
@@ -1688,6 +1835,9 @@ window.addEventListener('DOMContentLoaded', function() {
 
   setTimeout(showTutorialPanel, 800); // تظهر النافذة دائمًا بعد ثانية من تحميل الصفحة
 });
+function closePromoBanner() {
+    document.getElementById('promoBanner').style.display = 'none';
+}
 </script>
 </body>
 </html>
