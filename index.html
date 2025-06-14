@@ -707,7 +707,7 @@ body.dark-mode #checkoutDialog button:hover {
     متجر جود العباس <br> Jood ALabbas Store
 </header>
 <div class="promo-banner" id="promoBanner">
-    🎉 عرض خاص: خصم 20% على جميع المنتجات الصيفية! استخدم كود <b> ali1 </b> عند الطلب. <button onclick="closePromoBanner()" aria-label="إغلاق" class="close-banner-btn">&times;</button>
+    🎉  <b> للجملة يرجى مراسلتنا على الواتساب </b> <button onclick="closePromoBanner()" aria-label="إغلاق" class="close-banner-btn">&times;</button>
 </div>
 <div class="welcome-message" id="welcome">أهلاً بكم في متجر جود العباس! تسوق سعيد 🌟</div>
 <div class="floating-buttons">
@@ -1191,8 +1191,8 @@ function viewCart() {
     // حساب الخصم إذا كان هناك كود مفعّل
     let discount = 0;
     let promoCode = (window.currentPromoCode || "").toLowerCase();
-    if (promoCode === "ali1") {
-        discount = totalPrice * 0.2; // خصم 20%
+    if (promoCode === "07706131909") {
+        discount = totalPrice * 0.35; // خصم 20%
     }
     // تكلفة النقل
     const shipping = 5000;
@@ -1212,7 +1212,7 @@ function viewCart() {
 function applyPromoCode() {
     const input = document.getElementById('promoCodeInput').value.trim().toLowerCase();
     const promoMsg = document.getElementById('promoMessage');
-    if (input === "ali1") {
+    if (input === "07706131909") {
         window.currentPromoCode = input;
         promoMsg.textContent = "تم تطبيق كود الخصم بنجاح! خصم 20% على المجموع.";
         promoMsg.style.color = "#388e3c";
