@@ -1038,10 +1038,21 @@ function applyFilters() {
 }
 function displayResults(results) {
     const productsContainer = document.getElementById('productsContainer');
-    document.getElementById("counter").textContent = `عدد النتائج: ${results.length}`;
-    productsContainer.innerHTML = ''; // مسح أي محتوى سابق في الحاوية
 
-    if (results.length === 0) {
+    // فلترة المنتجات التي لديها قياسات متوفرة فقط
+const filteredResults = results.filter(item => {
+    if (!item.sizes) return false;
+    // إذا كانت مصفوفة، حولها إلى نص
+    let s = Array.isArray(item.sizes) ? item.sizes.join('-') : item.sizes;
+    s = String(s).trim();
+    if (s === "" || s === "-" || s === "غير متوفر" || s.toLowerCase().includes("out")) return false;
+    return true;
+});
+
+    document.getElementById("counter").textContent = `عدد النتائج: ${filteredResults.length}`;
+    productsContainer.innerHTML = '';
+
+    if (filteredResults.length === 0) {
         productsContainer.innerHTML = '<div class="no-results">لا توجد نتائج مطابقة لبحثك.</div>';
         return;
     }
@@ -1049,7 +1060,8 @@ function displayResults(results) {
     const cardsContainer = document.createElement('div');
     cardsContainer.className = 'product-card-container';
 
-    results.forEach(item => {
+    // اعرض فقط المنتجات المفلترة
+    filteredResults.forEach(item => {
         const card = document.createElement('div');
         card.className = 'product-card';
 
