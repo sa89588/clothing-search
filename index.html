@@ -768,6 +768,9 @@ body.dark-mode #checkoutDialog button:hover {
     <button class="checkout-button" onclick="checkout()">
         <i class="fab fa-whatsapp"></i> إتمام الشراء
     </button>
+    <button class="close-cart-button" onclick="clearCart()" style="background:#f44336; margin-top:8px;">
+    <i class="fas fa-trash"></i> إفراغ السلة
+    </button>
 </div>
 <style>
 #contactOptions {
@@ -1757,6 +1760,14 @@ document.addEventListener('keydown', function(e) {
 function toggleMeasurementsPanel() {
     const panel = document.getElementById('measurementsPanel');
     panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+}
+function clearCart() {
+    if (!confirm("هل أنت متأكد من أنك تريد إفراغ السلة بالكامل؟")) return;
+    cartItems = [];
+    localStorage.removeItem('cartItems');
+    updateCartIcon();
+    viewCart();
+    showNotification("تم إفراغ السلة بنجاح.", "success");
 }
 </script>
 <button class="measurements-float-button" onclick="toggleMeasurementsPanel()" title="شرح القياسات" id="measurementsBtn" style="position: fixed; bottom: 80px; left: 20px; z-index: 1200;">
