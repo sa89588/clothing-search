@@ -727,13 +727,13 @@ body.dark-mode #checkoutDialog button:hover {
     <button onclick="resetSearch()">إعادة تعيين</button>
 </div>
 <div class="filter-box">
-    <select id="seasonFilter" onchange="applyFilters()">
+    <select id="seasonFilter" onchange="reApplyFiltersAndSearch()">
         <option value="">-- اختر الموسم --</option>
         <option value="صيفي">صيفي</option>
         <option value="شتوي">شتوي</option>
         <option value="بهاري">بهاري</option>
     </select>
-    <select id="sortSelect" onchange="sortResults()">
+    <select id="sortSelect" onchange="reApplyFiltersAndSearch()">
         <option value="">-- ترتيب حسب --</option>
         <option value="price-asc">السعر من الأقل</option>
         <option value="price-desc">السعر من الأعلى</option>
@@ -1030,16 +1030,6 @@ function toggleDarkMode() {
             console.error("فشل تحميل البيانات:", error);
         }
     }
-function applyFilters() {
-    const typeValue = document.getElementById("typeFilter").value;
-    const seasonValue = document.getElementById("seasonFilter").value;
-    const filteredData = data.filter(item => {
-        const typeMatch = !typeValue || item.type === typeValue;
-        const seasonMatch = !seasonValue || item.season === seasonValue;
-        return typeMatch && seasonMatch;
-    });
-    displayResults(filteredData);
-}
 function displayResults(results) {
     const productsContainer = document.getElementById('productsContainer');
 
@@ -1114,37 +1104,18 @@ const filteredResults = results.filter(item => {
 
     productsContainer.appendChild(cardsContainer);
 }
-    function sortResults() {
-        const sortOption = document.getElementById("sortSelect").value;
-        let sortedData = [...data];
-        if (sortOption === "price-asc") {
-            sortedData.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-        } else if (sortOption === "price-desc") {
-            sortedData.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-        }
-        displayResults(sortedData);
-    }
 function toggleContactOptions() {
     const contactOptions = document.getElementById('contactOptions');
     contactOptions.style.display = contactOptions.style.display === 'none' ? 'flex' : 'none';
 }
 function resetSearch() {
     document.getElementById("searchInput").value = "";
-    if (document.getElementById("typeFilter")) document.getElementById("typeFilter").value = "";
     document.getElementById("seasonFilter").value = "";
     document.getElementById("sortSelect").value = "";
-    displayResults(data); // عرض جميع المنتجات الأصلية بدون أي فلترة أو ترتيب أو بحث
+    reApplyFiltersAndSearch(); // تطبيق جميع الفلاتر (بدون فلتر)
 }
     const searchInput = document.getElementById("searchInput");
-    searchInput.addEventListener("input", function() {
-        const query = this.value.toLowerCase().trim();
-        const filtered = data.filter(item => {
-            const id = item.Id ? item.Id.toString().toLowerCase() : "";
-            const size = item.sizes ? item.sizes.toString().toLowerCase() : "";
-            return id.includes(query) || size.includes(query);
-        });
-        displayResults(filtered);
-    });
+    searchInput.addEventListener("input", reApplyFiltersAndSearch);
     function scrollToTop() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
