@@ -1161,8 +1161,8 @@ function viewCart() {
     }
     let discount = 0;
     let promoCode = (window.currentPromoCode || "").toLowerCase();
-    if (promoCode === "07706131909") {
-        discount = totalPrice * 0.35;
+    if (promoCode === "50") {
+        discount = totalPrice * 0.5;
     }
     const shipping = 5000;
     const finalTotal = Math.max(0, totalPrice - discount) + shipping;
@@ -1177,9 +1177,9 @@ function viewCart() {
 function applyPromoCode() {
     const input = document.getElementById('promoCodeInput').value.trim().toLowerCase();
     const promoMsg = document.getElementById('promoMessage');
-    if (input === "07706131909") {
+    if (input === "50") {
         window.currentPromoCode = input;
-        promoMsg.textContent = "تم تطبيق كود الخصم بنجاح! خصم 20% على المجموع.";
+        promoMsg.textContent = "تم تطبيق كود الخصم بنجاح! خصم 50% على المجموع.";
         promoMsg.style.color = "#388e3c";
     } else if (input === "") {
         window.currentPromoCode = "";
@@ -1473,8 +1473,8 @@ function submitOrder(method) {
     });
     let discount = 0;
     let promoCode = (window.currentPromoCode || "").toLowerCase();
-    if (promoCode === "ali1") {
-        discount = totalPrice * 0.2;
+    if (promoCode === "50%") {
+        discount = totalPrice * 0.5;
     }
     const shipping = 5000;
     const finalTotal = Math.max(0, totalPrice - discount) + shipping;
