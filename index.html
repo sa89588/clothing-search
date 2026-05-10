@@ -391,18 +391,19 @@ body.dark-mode #checkoutDialog button:hover {
         .filter-box {
             text-align: center;
             margin-top: 10px;
-    display: flex; /* تفعيل flexbox للحاوية */
-    justify-content: center; /* توسيط العناصر أفقياً */
-    gap: 10px; /* مسافة بين عناصر الفلتر */
-    padding: 0 10px; /* إضافة بعض الهوامش الداخلية الجانبية */
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 10px;
+            flex-wrap: wrap;
         }
         .filter-box select {
             padding: 8px;
             border-radius: 6px;
             font-size: 14px;
             border: 1px solid #ccc;
-    flex: 1; /* اجعل كل select يأخذ حصة متساوية من المساحة */
-    max-width: 200px; /* تحديد حد أقصى لعرض كل select */
+            flex: 1 1 auto;
+            min-width: 120px;
         }
         .search-box {
             margin: 20px auto;
@@ -410,7 +411,7 @@ body.dark-mode #checkoutDialog button:hover {
             display: flex;
             gap: 10px;
             padding: 0 10px;
-    align-items: center; /* محاذاة العناصر عموديًا في المنتصف */
+            align-items: center;
         }
         .search-box input, .search-box button {
             flex: 1;
@@ -420,17 +421,17 @@ body.dark-mode #checkoutDialog button:hover {
             border: 1px solid #ccc;
         }
 .search-box input {
-    flex-grow: 1; /* لجعل حقل الإدخال يأخذ معظم المساحة المتاحة */
+    flex-grow: 1;
 }
         .search-box button {
             background-color: #2196F3;
             color: white;
             cursor: pointer;
             border: none;
-    white-space: nowrap; /* لمنع النص من الالتفاف */
+            white-space: nowrap;
         }
         img.product {
-            max-width: 200%; /* التأكد من أن الصورة لا تتجاوز عرض الخلية */
+            max-width: 200%;
             height: auto;
             transition: transform 0.3s ease;
             border-radius: 8px;
@@ -460,9 +461,9 @@ body.dark-mode #checkoutDialog button:hover {
     header {
         font-size: 22px;
         padding: 15px;
-        width: 100vw;      /* اجعل العرض بعرض نافذة المتصفح */
-        left: 0;           /* تأكد من محاذاة الهيدر مع الحافة اليسرى */
-        box-sizing: border-box; /* حتى لا يسبب البادينج تمرّد العرض */
+        width: 100vw;
+        left: 0;
+        box-sizing: border-box;
     }
     .welcome-message {
         font-size: 18px;
@@ -477,17 +478,18 @@ body.dark-mode #checkoutDialog button:hover {
         font-size: 15px;
     }
     .filter-box {
-        flex-direction: row; /* ترتيب العناصر في صف أفقي */
-        justify-content: space-around; /* توزيع العناصر بالتساوي مع مسافات بينها وحولها */
-        align-items: center; /* محاذاة العناصر عموديًا في المنتصف */
-        padding: 0 5px; /* تقليل الهوامش الداخلية الجانبية للشاشات الصغيرة */
-        gap: 5px; /* تقليل المسافة بين العناصر للشاشات الصغيرة */
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 5px;
+        gap: 5px;
+        flex-wrap: wrap;
     }
     .filter-box select {
-        font-size: 15px; /* تقليل حجم الخط للشاشات الصغيرة */
-        padding: 5px; /* تقليل البادينج للشاشات الصغيرة */
-        flex: 1; /* استمرار جعل كل select يأخذ حصة من المساحة */
-        max-width: none; /* إزالة الحد الأقصى للعرض في الشاشات الصغيرة */
+        font-size: 15px;
+        padding: 5px;
+        flex: 1 1 auto;
+        max-width: none;
     }
     .floating-buttons {
         flex-direction: row;
@@ -505,15 +507,12 @@ body.dark-mode #checkoutDialog button:hover {
         bottom: 10px;
     }
     .product-card-container {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* محاولة عرض عمودين أو أكثر حسب المساحة */
-    /* أو بشكل ثابت: */
-    /* grid-template-columns: repeat(2, 1fr); */ /* سيحاول دائمًا عرض عمودين */
-    /* ... أنماط أخرى ... */
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
     .product-image-container {
         width: 100%;
-        height: auto; /* السماح للحاوية بالتمدد حسب نسبة أبعاد الصورة */
-        overflow: hidden; /* إخفاء أي جزء يتجاوز الحاوية (يستخدم مع object-fit) */
+        height: auto;
+        overflow: hidden;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -521,10 +520,9 @@ body.dark-mode #checkoutDialog button:hover {
     }
     .product-card img.product {
         display: block;
-        width: 100%; /* اجعل عرض الصورة 100% من حاوية .product-image-container */
-        height: auto; /* الحفاظ على نسبة الأبعاد */
-        /* max-height: none; */ /* قم بإزالة الحد الأقصى للارتفاع مؤقتًا */
-        object-fit: contain; /* احتواء الصورة بالكامل داخل الحاوية مع الحفاظ على نسبة الأبعاد */
+        width: 100%;
+        height: auto;
+        object-fit: contain;
         border-radius: 8px 8px 0 0;
     }
     .search-box,
@@ -602,22 +600,22 @@ body.dark-mode #checkoutDialog button:hover {
             .search-box {
                 flex-direction: row;
         padding: 0 5px;
-        margin-top: 10px; /* تقليل الهامش العلوي إذا لزم الأمر */
-        margin-bottom: 10px; /* تقليل الهامش السفلي إذا لزم الأمر */
+        margin-top: 10px;
+        margin-bottom: 10px;
             }
             .floating-buttons {
                 top: 10px;
                 left: 5px;
             }
     .search-box button {
-        flex-shrink: 0; /* لمنع الزر من التقلص أكثر من اللازم */
-        min-width: fit-content; /* لجعل عرضه مناسبًا للمحتوى */
+        flex-shrink: 0;
+        min-width: fit-content;
     }
         }
 /* أنماط لعرض النتائج كبطاقات */
 .product-card-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* لإنشاء تخطيط متجاوب */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
     width: 95%;
     margin: 20px auto;
@@ -637,12 +635,12 @@ body.dark-mode #checkoutDialog button:hover {
 }
 .product-image-container {
     width: 100%;
-    height: auto; /* الحفاظ على نسبة الأبعاد */
+    height: auto;
     overflow: hidden;
     border-bottom: 1px solid #eee;
     display: flex;
-    justify-content: center; /* توسيط الصورة أفقياً */
-    align-items: center; /* توسيط الصورة عمودياً (إذا لزم الأمر) */
+    justify-content: center;
+    align-items: center;
 }
 .product-card img.product {
     display: block;
@@ -686,22 +684,23 @@ body.dark-mode #checkoutDialog button:hover {
 @media screen and (max-width: 600px) {
     .product-card-container {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* محاولة عرض عمودين أو أكثر */
-        gap: 10px; /* إضافة تباعد بين البطاقات */
-        width: 98%; /* زيادة طفيفة في العرض إذا لزم الأمر */
-        margin: 10px auto; /* تقليل الهوامش إذا لزم الأمر */
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        width: 98%;
+        margin: 10px auto;
         padding: 10px;
     }
     .product-card img.product {
-        width: 100%; /* اجعل عرض الصورة 100% من حاويتها */
-        height: auto; /* الحفاظ على نسبة الأبعاد */
-        max-height: 200px; /* احتفظ بالحد الأقصى للارتفاع إذا كنت ترغب في ذلك */
-        object-fit: contain; /* هذا سيجعل الصورة تغطي الحاوية مع قص الأجزاء الزائدة إذا لزم الأمر */
+        width: 100%;
+        height: auto;
+        max-height: 200px;
+        object-fit: contain;
     }
     input, textarea {
         font-size: 16px;
     }
-    </style>
+    }
+</style>
 </head>
 <body>
 <header>
@@ -732,6 +731,11 @@ body.dark-mode #checkoutDialog button:hover {
         <option value="صيفي">صيفي</option>
         <option value="شتوي">شتوي</option>
         <option value="بهاري">بهاري</option>
+    </select>
+    <select id="typeFilter" onchange="reApplyFiltersAndSearch()">
+        <option value="">-- نوع الملابس --</option>
+        <option value="طلعة">ملابس طلعة</option>
+        <option value="تركات منزلية">تركات منزلية</option>
     </select>
     <select id="sortSelect" onchange="reApplyFiltersAndSearch()">
         <option value="">-- ترتيب حسب --</option>
@@ -785,7 +789,7 @@ body.dark-mode #checkoutDialog button:hover {
     border-radius: 12px;
     padding: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    gap: 12px; /* مسافة بين الأزرار */
+    gap: 12px;
     z-index: 1200;
 }
 .contact-option {
@@ -928,7 +932,7 @@ body.dark-mode #checkoutDialog button:hover {
 .measurements-float-button {
     position: fixed;
     left: 20px;
-    bottom: 80px; /* فوق زر السلة */
+    bottom: 80px;
     z-index: 1200;
     background-color: #f32121;
     color: white;
@@ -1013,7 +1017,6 @@ function toggleDarkMode() {
     const body = document.body;
     const themeToggle = document.getElementById("themeToggle");
     body.classList.toggle("dark-mode");
-    // تغيير الأيقونة بين القمر والشمس
     if (body.classList.contains("dark-mode")) {
         themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
     } else {
@@ -1032,33 +1035,24 @@ function toggleDarkMode() {
     }
 function displayResults(results) {
     const productsContainer = document.getElementById('productsContainer');
-
-    // فلترة المنتجات التي لديها قياسات متوفرة فقط
-const filteredResults = results.filter(item => {
-    if (!item.sizes) return false;
-    // إذا كانت مصفوفة، حولها إلى نص
-    let s = Array.isArray(item.sizes) ? item.sizes.join('-') : item.sizes;
-    s = String(s).trim();
-    if (s === "" || s === "-" || s === "غير متوفر" || s.toLowerCase().includes("out")) return false;
-    return true;
-});
-
+    const filteredResults = results.filter(item => {
+        if (!item.sizes) return false;
+        let s = Array.isArray(item.sizes) ? item.sizes.join('-') : item.sizes;
+        s = String(s).trim();
+        if (s === "" || s === "-" || s === "غير متوفر" || s.toLowerCase().includes("out")) return false;
+        return true;
+    });
     document.getElementById("counter").textContent = `عدد النتائج: ${filteredResults.length}`;
     productsContainer.innerHTML = '';
-
     if (filteredResults.length === 0) {
         productsContainer.innerHTML = '<div class="no-results">لا توجد نتائج مطابقة لبحثك.</div>';
         return;
     }
-
     const cardsContainer = document.createElement('div');
     cardsContainer.className = 'product-card-container';
-
-    // اعرض فقط المنتجات المفلترة
     filteredResults.forEach(item => {
         const card = document.createElement('div');
         card.className = 'product-card';
-
         const imageContainer = document.createElement('div');
         imageContainer.className = 'product-image-container';
         const img = document.createElement('img');
@@ -1070,26 +1064,20 @@ const filteredResults = results.filter(item => {
         img.height = 200;
         imageContainer.appendChild(img);
         card.appendChild(imageContainer);
-
         const details = document.createElement('div');
         details.className = 'product-details';
-
         const idElement = document.createElement('div');
         idElement.className = 'product-id';
         idElement.textContent = item.Id || '';
         details.appendChild(idElement);
-
         const sizesElement = document.createElement('div');
         sizesElement.className = 'product-sizes';
         sizesElement.textContent = item.sizes ? `القياسات: ${item.sizes}` : '';
         details.appendChild(sizesElement);
-
         const priceElement = document.createElement('div');
         priceElement.className = 'product-price';
         priceElement.textContent = item.price ? `${item.price} دينار` : '';
         details.appendChild(priceElement);
-
-        // زر إضافة للسلة
         const addToCartButton = document.createElement('button');
         addToCartButton.className = 'add-to-cart-button';
         addToCartButton.innerHTML = '<i class="fas fa-shopping-cart"></i> إضافة للسلة';
@@ -1097,11 +1085,9 @@ const filteredResults = results.filter(item => {
             showAddToCartDialog(item.Id, item.sizes, item.price);
         };
         details.appendChild(addToCartButton);
-
         card.appendChild(details);
         cardsContainer.appendChild(card);
     });
-
     productsContainer.appendChild(cardsContainer);
 }
 function toggleContactOptions() {
@@ -1111,8 +1097,9 @@ function toggleContactOptions() {
 function resetSearch() {
     document.getElementById("searchInput").value = "";
     document.getElementById("seasonFilter").value = "";
+    document.getElementById("typeFilter").value = "";
     document.getElementById("sortSelect").value = "";
-    reApplyFiltersAndSearch(); // تطبيق جميع الفلاتر (بدون فلتر)
+    reApplyFiltersAndSearch();
 }
     const searchInput = document.getElementById("searchInput");
     searchInput.addEventListener("input", reApplyFiltersAndSearch);
@@ -1133,16 +1120,15 @@ window.addEventListener("DOMContentLoaded", () => {
 
 function addToCart(productId, size, price) {
     const item = { productId, size, price };
-    // التحقق إذا كان المنتج مكرر
     const existing = cartItems.find(i => i.productId === productId && i.size === size);
     if (existing) {
-        showNotification("المنتج موجود بالفعل في السلة.", "warning"); // استخدام الإشعار الجديد
+        showNotification("المنتج موجود بالفعل في السلة.", "warning");
         return;
     }
     cartItems.push(item);
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
-    updateCartIcon(); // تحديث عداد أو شكل السلة (يمكنك تركها فارغة الآن)
-    showNotification("تمت إضافة المنتج إلى السلة!", "success"); // استخدام الإشعار الجديد
+    updateCartIcon();
+    showNotification("تمت إضافة المنتج إلى السلة!", "success");
 }
 
 function updateCartIcon() {
@@ -1155,7 +1141,6 @@ function viewCart() {
     const cartItemsList = document.getElementById('cartItemsList');
     cartItemsList.innerHTML = '';
     let totalPrice = 0;
-
     if (cartItems.length === 0) {
         cartItemsList.innerHTML = '<li>السلة فارغة.</li>';
     } else {
@@ -1174,25 +1159,18 @@ function viewCart() {
             totalPrice += parseFloat(item.price);
         });
     }
-
-    // حساب الخصم إذا كان هناك كود مفعّل
     let discount = 0;
     let promoCode = (window.currentPromoCode || "").toLowerCase();
     if (promoCode === "07706131909") {
-        discount = totalPrice * 0.35; // خصم 20%
+        discount = totalPrice * 0.35;
     }
-    // تكلفة النقل
     const shipping = 5000;
-    // المجموع النهائي
     const finalTotal = Math.max(0, totalPrice - discount) + shipping;
-
-    // عرض المجموع
     document.getElementById('cartTotal').innerHTML =
         `المجموع: <span style="color:#2196F3;">${totalPrice.toLocaleString()} دينار</span><br>` +
         (discount > 0 ? `الخصم: <span style="color:#d32f2f;">-${discount.toLocaleString()} دينار</span><br>` : "") +
         `تكلفة النقل: <span style="color:#2196F3;">${shipping.toLocaleString()} دينار</span><br>` +
         `<b>المجموع النهائي: <span style="color:#388e3c;">${finalTotal.toLocaleString()} دينار</span></b>`;
-    
     cartDetailsPanel.style.display = 'block';
     document.getElementById('cartOverlay').style.display = 'block';
 }
@@ -1219,18 +1197,18 @@ function toggleCartDetails() {
     const cartOverlay = document.getElementById('cartOverlay');
     if (cartDetailsPanel.style.display === 'block') {
         cartDetailsPanel.style.display = 'none';
-        cartOverlay.style.display = 'none'; // عند الإغلاق
+        cartOverlay.style.display = 'none';
     } else {
         cartDetailsPanel.style.display = 'block';
-        cartOverlay.style.display = 'block'; // عند الفتح
+        cartOverlay.style.display = 'block';
     }
 }
 function removeFromCart(productId, size) {
     if (!confirm("هل أنت متأكد من حذف هذا المنتج من السلة؟")) return;
     cartItems = cartItems.filter(item => !(item.productId === productId && item.size === size));
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
-    updateCartIcon(); // تحديث أيقونة السلة
-    viewCart(); // إعادة عرض تفاصيل السلة بعد الحذف
+    updateCartIcon();
+    viewCart();
     showNotification("تم حذف المنتج من السلة.", "success");
 }
     fetchData();
@@ -1238,8 +1216,6 @@ function setupCheckoutDialogKeyboard() {
     const nameInput = document.getElementById("customerName");
     const phoneInput = document.getElementById("customerPhone");
     const addressInput = document.getElementById("customerAddress");
-
-    // إضافة عناصر رسالة الخطأ إذا لم تكن موجودة
     let nameError = document.getElementById("nameError");
     if (!nameError && nameInput) {
         nameError = document.createElement("span");
@@ -1267,7 +1243,6 @@ function setupCheckoutDialogKeyboard() {
         addressError.style.display = "none";
         addressInput.parentNode.insertBefore(addressError, addressInput.nextSibling);
     }
-
     if (nameInput && phoneInput && addressInput) {
         nameInput.onkeydown = function(e) {
             if (e.key === "Enter") {
@@ -1287,8 +1262,6 @@ function setupCheckoutDialogKeyboard() {
                 submitOrder();
             }
         };
-
-        // تحقق فوري من صحة الاسم
         nameInput.addEventListener("input", function() {
             if (this.value.trim().length < 2) {
                 this.style.borderColor = "red";
@@ -1304,8 +1277,6 @@ function setupCheckoutDialogKeyboard() {
                 }
             }
         });
-
-        // تحقق فوري من صحة رقم الهاتف
         phoneInput.addEventListener("input", function() {
             const value = toEnglishDigits(this.value.trim());
             if (!/^07\d{9}$/.test(value)) {
@@ -1322,8 +1293,6 @@ function setupCheckoutDialogKeyboard() {
                 }
             }
         });
-
-        // تحقق فوري من صحة العنوان
         addressInput.addEventListener("input", function() {
             if (this.value.trim().length < 15) {
                 this.style.borderColor = "red";
@@ -1344,7 +1313,7 @@ function setupCheckoutDialogKeyboard() {
 function checkout() {
     if (cartItems.length > 0) {
         document.getElementById("checkoutDialog").style.display = "block";
-        document.getElementById("checkoutOverlay").style.display = "block"; // إظهار الـ overlay
+        document.getElementById("checkoutOverlay").style.display = "block";
         setupCheckoutDialogKeyboard();
         document.getElementById("customerName").focus();
     } else {
@@ -1357,8 +1326,6 @@ function showNotification(message, type = 'info') {
     const notificationDiv = document.createElement('div');
     notificationDiv.className = `notification ${type}`;
     notificationDiv.textContent = message;
-
-    // إشعار التحديث التلقائي: صغير في الزاوية السفلية اليسرى
     if (message.includes("تم تحديث البيانات تلقائياً")) {
         notificationDiv.style.position = 'fixed';
         notificationDiv.style.bottom = '20px';
@@ -1374,7 +1341,6 @@ function showNotification(message, type = 'info') {
         notificationDiv.style.opacity = '0.85';
         notificationDiv.style.boxShadow = '0 2px 5px rgba(0,0,0,0.08)';
     } else {
-        // باقي الإشعارات: في الأعلى
         notificationDiv.style.position = 'fixed';
         notificationDiv.style.top = '20px';
         notificationDiv.style.left = '50%';
@@ -1398,51 +1364,40 @@ function showNotification(message, type = 'info') {
             notificationDiv.style.color = '#721c24';
         }
     }
-
     document.body.appendChild(notificationDiv);
-
-    // إظهار الإشعار بعد جزء من الثانية لتفعيل الانتقال
     setTimeout(() => {
         notificationDiv.style.opacity = '1';
         notificationDiv.style.transform = notificationDiv.style.transform || 'translateY(0)';
     }, 50);
-
-    // إزالة الإشعار بعد فترة زمنية قصيرة
     setTimeout(() => {
         notificationDiv.style.opacity = '0';
         notificationDiv.style.transform = notificationDiv.style.transform || 'translateY(-20px)';
         setTimeout(() => {
             notificationDiv.remove();
         }, 300);
-    }, message.includes("تم تحديث البيانات تلقائياً") ? 1200 : 3000); // إشعار التحديث يختفي بسرعة
+    }, message.includes("تم تحديث البيانات تلقائياً") ? 1200 : 3000);
 }
-// عناصر سلة التسوق (بافتراض وجودها)
 const cartButton = document.querySelector('.cart-float-button');
 const cartDetailsPanel = document.getElementById('cartDetailsPanel');
 function togglePanel(panel, button) {
     const isVisible = panel.style.display === 'block';
     panel.style.display = isVisible ? 'none' : 'block';
-    // يمكنك إضافة كود إضافي هنا لتغيير حالة الزر المرئية إذا لزم الأمر
 }
 if (cartButton && cartDetailsPanel) {
     cartButton.addEventListener('click', () => togglePanel(cartDetailsPanel, cartButton));
-    // أغلق سلة التسوق عند النقر خارجها
     document.addEventListener('click', (event) => {
         if (cartDetailsPanel.style.display === 'block' && !cartDetailsPanel.contains(event.target) && event.target !== cartButton) {
             cartDetailsPanel.style.display = 'none';
         }
     });
 }
-
 let currentProductId = null;
 let currentProductSizeOptions = null;
 let currentProductPrice = null;
-
 function filterSizeOptions() {
     const input = document.getElementById('sizeInput').value.toLowerCase();
     const suggestionsDiv = document.getElementById('sizeSuggestions');
     suggestionsDiv.innerHTML = '';
-
     if (input.length > 0 && currentProductSizeOptions) {
         const filteredSizes = currentProductSizeOptions.filter(size => size.toLowerCase().includes(input));
         if (filteredSizes.length > 0) {
@@ -1463,10 +1418,9 @@ function filterSizeOptions() {
         suggestionsDiv.style.display = 'none';
     }
 }
-
 function confirmAddToCart() {
     let sizeInput = document.getElementById('sizeInput').value.trim();
-    sizeInput = toEnglishDigits(sizeInput); // تحويل الأرقام العربية إلى إنجليزية
+    sizeInput = toEnglishDigits(sizeInput);
     if (sizeInput && currentProductSizeOptions.includes(sizeInput)) {
         addToCart(currentProductId, sizeInput, currentProductPrice);
         closeAddToCartDialog();
@@ -1474,11 +1428,9 @@ function confirmAddToCart() {
         showNotification("القياس غير متاح. الرجاء الاختيار من القائمة.", "warning");
     }
 }
-
 function cancelAddToCart() {
     closeAddToCartDialog();
 }
-
 function closeAddToCartDialog() {
     const sizeInputDialog = document.getElementById('sizeInputDialog');
     sizeInputDialog.style.display = 'none';
@@ -1488,7 +1440,6 @@ function closeAddToCartDialog() {
     currentProductSizeOptions = null;
     currentProductPrice = null;
 }
-
 function addToCart(productId, size, price) {
     const item = { productId, size, price };
     const existing = cartItems.find(i => i.productId === productId && i.size === size);
@@ -1497,7 +1448,7 @@ function addToCart(productId, size, price) {
         return;
     }
     cartItems.push(item);
-    localStorage.setItem('cartItems', JSON.stringify(cartItems)); // تحديث التخزين
+    localStorage.setItem('cartItems', JSON.stringify(cartItems));
     updateCartIcon();
     showNotification(`تمت إضافة المنتج ${productId} بالقياس ${size} إلى السلة!`, "success");
 }
@@ -1505,26 +1456,21 @@ function closeCheckoutDialog() {
     document.getElementById("checkoutDialog").style.display = "none";
     document.getElementById("checkoutOverlay").style.display = "none";
 }
-
 function submitOrder(method) {
     const name = document.getElementById("customerName").value.trim();
     let phone = document.getElementById("customerPhone").value.trim();
     phone = toEnglishDigits(phone);
     const address = document.getElementById("customerAddress").value.trim();
-
     if (!name || !phone || !address) {
         showNotification("يرجى إدخال جميع المعلومات المطلوبة.", "warning");
         return;
     }
-
     let message = `مرحباً، أرغب بإتمام شراء المنتجات التالية:\n`;
     let totalPrice = 0;
     cartItems.forEach(item => {
         message += `- ID: ${item.productId}، القياس: ${item.size}، السعر: ${item.price} دينار\n`;
         totalPrice += parseFloat(item.price);
     });
-
-    // حساب الخصم وكود البروموكود
     let discount = 0;
     let promoCode = (window.currentPromoCode || "").toLowerCase();
     if (promoCode === "ali1") {
@@ -1532,16 +1478,13 @@ function submitOrder(method) {
     }
     const shipping = 5000;
     const finalTotal = Math.max(0, totalPrice - discount) + shipping;
-
     message += `\nالمجموع: ${totalPrice.toLocaleString()} دينار\n`;
     if (discount > 0) {
         message += `الخصم (${promoCode}): -${discount.toLocaleString()} دينار\n`;
     }
     message += `تكلفة النقل: ${shipping.toLocaleString()} دينار\n`;
     message += `المجموع النهائي: ${finalTotal.toLocaleString()} دينار\n\n`;
-
     message += `معلومات الزبون:\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${address}`;
-
     if (method === 'whatsapp') {
         const encodedMessage = encodeURIComponent(message);
         const whatsappURL = `https://wa.me/9647766142936?text=${encodedMessage}`;
@@ -1553,7 +1496,6 @@ function submitOrder(method) {
         window.open(telegramURL, '_blank');
         showNotification("تم إرسال الطلب عبر تليجرام", "success");
     }
-
     closeCheckoutDialog();
     cartItems = [];
     localStorage.removeItem('cartItems');
@@ -1563,30 +1505,26 @@ function submitOrder(method) {
 window.addEventListener('offline', () => {
     showNotification("أنت غير متصل بالإنترنت!", "warning");
 });
-
 window.addEventListener('online', () => {
     showNotification("تم استعادة الاتصال بالإنترنت.", "success");
 });
 let allProducts = [];
 let currentIndex = 0;
 const pageSize = 20;
-
 function renderNextBatch() {
     const container = document.getElementById("productsContainer");
     const productsToShow = allProducts.slice(currentIndex, currentIndex + pageSize);
     productsToShow.forEach(p => {
-        const card = createProductCard(p); // دالة لإنشاء كرت المنتج
+        const card = createProductCard(p);
         container.appendChild(card);
     });
     currentIndex += pageSize;
 }
-
 window.addEventListener("scroll", () => {
     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
         renderNextBatch();
     }
 });
-// دالة تحويل الأرقام العربية إلى إنجليزية
 function toEnglishDigits(str) {
     if (!str) return "";
     return str.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
@@ -1599,11 +1537,7 @@ function autoRefreshData() {
             data = newData;
             localStorage.setItem('productsCache', JSON.stringify(data));
             showNotification("تم تحديث البيانات تلقائياً.", "info");
-
-            // إعادة تطبيق البحث والفلاتر والترتيب الحالية
             reApplyFiltersAndSearch();
-
-            // تحقق من توفر المنتجات في السلة
             let removedItems = [];
             cartItems = cartItems.filter(item => {
                 const found = data.find(p => p.Id == item.productId);
@@ -1625,21 +1559,18 @@ function autoRefreshData() {
         }
     }, 20000);
 }
-
-// دالة جديدة لإعادة تطبيق البحث والفلاتر والترتيب
 function reApplyFiltersAndSearch() {
     const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
     const seasonValue = document.getElementById("seasonFilter").value;
+    const typeValue = document.getElementById("typeFilter").value;
     const sortValue = document.getElementById("sortSelect").value;
-
     let filtered = [...data];
-
-    // فلترة حسب الموسم
     if (seasonValue) {
         filtered = filtered.filter(item => item.season === seasonValue);
     }
-
-    // بحث نصي
+    if (typeValue) {
+        filtered = filtered.filter(item => item.type === typeValue);
+    }
     if (searchValue) {
         filtered = filtered.filter(item => {
             const id = item.Id ? item.Id.toString().toLowerCase() : "";
@@ -1647,18 +1578,13 @@ function reApplyFiltersAndSearch() {
             return id.includes(searchValue) || size.includes(searchValue);
         });
     }
-
-    // ترتيب
     if (sortValue === "price-asc") {
         filtered.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
     } else if (sortValue === "price-desc") {
         filtered.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
     }
-
     displayResults(filtered);
 }
-
-// استدعاء التحديث التلقائي عند تحميل الصفحة
 window.addEventListener("DOMContentLoaded", () => {
     autoRefreshData();
     document.getElementById("checkoutOverlay").onclick = closeCheckoutDialog;
@@ -1683,10 +1609,8 @@ const sizeExplanations = {
     "160": "12-13 سنوات",
     "170": "14-15 سنوات"
 };
-
 function showAddToCartDialog(productId, sizeOptions, price) {
     currentProductId = productId;
-    // استخدم split('-') للفصل الصحيح
     currentProductSizeOptions = typeof sizeOptions === "string"
         ? sizeOptions.split('-').map(s => s.trim())
         : Array.isArray(sizeOptions) ? sizeOptions : [];
@@ -1696,8 +1620,6 @@ function showAddToCartDialog(productId, sizeOptions, price) {
     const sizeInput = document.getElementById('sizeInput');
     sizeInput.value = '';
     document.getElementById('sizeSuggestions').style.display = 'none';
-
-    // تعبئة دليل القياسات فقط للقياسات المتوفرة
     const sizesHelpList = document.getElementById('sizesHelpList');
     sizesHelpList.innerHTML = '';
     currentProductSizeOptions.forEach(size => {
@@ -1707,9 +1629,7 @@ function showAddToCartDialog(productId, sizeOptions, price) {
             sizesHelpList.appendChild(li);
         }
     });
-
     sizeInput.focus();
-
     sizeInput.onkeydown = function(e) {
         if (e.key === "Enter") {
             e.preventDefault();
@@ -1751,7 +1671,6 @@ function clearCart() {
 </button>
 <div id="sizeInputDialog" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1003; text-align: center;">
     <h3>أدخل القياس المطلوب</h3>
-    <!-- دليل القياسات كشرح فقط -->
     <div id="sizesHelp" style="margin: 10px 0; text-align: right; font-size: 15px; color: #555;">
     <strong>دليل القياسات:</strong>
     <ul id="sizesHelpList" style="margin: 5px 0 0 0; padding: 0; list-style: none;"></ul>
@@ -1801,7 +1720,6 @@ function clearCart() {
 </div>
 <script>
 window.addEventListener('DOMContentLoaded', function() {
-  // شرح خطوات الموقع
   const tutorialSteps = [
     "👕 <b>شرح القياسات:</b><br>ستجد زر <b>شرح القياسات</b> (أيقونة المسطرة) في أسفل يسار الشاشة، اضغط عليه لمعرفة الأعمار المناسبة لكل قياس.",
     "🔍 <b>حقل البحث:</b><br>اكتب رقم القياس أو رقم المنتج (ID) أو جزء من القياس في مربع البحث لعرض المنتجات بسرعة.",
@@ -1809,7 +1727,6 @@ window.addEventListener('DOMContentLoaded', function() {
     "🛍️ <b>السلة وإتمام الشراء:</b><br>اضغط على زر <b>السلة</b> أسفل يسار الشاشة لمراجعة طلبك، ثم اضغط <b>إتمام الشراء</b> وأدخل بياناتك لإرسال الطلب عبر واتساب او تلكرام."
   ];
   let tutorialStep = 0;
-
   function showTutorialPanel() {
     document.getElementById('tutorialPanel').style.display = 'flex';
     showTutorialStep(0);
@@ -1827,8 +1744,7 @@ window.addEventListener('DOMContentLoaded', function() {
   document.getElementById('tutorialHideBtn').onclick = function() {
     document.getElementById('tutorialPanel').style.display = 'none';
   };
-
-  setTimeout(showTutorialPanel, 800); // تظهر النافذة دائمًا بعد ثانية من تحميل الصفحة
+  setTimeout(showTutorialPanel, 800);
 });
 function closePromoBanner() {
     document.getElementById('promoBanner').style.display = 'none';
