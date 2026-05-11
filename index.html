@@ -1456,6 +1456,50 @@ function closeCheckoutDialog() {
     document.getElementById("checkoutDialog").style.display = "none";
     document.getElementById("checkoutOverlay").style.display = "none";
 }
+// تحديث الجرد تلقائياً (إزالة القياسات من sheet)
+async function updateInventoryForCartItems(items) {
+    if (!items || items.length === 0) return;
+    let successCount = 0;
+    let failCount = 0;
+    for (const item of items) {
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: "prepareOrder",
+                    id: item.productId,
+                    size: item.size
+                })
+            });
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    successCount++;
+                } else {
+                    failCount++;
+                    console.warn(`فشل تحديث المنتج ${item.productId} - ${item.size}: ${result.message}`);
+                }
+            } else {
+                failCount++;
+                console.error(`HTTP error ${response.status} للمنتج ${item.productId}`);
+            }
+        } catch (err) {
+            failCount++;
+            console.error(`خطأ في تحديث الجرد للمنتج ${item.productId}:`, err);
+        }
+    }
+    if (successCount > 0) {
+        showNotification(`✅ تم تحديث الجرد لـ ${successCount} منتج${failCount > 0 ? ` (فشل ${failCount})` : ''}`, "success");
+    } else if (failCount > 0) {
+        showNotification(`❌ فشل تحديث الجرد لـ ${failCount} منتج. يرجى مراجعة الدعم.`, "error");
+    }
+    await fetchData();
+    reApplyFiltersAndSearch();
+}
 function submitOrder(method) {
     const name = document.getElementById("customerName").value.trim();
     let phone = document.getElementById("customerPhone").value.trim();
@@ -1473,14 +1517,15 @@ function submitOrder(method) {
     });
     let discount = 0;
     let promoCode = (window.currentPromoCode || "").toLowerCase();
-    if (promoCode === "50%") {
+    // تصحيح: التحقق من كود الخصم "50" (بدون %)
+    if (promoCode === "50") {
         discount = totalPrice * 0.5;
     }
     const shipping = 5000;
     const finalTotal = Math.max(0, totalPrice - discount) + shipping;
     message += `\nالمجموع: ${totalPrice.toLocaleString()} دينار\n`;
     if (discount > 0) {
-        message += `الخصم (${promoCode}): -${discount.toLocaleString()} دينار\n`;
+        message += `الخصم (50%): -${discount.toLocaleString()} دينار\n`;
     }
     message += `تكلفة النقل: ${shipping.toLocaleString()} دينار\n`;
     message += `المجموع النهائي: ${finalTotal.toLocaleString()} دينار\n\n`;
@@ -1496,11 +1541,15 @@ function submitOrder(method) {
         window.open(telegramURL, '_blank');
         showNotification("تم إرسال الطلب عبر تليجرام", "success");
     }
-    closeCheckoutDialog();
-    cartItems = [];
-    localStorage.removeItem('cartItems');
-    updateCartIcon();
-    document.getElementById('cartDetailsPanel').style.display = 'none';
+    // تحديث الجرد تلقائياً بعد إرسال الطلب
+    updateInventoryForCartItems(cartItems).finally(() => {
+        closeCheckoutDialog();
+        cartItems = [];
+        localStorage.removeItem('cartItems');
+        updateCartIcon();
+        document.getElementById('cartDetailsPanel').style.display = 'none';
+        reApplyFiltersAndSearch();
+    });
 }
 window.addEventListener('offline', () => {
     showNotification("أنت غير متصل بالإنترنت!", "warning");
