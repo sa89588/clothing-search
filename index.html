@@ -37,7 +37,6 @@
 <title>Jood ALabbas Store</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
 <style>
-/* جميع الأنماط السابقة كما هي (لم تتغير) */
 body.dark-mode {
     background-color: #121212;
     color: #f0f0f0;
@@ -74,7 +73,6 @@ body.dark-mode .product-card button {
     color: #fff;
     border: 1px solid #666;
 }
-
 body.dark-mode .product-card button:hover {
     background-color: #666;
 }
@@ -99,12 +97,12 @@ body.dark-mode .product-card .product-sizes {
     font-weight: bold;
 }
 body.dark-mode .product-card .whatsapp-button {
-    background-color: #555 ;
-    color: white ;
-    border: none ;
+    background-color: #555;
+    color: white;
+    border: none;
 }
 body.dark-mode .product-card .whatsapp-button:hover {
-    background-color: #777 ;
+    background-color: #777;
 }
 body.dark-mode .measurements-float-button {
     background-color: #444;
@@ -740,7 +738,7 @@ footer {
     border-radius: 12px;
     padding: 18px 10px 10px 10px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-    z-index: 1001;
+    z-index: 1010;
     display: none;
     text-align: right;
     width: 95vw;
@@ -845,8 +843,8 @@ footer {
 .measurements-float-button {
     position: fixed;
     left: 20px;
-    bottom: 80px;
-    z-index: 1200;
+    bottom: 100px;
+    z-index: 1005;
     background-color: #f32121;
     color: white;
     border: none;
@@ -864,7 +862,7 @@ footer {
         height: 48px;
         font-size: 22px;
         left: 12px;
-        bottom: 70px;
+        bottom: 90px;
     }
 }
 .promo-banner {
@@ -911,6 +909,26 @@ footer {
         left: 6px;
         top: 4px;
     }
+}
+#sizeButtonsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin: 10px 0;
+}
+.size-btn {
+    padding: 8px 12px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+.size-btn:hover {
+    background-color: #0b7dda;
 }
 </style>
 </head>
@@ -976,12 +994,11 @@ footer {
     <ul id="cartItemsList"></ul>
     <div style="margin: 10px 0;">
         <label for="promoCodeInput" style="font-size:15px;">كود الخصم:</label>
-        <input type="text" id="promoCodeInput" placeholder="أدخل كود البروموكود" style="padding:6px; border-radius:6px; border:1px solid #ccc; width:60%; font-size:15px;">
+        <input type="text" id="promoCodeInput" placeholder="أدخل الكود" style="padding:6px; border-radius:6px; border:1px solid #ccc; width:60%; font-size:15px;">
         <button onclick="applyPromoCode()" style="padding:6px 12px; border-radius:6px; background:#2196F3; color:#fff; border:none; font-size:15px; cursor:pointer;">تطبيق</button>
     </div>
     <div id="promoMessage" style="color:#d32f2f; font-size:14px; margin-bottom:6px;"></div>
     <div id="cartTotal" style="font-size:17px; margin-bottom:10px;"></div>
-    <!-- ملاحظة الخصم التلقائي -->
     <div style="background:#e3f2fd; padding:8px; border-radius:8px; margin:10px 0; font-size:14px; color:#0b7dda; text-align:center;">
         <i class="fas fa-tags"></i> ملاحظة: خصم 50% مطبق تلقائياً على جميع المنتجات
     </div>
@@ -998,16 +1015,16 @@ footer {
 </div>
 <button class="measurements-float-button" onclick="toggleMeasurementsPanel()" title="شرح القياسات" id="measurementsBtn"><i class="fas fa-ruler"></i></button>
 <button class="cart-float-button" onclick="viewCart()"><i class="fas fa-shopping-cart"></i> السلة <span class="cart-count" id="cartCounter">0</span></button>
-<div id="sizeInputDialog" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1003; text-align: center;">
-    <h3>أدخل القياس المطلوب</h3>
-    <div id="sizesHelp" style="margin: 10px 0; text-align: right; font-size: 15px; color: #555;">
-        <strong>دليل القياسات:</strong>
+<div id="sizeInputDialog" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1003; text-align: center; border-radius: 12px;">
+    <h3>اختر القياس المطلوب</h3>
+    <div id="sizesHelp" style="margin: 10px 0; text-align: right; font-size: 14px; color: #555;">
+        <strong>القياسات المتاحة:</strong>
         <ul id="sizesHelpList" style="margin: 5px 0 0 0; padding: 0; list-style: none;"></ul>
     </div>
-    <input type="text" id="sizeInput" inputmode="numeric" dir="ltr" autocomplete="off">
-    <div id="sizeSuggestions" style="display: none; position: absolute; left: 0; right: 0; top: 100%; background-color: white; border: 1px solid #ccc; border-top: none; list-style-type: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto;"></div>
-    <button onclick="confirmAddToCart()">إضافة</button>
-    <button onclick="cancelAddToCart()">إلغاء</button>
+    <div id="sizeButtonsContainer"></div>
+    <div style="margin-top: 15px;">
+        <button onclick="cancelAddToCart()" style="background:#ccc;">إلغاء</button>
+    </div>
 </div>
 <div id="checkoutOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1999;"></div>
 <div id="checkoutDialog">
@@ -1042,6 +1059,19 @@ footer {
     const API_URL = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
     let data = [];
 
+    // دالة متطورة لتحويل القياسات من أي تنسيق إلى مصفوفة (تدعم الأرقام والنصوص والفواصل والشرطات)
+    function parseSizes(sizeInput) {
+        if (sizeInput === undefined || sizeInput === null) return [];
+        if (typeof sizeInput === 'number') return [String(sizeInput)];
+        if (Array.isArray(sizeInput)) return sizeInput.map(s => String(s).trim()).filter(s => s.length > 0);
+        if (typeof sizeInput === 'string') {
+            let parts = sizeInput.split(/[-,،\s]+/);
+            let result = parts.map(p => p.trim()).filter(p => p.length > 0 && !isNaN(p));
+            return result;
+        }
+        return [];
+    }
+
     function toggleDarkMode() {
         const body = document.body;
         const themeToggle = document.getElementById("themeToggle");
@@ -1058,15 +1088,11 @@ footer {
         } catch (error) { console.error("فشل تحميل البيانات:", error); }
     }
 
-    // عرض المنتجات مع خصم 50%
     function displayResults(results) {
         const productsContainer = document.getElementById('productsContainer');
         const filteredResults = results.filter(item => {
-            if (!item.sizes) return false;
-            let s = Array.isArray(item.sizes) ? item.sizes.join('-') : item.sizes;
-            s = String(s).trim();
-            if (s === "" || s === "-" || s === "غير متوفر" || s.toLowerCase().includes("out")) return false;
-            return true;
+            let sizesArray = parseSizes(item.sizes);
+            return sizesArray.length > 0;
         });
         document.getElementById("counter").textContent = `عدد النتائج: ${filteredResults.length}`;
         productsContainer.innerHTML = '';
@@ -1088,6 +1114,7 @@ footer {
             img.src = item.picture || '';
             img.alt = 'صورة المنتج';
             img.loading = "lazy";
+            img.onerror = () => { img.src = 'https://via.placeholder.com/150?text=No+Image'; };
             imageContainer.appendChild(img);
             card.appendChild(imageContainer);
             const details = document.createElement('div');
@@ -1098,7 +1125,8 @@ footer {
             details.appendChild(idElement);
             const sizesElement = document.createElement('div');
             sizesElement.className = 'product-sizes';
-            sizesElement.textContent = item.sizes ? `القياسات: ${item.sizes}` : '';
+            const sizesDisplay = parseSizes(item.sizes).join(' - ');
+            sizesElement.textContent = sizesDisplay ? `القياسات: ${sizesDisplay}` : '';
             details.appendChild(sizesElement);
             const priceContainer = document.createElement('div');
             priceContainer.className = 'product-price';
@@ -1111,7 +1139,6 @@ footer {
             const addToCartButton = document.createElement('button');
             addToCartButton.className = 'add-to-cart-button';
             addToCartButton.innerHTML = '<i class="fas fa-shopping-cart"></i> إضافة للسلة';
-            // تمرير السعر الأصلي والمخفض
             addToCartButton.onclick = () => { showAddToCartDialog(item.Id, item.sizes, originalPrice, discountedPrice); };
             details.appendChild(addToCartButton);
             card.appendChild(details);
@@ -1122,7 +1149,14 @@ footer {
 
     function toggleContactOptions() {
         const contactOptions = document.getElementById('contactOptions');
-        contactOptions.style.display = contactOptions.style.display === 'none' ? 'flex' : 'none';
+        const overlay = document.getElementById('contactOverlay');
+        if (contactOptions.style.display === 'none') {
+            contactOptions.style.display = 'flex';
+            overlay.style.display = 'block';
+        } else {
+            contactOptions.style.display = 'none';
+            overlay.style.display = 'none';
+        }
     }
 
     function resetSearch() {
@@ -1130,6 +1164,8 @@ footer {
         document.getElementById("seasonFilter").value = "";
         document.getElementById("typeFilter").value = "";
         document.getElementById("sortSelect").value = "";
+        document.getElementById("promoCodeInput").value = "";
+        document.getElementById("promoMessage").textContent = "";
         reApplyFiltersAndSearch();
     }
 
@@ -1145,14 +1181,12 @@ footer {
         if (savedCart) { cartItems = JSON.parse(savedCart); updateCartIcon(); }
     });
 
-    // تعديل دالة الإضافة لتخزين السعر الأصلي والمخفض
     function addToCart(productId, size, originalPrice, discountedPrice) {
-        const item = { productId, size, originalPrice, discountedPrice };
         if (cartItems.find(i => i.productId === productId && i.size === size)) {
             showNotification("المنتج موجود بالفعل في السلة.", "warning");
             return;
         }
-        cartItems.push(item);
+        cartItems.push({ productId, size, originalPrice, discountedPrice });
         localStorage.setItem('cartItems', JSON.stringify(cartItems));
         updateCartIcon();
         showNotification("تمت إضافة المنتج إلى السلة!", "success");
@@ -1164,7 +1198,6 @@ footer {
         cartCounter.style.display = cartItems.length > 0 ? 'inline-block' : 'none';
     }
 
-    // عرض السلة مع السعر الأصلي مشطوب والسعر المخفض
     function viewCart() {
         const cartDetailsPanel = document.getElementById('cartDetailsPanel');
         const cartItemsList = document.getElementById('cartItemsList');
@@ -1192,15 +1225,11 @@ footer {
                 totalDiscounted += Number(item.discountedPrice);
             });
         }
-        let discount = 0;
-        let promoCode = (window.currentPromoCode || "").toLowerCase();
-        if (promoCode === "0000") discount = totalDiscounted * 0.0;
         const shipping = 5000;
-        const finalTotal = Math.max(0, totalDiscounted - discount) + shipping;
+        const finalTotal = totalDiscounted + shipping;
         document.getElementById('cartTotal').innerHTML = `
             <span style="text-decoration: line-through; color:#888;">المجموع الأصلي: ${totalOriginal.toLocaleString()} دينار</span><br>
             <span style="color:#e53935; font-weight:bold;">المجموع بعد الخصم 50%: ${totalDiscounted.toLocaleString()} دينار</span><br>
-            ${discount > 0 ? `<span style="color:#d32f2f;">خصم إضافي (كود 50%): -${discount.toLocaleString()} دينار</span><br>` : ""}
             تكلفة النقل: <span style="color:#2196F3;">${shipping.toLocaleString()} دينار</span><br>
             <b>المجموع النهائي: <span style="color:#388e3c;">${finalTotal.toLocaleString()} دينار</span></b>
         `;
@@ -1211,10 +1240,15 @@ footer {
     function applyPromoCode() {
         const input = document.getElementById('promoCodeInput').value.trim().toLowerCase();
         const promoMsg = document.getElementById('promoMessage');
-        if (input === "0000") { window.currentPromoCode = input; promoMsg.textContent = "تم تطبيق كود الخصم بنجاح! خصم 0% على المجموع بعد الخصم."; promoMsg.style.color = "#388e3c"; }
-        else if (input === "") { window.currentPromoCode = ""; promoMsg.textContent = ""; }
-        else { window.currentPromoCode = ""; promoMsg.textContent = "الكود غير صحيح أو منتهي الصلاحية."; promoMsg.style.color = "#d32f2f"; }
-        viewCart();
+        if (input === "0000") {
+            promoMsg.textContent = "الكود صحيح لكن لا يوجد خصم إضافي حالياً.";
+            promoMsg.style.color = "#388e3c";
+        } else if (input === "") {
+            promoMsg.textContent = "";
+        } else {
+            promoMsg.textContent = "الكود غير صحيح.";
+            promoMsg.style.color = "#d32f2f";
+        }
     }
 
     function removeFromCart(productId, size) {
@@ -1228,9 +1262,47 @@ footer {
 
     fetchData();
 
-    function checkout() {
-        if (cartItems.length > 0) { document.getElementById("checkoutDialog").style.display = "block"; document.getElementById("checkoutOverlay").style.display = "block"; setupCheckoutDialogKeyboard(); document.getElementById("customerName").focus(); }
-        else { showNotification("السلة فارغة، لا يوجد منتجات لإتمام شرائها.", "warning"); }
+    async function validateCartBeforeCheckout() {
+        let freshData = [];
+        try {
+            const response = await fetch(API_URL);
+            freshData = await response.json();
+        } catch(e) {
+            showNotification("تعذر التحقق من توفر المنتجات، يرجى المحاولة لاحقاً.", "warning");
+            return false;
+        }
+        const unavailableItems = [];
+        for (const item of cartItems) {
+            const product = freshData.find(p => p.Id == item.productId);
+            if (!product) {
+                unavailableItems.push(`المنتج ID ${item.productId} غير موجود حالياً`);
+                continue;
+            }
+            let availableSizes = parseSizes(product.sizes);
+            if (!availableSizes.includes(item.size)) {
+                unavailableItems.push(`المنتج ${item.productId} - القياس ${item.size} لم يعد متوفراً`);
+            }
+        }
+        if (unavailableItems.length > 0) {
+            let msg = "بعض المنتجات في سلتك أصبحت غير متوفرة:\n" + unavailableItems.join("\n") + "\n\nيرجى إزالتها وتحديث السلة.";
+            alert(msg);
+            showNotification("الرجاء تحديث السلة - بعض القياسات غير متوفرة", "warning");
+            return false;
+        }
+        return true;
+    }
+
+    async function checkout() {
+        if (cartItems.length === 0) {
+            showNotification("السلة فارغة، لا يوجد منتجات لإتمام شرائها.", "warning");
+            return;
+        }
+        const isValid = await validateCartBeforeCheckout();
+        if (!isValid) return;
+        document.getElementById("checkoutDialog").style.display = "block";
+        document.getElementById("checkoutOverlay").style.display = "block";
+        setupCheckoutDialogKeyboard();
+        document.getElementById("customerName").focus();
     }
 
     function showNotification(message, type = 'info') {
@@ -1246,36 +1318,55 @@ footer {
         setTimeout(() => { notificationDiv.style.opacity = '0'; setTimeout(() => notificationDiv.remove(), 300); }, 3000);
     }
 
-    let currentProductId = null, currentProductSizeOptions = null, currentOriginalPrice = null, currentDiscountedPrice = null;
+    let currentProductId = null, currentProductSizeOptions = [], currentOriginalPrice = null, currentDiscountedPrice = null;
     const sizeExplanations = { "80": "1 سنة", "90": "2 سنة", "100": "3 سنوات", "110": "4 سنوات", "120": "4-5 سنوات", "130": "6-7 سنوات", "140": "8-9 سنوات", "150": "10-11 سنوات", "160": "12-13 سنوات", "170": "14-15 سنوات" };
 
     function showAddToCartDialog(productId, sizeOptions, originalPrice, discountedPrice) {
         currentProductId = productId;
-        currentProductSizeOptions = typeof sizeOptions === "string" ? sizeOptions.split('-').map(s => s.trim()) : (Array.isArray(sizeOptions) ? sizeOptions : []);
+        currentProductSizeOptions = parseSizes(sizeOptions);
         currentOriginalPrice = originalPrice;
         currentDiscountedPrice = discountedPrice;
-        const sizeInputDialog = document.getElementById('sizeInputDialog');
-        sizeInputDialog.style.display = 'block';
-        document.getElementById('sizeInput').value = '';
-        document.getElementById('sizeSuggestions').style.display = 'none';
+        const dialog = document.getElementById('sizeInputDialog');
+        dialog.style.display = 'block';
         const sizesHelpList = document.getElementById('sizesHelpList');
         sizesHelpList.innerHTML = '';
-        currentProductSizeOptions.forEach(size => { if (sizeExplanations[size]) { const li = document.createElement('li'); li.textContent = `${size} - ${sizeExplanations[size]}`; sizesHelpList.appendChild(li); } });
-        document.getElementById('sizeInput').focus();
-    }
-
-    function confirmAddToCart() {
-        let sizeInput = document.getElementById('sizeInput').value.trim();
-        sizeInput = toEnglishDigits(sizeInput);
-        if (sizeInput && currentProductSizeOptions.includes(sizeInput)) { 
-            addToCart(currentProductId, sizeInput, currentOriginalPrice, currentDiscountedPrice); 
-            closeAddToCartDialog(); 
+        if (currentProductSizeOptions.length === 0) {
+            sizesHelpList.innerHTML = '<li>لا توجد قياسات متاحة لهذا المنتج</li>';
+        } else {
+            currentProductSizeOptions.forEach(size => {
+                const li = document.createElement('li');
+                li.textContent = sizeExplanations[size] ? `${size} - ${sizeExplanations[size]}` : size;
+                sizesHelpList.appendChild(li);
+            });
         }
-        else { showNotification("القياس غير متاح. الرجاء الاختيار من القائمة.", "warning"); }
+        const buttonsContainer = document.getElementById('sizeButtonsContainer');
+        buttonsContainer.innerHTML = '';
+        currentProductSizeOptions.forEach(size => {
+            const btn = document.createElement('button');
+            btn.textContent = size;
+            btn.className = 'size-btn';
+            btn.onclick = () => {
+                addToCart(currentProductId, size, currentOriginalPrice, currentDiscountedPrice);
+                closeAddToCartDialog();
+            };
+            buttonsContainer.appendChild(btn);
+        });
+        if (currentProductSizeOptions.length === 0) {
+            const msg = document.createElement('p');
+            msg.textContent = 'لا توجد قياسات متاحة.';
+            msg.style.color = 'red';
+            buttonsContainer.appendChild(msg);
+        }
     }
 
     function cancelAddToCart() { closeAddToCartDialog(); }
-    function closeAddToCartDialog() { document.getElementById('sizeInputDialog').style.display = 'none'; document.getElementById('sizeInput').value = ''; document.getElementById('sizeSuggestions').style.display = 'none'; currentProductId = null; currentProductSizeOptions = null; currentOriginalPrice = null; currentDiscountedPrice = null; }
+    function closeAddToCartDialog() {
+        document.getElementById('sizeInputDialog').style.display = 'none';
+        currentProductId = null;
+        currentProductSizeOptions = [];
+        currentOriginalPrice = null;
+        currentDiscountedPrice = null;
+    }
 
     function closeCheckoutDialog() { document.getElementById("checkoutDialog").style.display = "none"; document.getElementById("checkoutOverlay").style.display = "none"; }
 
@@ -1304,11 +1395,9 @@ footer {
             totalOriginal += Number(item.originalPrice);
             totalDiscounted += Number(item.discountedPrice);
         });
-        let discount = 0; if ((window.currentPromoCode || "").toLowerCase() === "50") discount = totalDiscounted * 0.5;
-        const shipping = 5000; const finalTotal = Math.max(0, totalDiscounted - discount) + shipping;
+        const shipping = 5000; const finalTotal = totalDiscounted + shipping;
         message += `\nالمجموع الأصلي: ${totalOriginal.toLocaleString()} دينار\n`;
         message += `المجموع بعد الخصم 50%: ${totalDiscounted.toLocaleString()} دينار\n`;
-        if (discount > 0) message += `خصم إضافي (كود 50%): -${discount.toLocaleString()} دينار\n`;
         message += `تكلفة النقل: ${shipping.toLocaleString()} دينار\n`;
         message += `المجموع النهائي: ${finalTotal.toLocaleString()} دينار\n\n`;
         message += `معلومات الزبون:\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${address}`;
@@ -1325,7 +1414,12 @@ footer {
         let filtered = [...data];
         if (seasonValue) filtered = filtered.filter(item => item.season === seasonValue);
         if (typeValue) filtered = filtered.filter(item => item.type === typeValue);
-        if (searchValue) filtered = filtered.filter(item => (item.Id ? item.Id.toString().toLowerCase() : "").includes(searchValue) || (item.sizes ? item.sizes.toString().toLowerCase() : "").includes(searchValue));
+        if (searchValue) {
+            filtered = filtered.filter(item => 
+                (item.Id ? item.Id.toString().toLowerCase() : "").includes(searchValue) || 
+                (item.sizes ? item.sizes.toString().toLowerCase() : "").includes(searchValue)
+            );
+        }
         if (sortValue === "price-asc") filtered.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
         else if (sortValue === "price-desc") filtered.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
         displayResults(filtered);
@@ -1346,7 +1440,7 @@ footer {
         document.getElementById("checkoutOverlay").onclick = closeCheckoutDialog;
         document.getElementById("cartOverlay").onclick = function() { document.getElementById("cartDetailsPanel").style.display = "none"; document.getElementById("cartOverlay").style.display = "none"; };
         document.getElementById("contactOverlay").onclick = function() { document.getElementById("contactOptions").style.display = "none"; document.getElementById("contactOverlay").style.display = "none"; };
-        const tutorialSteps = ["👕 <b>شرح القياسات:</b><br>ستجد زر <b>شرح القياسات</b> (أيقونة المسطرة) في أسفل يسار الشاشة، اضغط عليه لمعرفة الأعمار المناسبة لكل قياس.","🔍 <b>حقل البحث:</b><br>اكتب رقم القياس أو رقم المنتج (ID) أو جزء من القياس في مربع البحث لعرض المنتجات بسرعة.","🛒 <b>زر أضف للسلة:</b><br>اضغط على زر <b>إضافة للسلة</b> لأي منتج، ثم اختر القياس المناسب من النافذة المنبثقة.","🛍️ <b>السلة وإتمام الشراء:</b><br>اضغط على زر <b>السلة</b> أسفل يسار الشاشة لمراجعة طلبك، ثم اضغط <b>إتمام الشراء</b> وأدخل بياناتك لإرسال الطلب عبر واتساب او تلكرام."];
+        const tutorialSteps = ["👕 <b>شرح القياسات:</b><br>ستجد زر <b>شرح القياسات</b> (أيقونة المسطرة) في أسفل يسار الشاشة، اضغط عليه لمعرفة الأعمار المناسبة لكل قياس.","🔍 <b>حقل البحث:</b><br>اكتب رقم القياس أو رقم المنتج (ID) أو جزء من القياس في مربع البحث لعرض المنتجات بسرعة.","🛒 <b>زر أضف للسلة:</b><br>اضغط على زر <b>إضافة للسلة</b> لأي منتج، ثم اختر القياس المناسب من الأزرار.","🛍️ <b>السلة وإتمام الشراء:</b><br>اضغط على زر <b>السلة</b> أسفل يسار الشاشة لمراجعة طلبك، ثم اضغط <b>إتمام الشراء</b> وأدخل بياناتك. سيتم التحقق من توفر القياسات قبل الإرسال."];
         let step = 0;
         function showTutorialStep(s) { step = s; document.getElementById('tutorialStepText').innerHTML = tutorialSteps[step]; document.getElementById('tutorialNextBtn').style.display = (step < tutorialSteps.length - 1) ? 'inline-block' : 'none'; }
         document.getElementById('tutorialNextBtn').onclick = () => { if (step < tutorialSteps.length - 1) showTutorialStep(step + 1); };
