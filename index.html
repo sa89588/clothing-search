@@ -35,8 +35,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Jood ALabbas Store</title>
+<!-- Meta Pixel Base Code -->
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '2514076832364278');
+  fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=2514076832364278&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Base Code -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
 <style>
+/* جميع الأنماط كما هي، لم تتغير */
 body.dark-mode {
     background-color: #121212;
     color: #f0f0f0;
@@ -992,12 +1010,6 @@ footer {
 <div class="cart-details-panel" id="cartDetailsPanel">
     <h3><i class="fas fa-shopping-cart"></i> تفاصيل السلة</h3>
     <ul id="cartItemsList"></ul>
-    <div style="margin: 10px 0;">
-        <label for="promoCodeInput" style="font-size:15px;">كود الخصم:</label>
-        <input type="text" id="promoCodeInput" placeholder="أدخل الكود" style="padding:6px; border-radius:6px; border:1px solid #ccc; width:60%; font-size:15px;">
-        <button onclick="applyPromoCode()" style="padding:6px 12px; border-radius:6px; background:#2196F3; color:#fff; border:none; font-size:15px; cursor:pointer;">تطبيق</button>
-    </div>
-    <div id="promoMessage" style="color:#d32f2f; font-size:14px; margin-bottom:6px;"></div>
     <div id="cartTotal" style="font-size:17px; margin-bottom:10px;"></div>
     <div style="background:#e3f2fd; padding:8px; border-radius:8px; margin:10px 0; font-size:14px; color:#0b7dda; text-align:center;">
         <i class="fas fa-tags"></i> ملاحظة: خصم 50% مطبق تلقائياً على جميع المنتجات
@@ -1059,7 +1071,6 @@ footer {
     const API_URL = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
     let data = [];
 
-    // دالة متطورة لتحويل القياسات من أي تنسيق إلى مصفوفة (تدعم الأرقام والنصوص والفواصل والشرطات)
     function parseSizes(sizeInput) {
         if (sizeInput === undefined || sizeInput === null) return [];
         if (typeof sizeInput === 'number') return [String(sizeInput)];
@@ -1164,8 +1175,6 @@ footer {
         document.getElementById("seasonFilter").value = "";
         document.getElementById("typeFilter").value = "";
         document.getElementById("sortSelect").value = "";
-        document.getElementById("promoCodeInput").value = "";
-        document.getElementById("promoMessage").textContent = "";
         reApplyFiltersAndSearch();
     }
 
@@ -1235,20 +1244,6 @@ footer {
         `;
         cartDetailsPanel.style.display = 'block';
         document.getElementById('cartOverlay').style.display = 'block';
-    }
-
-    function applyPromoCode() {
-        const input = document.getElementById('promoCodeInput').value.trim().toLowerCase();
-        const promoMsg = document.getElementById('promoMessage');
-        if (input === "0000") {
-            promoMsg.textContent = "الكود صحيح لكن لا يوجد خصم إضافي حالياً.";
-            promoMsg.style.color = "#388e3c";
-        } else if (input === "") {
-            promoMsg.textContent = "";
-        } else {
-            promoMsg.textContent = "الكود غير صحيح.";
-            promoMsg.style.color = "#d32f2f";
-        }
     }
 
     function removeFromCart(productId, size) {
@@ -1401,6 +1396,17 @@ footer {
         message += `تكلفة النقل: ${shipping.toLocaleString()} دينار\n`;
         message += `المجموع النهائي: ${finalTotal.toLocaleString()} دينار\n\n`;
         message += `معلومات الزبون:\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${address}`;
+        
+        if (typeof fbq === 'function') {
+            fbq('track', 'Purchase', {
+                value: finalTotal,
+                currency: 'IQD'
+            });
+            console.log('✅ Meta Pixel: تم تسجيل حدث Purchase بقيمة', finalTotal, 'IQD');
+        } else {
+            console.warn('⚠️ Meta Pixel غير موجود، تحقق من كود الأساسي في <head>');
+        }
+        
         if (method === 'whatsapp') { window.open(`https://wa.me/9647766142936?text=${encodeURIComponent(message)}`, '_blank'); showNotification("تم إرسال الطلب عبر واتساب", "success"); }
         else if (method === 'telegram') { window.open(`https://t.me/jaiq19?text=${encodeURIComponent(message)}`, '_blank'); showNotification("تم إرسال الطلب عبر تليجرام", "success"); }
         updateInventoryForCartItems(cartItems).finally(() => { closeCheckoutDialog(); cartItems = []; localStorage.removeItem('cartItems'); updateCartIcon(); document.getElementById('cartDetailsPanel').style.display = 'none'; reApplyFiltersAndSearch(); });
