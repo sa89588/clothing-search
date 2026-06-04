@@ -1070,7 +1070,42 @@ footer {
 <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
     let data = [];
+    
+    function getCookieValue(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
 
+    function getUrlParameter(name) {
+        name = name.replace(/[\[\]]/g, '\\$&');
+        const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+        const results = regex.exec(window.location.href);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
+    async function sha256(message) {
+        if (!message) return "";
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
+    }
+
+    async function getClientIP() {
+        try {
+            const res = await fetch('https://api.ipify.org?format=json');
+            const data = await res.json();
+            return data.ip;
+        } catch(e) {
+            return "";
+        }
+    }
+    
     function parseSizes(sizeInput) {
         if (sizeInput === undefined || sizeInput === null) return [];
         if (typeof sizeInput === 'number') return [String(sizeInput)];
@@ -1378,11 +1413,15 @@ footer {
 
     async function updateInventoryForCartItems(items) { if (!items || items.length === 0) return; for (const item of items) { try { await fetch(API_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: "prepareOrder", id: item.productId, size: item.size }) }); } catch(e) {} } await fetchData(); reApplyFiltersAndSearch(); }
 
-    function submitOrder(method) {
+    async function submitOrder(method) {
         const name = document.getElementById("customerName").value.trim();
         let phone = document.getElementById("customerPhone").value.trim(); phone = toEnglishDigits(phone);
         const address = document.getElementById("customerAddress").value.trim();
-        if (!name || !phone || !address) { showNotification("يرجى إدخال جميع المعلومات المطلوبة.", "warning"); return; }
+        if (!name || !phone || !address) { 
+            showNotification("يرجى إدخال جميع المعلومات المطلوبة.", "warning"); 
+            return; 
+        }
+
         let message = `مرحباً، أرغب بإتمام شراء المنتجات التالية:\n`;
         let totalOriginal = 0, totalDiscounted = 0;
         cartItems.forEach(item => { 
@@ -1390,28 +1429,81 @@ footer {
             totalOriginal += Number(item.originalPrice);
             totalDiscounted += Number(item.discountedPrice);
         });
-        const shipping = 5000; const finalTotal = totalDiscounted + shipping;
+        const shipping = 5000; 
+        const finalTotal = totalDiscounted + shipping;
         message += `\nالمجموع الأصلي: ${totalOriginal.toLocaleString()} دينار\n`;
         message += `المجموع بعد الخصم 50%: ${totalDiscounted.toLocaleString()} دينار\n`;
         message += `تكلفة النقل: ${shipping.toLocaleString()} دينار\n`;
         message += `المجموع النهائي: ${finalTotal.toLocaleString()} دينار\n\n`;
         message += `معلومات الزبون:\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${address}`;
-        
+
+        // ========== إرسال الحدث عبر Conversions API (Server-Side) ==========
+        try {
+            let emailHash = await sha256(""); // ضع البريد الإلكتروني إذا وجد
+            let phoneHash = await sha256(phone.trim());
+            const fbp = getCookieValue('_fbp') || '';
+            const fbclid = getUrlParameter('fbclid');
+            const fbc = fbclid ? `fb.1.${Date.now()}.${fbclid}` : '';
+            const clientIP = await getClientIP();
+
+            const eventData = {
+                event_name: "Purchase",
+                event_time: new Date().toISOString(),
+                event_source_url: window.location.href,
+                user_data: {
+                    em: emailHash ? [emailHash] : null,
+                    ph: phoneHash ? [phoneHash] : null,
+                    client_ip_address: clientIP,
+                    client_user_agent: navigator.userAgent,
+                    fbp: fbp,
+                    fbc: fbc
+                },
+                custom_data: {
+                    currency: "IQD",
+                    value: finalTotal
+                },
+                event_id: `${Date.now()}_${Math.random()}`
+            };
+
+            // إرسال POST إلى نفس Google Apps Script
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventData)
+            }).catch(err => console.warn("Conversions API error:", err));
+        } catch (err) {
+            console.warn("Failed to send server-side event:", err);
+        }
+        // ================================================================
+
+        // إرسال الحدث عبر بيكسل المتصفح
         if (typeof fbq === 'function') {
-            fbq('track', 'Purchase', {
-                value: finalTotal,
-                currency: 'IQD'
-            });
+            fbq('track', 'Purchase', { value: finalTotal, currency: 'IQD' });
             console.log('✅ Meta Pixel: تم تسجيل حدث Purchase بقيمة', finalTotal, 'IQD');
         } else {
-            console.warn('⚠️ Meta Pixel غير موجود، تحقق من كود الأساسي في <head>');
+            console.warn('⚠️ Meta Pixel غير موجود');
         }
-        
-        if (method === 'whatsapp') { window.open(`https://wa.me/9647766142936?text=${encodeURIComponent(message)}`, '_blank'); showNotification("تم إرسال الطلب عبر واتساب", "success"); }
-        else if (method === 'telegram') { window.open(`https://t.me/jaiq19?text=${encodeURIComponent(message)}`, '_blank'); showNotification("تم إرسال الطلب عبر تليجرام", "success"); }
-        updateInventoryForCartItems(cartItems).finally(() => { closeCheckoutDialog(); cartItems = []; localStorage.removeItem('cartItems'); updateCartIcon(); document.getElementById('cartDetailsPanel').style.display = 'none'; reApplyFiltersAndSearch(); });
-    }
 
+        // إرسال الطلب إلى واتساب أو تليجرام
+        if (method === 'whatsapp') { 
+            window.open(`https://wa.me/9647766142936?text=${encodeURIComponent(message)}`, '_blank'); 
+            showNotification("تم إرسال الطلب عبر واتساب", "success"); 
+        } else if (method === 'telegram') { 
+            window.open(`https://t.me/jaiq19?text=${encodeURIComponent(message)}`, '_blank'); 
+            showNotification("تم إرسال الطلب عبر تليجرام", "success"); 
+        }
+
+        // تحديث المخزون وتفريغ السلة
+        updateInventoryForCartItems(cartItems).finally(() => { 
+            closeCheckoutDialog(); 
+            cartItems = []; 
+            localStorage.removeItem('cartItems'); 
+            updateCartIcon(); 
+            document.getElementById('cartDetailsPanel').style.display = 'none'; 
+            reApplyFiltersAndSearch(); 
+        });
+    }
     function reApplyFiltersAndSearch() {
         const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
         const seasonValue = document.getElementById("seasonFilter").value;
