@@ -1415,97 +1415,114 @@ footer {
 
     async function updateInventoryForCartItems(items) { if (!items || items.length === 0) return; for (const item of items) { try { await fetch(API_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: "prepareOrder", id: item.productId, size: item.size }) }); } catch(e) {} } await fetchData(); reApplyFiltersAndSearch(); }
 
-    async function submitOrder(method) {
-        const name = document.getElementById("customerName").value.trim();
-        let phone = document.getElementById("customerPhone").value.trim(); phone = toEnglishDigits(phone);
-        const address = document.getElementById("customerAddress").value.trim();
-        if (!name || !phone || !address) { 
-            showNotification("يرجى إدخال جميع المعلومات المطلوبة.", "warning"); 
-            return; 
-        }
-
-        let message = `مرحباً، أرغب بإتمام شراء المنتجات التالية:\n`;
-        let totalOriginal = 0, totalDiscounted = 0;
-        cartItems.forEach(item => { 
-            message += `- ID: ${item.productId}، القياس: ${item.size}، السعر الأصلي: ${Number(item.originalPrice).toLocaleString()} دينار، بعد الخصم 50%: ${Number(item.discountedPrice).toLocaleString()} دينار\n`; 
-            totalOriginal += Number(item.originalPrice);
-            totalDiscounted += Number(item.discountedPrice);
-        });
-        const shipping = 5000; 
-        const finalTotal = totalDiscounted + shipping;
-        message += `\nالمجموع الأصلي: ${totalOriginal.toLocaleString()} دينار\n`;
-        message += `المجموع بعد الخصم 50%: ${totalDiscounted.toLocaleString()} دينار\n`;
-        message += `تكلفة النقل: ${shipping.toLocaleString()} دينار\n`;
-        message += `المجموع النهائي: ${finalTotal.toLocaleString()} دينار\n\n`;
-        message += `معلومات الزبون:\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${address}`;
-
-        // ========== إرسال الحدث عبر Conversions API (Server-Side) ==========
-        try {
-            let emailHash = await sha256(""); // ضع البريد الإلكتروني إذا وجد
-            let phoneHash = await sha256(phone.trim());
-            const fbp = getCookieValue('_fbp') || '';
-            const fbclid = getUrlParameter('fbclid');
-            const fbc = fbclid ? `fb.1.${Date.now()}.${fbclid}` : '';
-            const clientIP = await getClientIP();
-
-            const eventData = {
-                event_name: "Purchase",
-                event_time: new Date().toISOString(),
-                event_source_url: window.location.href,
-                user_data: {
-                    em: emailHash ? [emailHash] : null,
-                    ph: phoneHash ? [phoneHash] : null,
-                    client_ip_address: clientIP,
-                    client_user_agent: navigator.userAgent,
-                    fbp: fbp,
-                    fbc: fbc
-                },
-                custom_data: {
-                    currency: "IQD",
-                    value: finalTotal
-                },
-                event_id: `${Date.now()}_${Math.random()}`
-            };
-
-            // إرسال POST إلى نفس Google Apps Script
-            fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(eventData)
-            }).catch(err => console.warn("Conversions API error:", err));
-        } catch (err) {
-            console.warn("Failed to send server-side event:", err);
-        }
-        // ================================================================
-
-        // إرسال الحدث عبر بيكسل المتصفح
-        if (typeof fbq === 'function') {
-            fbq('track', 'Purchase', { value: finalTotal, currency: 'IQD' });
-            console.log('✅ Meta Pixel: تم تسجيل حدث Purchase بقيمة', finalTotal, 'IQD');
-        } else {
-            console.warn('⚠️ Meta Pixel غير موجود');
-        }
-
-        // إرسال الطلب إلى واتساب أو تليجرام
-        if (method === 'whatsapp') { 
-            window.open(`https://wa.me/9647766142936?text=${encodeURIComponent(message)}`, '_blank'); 
-            showNotification("تم إرسال الطلب عبر واتساب", "success"); 
-        } else if (method === 'telegram') { 
-            window.open(`https://t.me/jaiq19?text=${encodeURIComponent(message)}`, '_blank'); 
-            showNotification("تم إرسال الطلب عبر تليجرام", "success"); 
-        }
-
-        // تحديث المخزون وتفريغ السلة
-        updateInventoryForCartItems(cartItems).finally(() => { 
-            closeCheckoutDialog(); 
-            cartItems = []; 
-            localStorage.removeItem('cartItems'); 
-            updateCartIcon(); 
-            document.getElementById('cartDetailsPanel').style.display = 'none'; 
-            reApplyFiltersAndSearch(); 
-        });
+    async function submitOrder(initialMethod) {
+    const name = document.getElementById("customerName").value.trim();
+    let phone = document.getElementById("customerPhone").value.trim(); phone = toEnglishDigits(phone);
+    const address = document.getElementById("customerAddress").value.trim();
+    if (!name || !phone || !address) {
+        showNotification("يرجى إدخال جميع المعلومات المطلوبة.", "warning");
+        return;
     }
+
+    let message = `مرحباً، أرغب بإتمام شراء المنتجات التالية:\n`;
+    let totalOriginal = 0, totalDiscounted = 0;
+    cartItems.forEach(item => {
+        message += `- ID: ${item.productId}، القياس: ${item.size}، السعر الأصلي: ${Number(item.originalPrice).toLocaleString()} دينار، بعد الخصم 50%: ${Number(item.discountedPrice).toLocaleString()} دينار\n`;
+        totalOriginal += Number(item.originalPrice);
+        totalDiscounted += Number(item.discountedPrice);
+    });
+    const shipping = 5000;
+    const finalTotal = totalDiscounted + shipping;
+    message += `\nالمجموع الأصلي: ${totalOriginal.toLocaleString()} دينار\n`;
+    message += `المجموع بعد الخصم 50%: ${totalDiscounted.toLocaleString()} دينار\n`;
+    message += `تكلفة النقل: ${shipping.toLocaleString()} دينار\n`;
+    message += `المجموع النهائي: ${finalTotal.toLocaleString()} دينار\n\n`;
+    message += `معلومات الزبون:\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${address}`;
+
+    const whatsappUrl = `https://wa.me/9647766142936?text=${encodeURIComponent(message)}`;
+    const telegramUrl = `https://t.me/jaiq19?text=${encodeURIComponent(message)}`;
+
+    // دالة لعرض مربع الحوار وإعادة المحاولة
+    const askUser = (currentMethod) => {
+        const isSent = confirm("❓ هل تم إرسال الرسالة بشكل صحيح؟\nاضغط 'موافق' إذا تم الإرسال، 'إلغاء' لإعادة المحاولة عبر التطبيق الآخر.");
+        if (isSent === true) {
+            const clearCartChoice = confirm("🗑️ هل تريد تفريغ السلة الآن؟\nاضغط 'موافق' لتفريغها، 'إلغاء' للإبقاء عليها.");
+            if (clearCartChoice === true) {
+                updateInventoryForCartItems(cartItems).finally(() => {
+                    cartItems = [];
+                    localStorage.removeItem('cartItems');
+                    updateCartIcon();
+                    document.getElementById('cartDetailsPanel').style.display = 'none';
+                    reApplyFiltersAndSearch();
+                    showNotification("✅ تم تفريغ السلة وتحديث المخزون.", "success");
+                });
+            } else {
+                showNotification("🛒 تم الإبقاء على السلة. يمكنك تفريغها يدوياً لاحقاً.", "info");
+            }
+            closeCheckoutDialog();
+        } else {
+            const newMethod = currentMethod === 'whatsapp' ? 'telegram' : 'whatsapp';
+            const newUrl = newMethod === 'whatsapp' ? whatsappUrl : telegramUrl;
+            alert(`🔄 سيتم إعادة المحاولة عبر ${newMethod === 'whatsapp' ? 'واتساب' : 'تليجرام'}. سيتم فتح الرابط الآن.`);
+            window.open(newUrl, '_blank');
+            setTimeout(() => {
+                askUser(newMethod);
+            }, 1500);
+        }
+    };
+
+    // فتح الرابط الأولي
+    const initialUrl = initialMethod === 'whatsapp' ? whatsappUrl : telegramUrl;
+    window.open(initialUrl, '_blank');
+
+    // إرسال أحداث البيكسل (لا تنتظر تأكيد المستخدم)
+    try {
+        let emailHash = await sha256("");
+        let phoneHash = await sha256(phone.trim());
+        const fbp = getCookieValue('_fbp') || '';
+        const fbclid = getUrlParameter('fbclid');
+        const fbc = fbclid ? `fb.1.${Date.now()}.${fbclid}` : '';
+        const clientIP = await getClientIP();
+        const eventData = {
+            event_name: "Purchase",
+            event_time: new Date().toISOString(),
+            event_source_url: window.location.href,
+            user_data: {
+                em: emailHash ? [emailHash] : null,
+                ph: phoneHash ? [phoneHash] : null,
+                client_ip_address: clientIP,
+                client_user_agent: navigator.userAgent,
+                fbp: fbp,
+                fbc: fbc
+            },
+            custom_data: {
+                currency: "IQD",
+                value: finalTotal
+            },
+            event_id: `${Date.now()}_${Math.random()}`
+        };
+        fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData)
+        }).catch(err => console.warn("Conversions API error:", err));
+    } catch (err) {
+        console.warn("Failed to send server-side event:", err);
+    }
+
+    if (typeof fbq === 'function') {
+        fbq('track', 'Purchase', { value: finalTotal, currency: 'IQD' });
+        console.log('✅ Meta Pixel: تم تسجيل حدث Purchase بقيمة', finalTotal, 'IQD');
+    } else {
+        console.warn('⚠️ Meta Pixel غير موجود');
+    }
+
+    // تأخير ظهور مربع الحوار لإعطاء وقت للمستخدم لإرسال الرسالة
+    setTimeout(() => {
+        askUser(initialMethod);
+    }, 2000);
+}
     function reApplyFiltersAndSearch() {
         const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
         const seasonValue = document.getElementById("seasonFilter").value;
