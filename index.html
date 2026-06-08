@@ -955,7 +955,7 @@ footer {
     متجر جود العباس <br> Jood ALabbas Store
 </header>
 <div class="promo-banner" id="promoBanner">
-    🎉  <b>للجملة يرجى مراسلتنا على الواتساب</b> <button onclick="closePromoBanner()" aria-label="إغلاق" class="close-banner-btn">&times;</button>
+    🎉  <b>لا تفوتون عرض الخصم الحالي 50% </b> <button onclick="closePromoBanner()" aria-label="إغلاق" class="close-banner-btn">&times;</button>
 </div>
 <div class="welcome-message" id="welcome">أهلاً بكم في متجر جود العباس! تسوق سعيد 🌟</div>
 <div class="floating-buttons">
@@ -1415,7 +1415,7 @@ footer {
 
     async function updateInventoryForCartItems(items) { if (!items || items.length === 0) return; for (const item of items) { try { await fetch(API_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: "prepareOrder", id: item.productId, size: item.size }) }); } catch(e) {} } await fetchData(); reApplyFiltersAndSearch(); }
 
-    async function submitOrder(initialMethod) {
+async function submitOrder(initialMethod) {
     const name = document.getElementById("customerName").value.trim();
     let phone = document.getElementById("customerPhone").value.trim(); phone = toEnglishDigits(phone);
     const address = document.getElementById("customerAddress").value.trim();
@@ -1424,6 +1424,7 @@ footer {
         return;
     }
 
+    // بناء رسالة الطلب (كما هي)
     let message = `مرحباً، أرغب بإتمام شراء المنتجات التالية:\n`;
     let totalOriginal = 0, totalDiscounted = 0;
     cartItems.forEach(item => {
@@ -1442,10 +1443,12 @@ footer {
     const whatsappUrl = `https://wa.me/9647766142936?text=${encodeURIComponent(message)}`;
     const telegramUrl = `https://t.me/jaiq19?text=${encodeURIComponent(message)}`;
 
-    // دالة لعرض مربع الحوار وإعادة المحاولة
+    // دالة لعرض مربع الحوار مع عدد محدود من المحاولات
+    let retryCount = 0; // 0 = المحاولة الأولى, 1 = المحاولة الثانية (الأخيرة)
     const askUser = (currentMethod) => {
-        const isSent = confirm("❓ هل تم إرسال الرسالة بشكل صحيح؟\nاضغط 'موافق' إذا تم الإرسال، 'إلغاء' لإعادة المحاولة عبر التطبيق الآخر.");
+        const isSent = confirm("❓ هل تم إرسال الرسالة بشكل صحيح؟\nاضغط 'موافق' إذا تم الإرسال، 'إلغاء' لإعادة المحاولة.");
         if (isSent === true) {
+            // تم الإرسال بنجاح
             const clearCartChoice = confirm("🗑️ هل تريد تفريغ السلة الآن؟\nاضغط 'موافق' لتفريغها، 'إلغاء' للإبقاء عليها.");
             if (clearCartChoice === true) {
                 updateInventoryForCartItems(cartItems).finally(() => {
@@ -1461,13 +1464,26 @@ footer {
             }
             closeCheckoutDialog();
         } else {
-            const newMethod = currentMethod === 'whatsapp' ? 'telegram' : 'whatsapp';
-            const newUrl = newMethod === 'whatsapp' ? whatsappUrl : telegramUrl;
-            alert(`🔄 سيتم إعادة المحاولة عبر ${newMethod === 'whatsapp' ? 'واتساب' : 'تليجرام'}. سيتم فتح الرابط الآن.`);
-            window.open(newUrl, '_blank');
-            setTimeout(() => {
-                askUser(newMethod);
-            }, 1500);
+            // لم يتم الإرسال
+            if (retryCount === 0) {
+                // المحاولة الأولى فاشلة → نقوم بإعادة المحاولة باستخدام التطبيق الآخر
+                retryCount++;
+                const newMethod = currentMethod === 'whatsapp' ? 'telegram' : 'whatsapp';
+                const newUrl = newMethod === 'whatsapp' ? whatsappUrl : telegramUrl;
+                alert(`⚠️ جاري إعادة المحاولة عبر ${newMethod === 'whatsapp' ? 'واتساب' : 'تليجرام'}. سيتم فتح الرابط الآن.`);
+                window.open(newUrl, '_blank');
+                // بعد فتح الرابط، نعيد السؤال مرة أخرى (المحاولة الثانية)
+                setTimeout(() => {
+                    askUser(newMethod);
+                }, 1500);
+            } else {
+                // المحاولة الثانية فاشلة أيضاً
+                alert("❌ لم يتم تأكيد إرسال الرسالة. يرجى أخذ لقطة شاشة (سكرين شوت) للسلة وإرسالها إلى المتجر عبر زر الظرف الموجود أعلى يمين الشاشة.\n\nلن يتم تفريغ السلة تلقائياً.");
+                // لا نغلق نافذة الدفع، ونبقي السلة كما هي
+                // يمكن للمستخدم إغلاق النافذة يدوياً
+                showNotification("📸 يرجى تصوير السلة وإرسالها يدوياً عبر زر الاتصال.", "warning");
+                // لا نقوم بتفريغ السلة ولا نغلق النافذة
+            }
         }
     };
 
@@ -1475,7 +1491,7 @@ footer {
     const initialUrl = initialMethod === 'whatsapp' ? whatsappUrl : telegramUrl;
     window.open(initialUrl, '_blank');
 
-    // إرسال أحداث البيكسل (لا تنتظر تأكيد المستخدم)
+    // إرسال أحداث البيكسل (بدون انتظار)
     try {
         let emailHash = await sha256("");
         let phoneHash = await sha256(phone.trim());
@@ -1487,38 +1503,19 @@ footer {
             event_name: "Purchase",
             event_time: new Date().toISOString(),
             event_source_url: window.location.href,
-            user_data: {
-                em: emailHash ? [emailHash] : null,
-                ph: phoneHash ? [phoneHash] : null,
-                client_ip_address: clientIP,
-                client_user_agent: navigator.userAgent,
-                fbp: fbp,
-                fbc: fbc
-            },
-            custom_data: {
-                currency: "IQD",
-                value: finalTotal
-            },
+            user_data: { em: emailHash ? [emailHash] : null, ph: phoneHash ? [phoneHash] : null, client_ip_address: clientIP, client_user_agent: navigator.userAgent, fbp, fbc },
+            custom_data: { currency: "IQD", value: finalTotal },
             event_id: `${Date.now()}_${Math.random()}`
         };
-        fetch(API_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(eventData)
-        }).catch(err => console.warn("Conversions API error:", err));
-    } catch (err) {
-        console.warn("Failed to send server-side event:", err);
-    }
+        fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(eventData) }).catch(err => console.warn("CAPI error:", err));
+    } catch (err) { console.warn(err); }
 
     if (typeof fbq === 'function') {
         fbq('track', 'Purchase', { value: finalTotal, currency: 'IQD' });
-        console.log('✅ Meta Pixel: تم تسجيل حدث Purchase بقيمة', finalTotal, 'IQD');
-    } else {
-        console.warn('⚠️ Meta Pixel غير موجود');
+        console.log('✅ Meta Pixel: Purchase', finalTotal, 'IQD');
     }
 
-    // تأخير ظهور مربع الحوار لإعطاء وقت للمستخدم لإرسال الرسالة
+    // بدء عملية التأكيد (تظهر بعد 2 ثانية)
     setTimeout(() => {
         askUser(initialMethod);
     }, 2000);
