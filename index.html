@@ -1,287 +1,271 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="description" content="متجر جود العباس - ملابس أطفال بجودة عالية وخصم 50%">
+<meta name="theme-color" content="#1565C0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="جود العباس">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-XSS-Protection" content="1; mode=block">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>متجر جود العباس</title>
-<!-- Meta Pixel Base Code -->
+<link rel="icon" href="https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png">
+<link rel="manifest" id="pwaManifest">
 <script>
-  !function(f,b,e,v,n,t,s)
-  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-  n.queue=[];t=b.createElement(e);t.async=!0;
-  t.src=v;s=b.getElementsByTagName(e)[0];
-  s.parentNode.insertBefore(t,s)}(window, document,'script',
-  'https://connect.facebook.net/en_US/fbevents.js');
-  fbq('init', '2514076832364278');
-  fbq('track', 'PageView');
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','2514076832364278');fbq('track','PageView');
 </script>
-<noscript><img height="1" width="1" style="display:none"
-  src="https://www.facebook.com/tr?id=2514076832364278&ev=PageView&noscript=1"
-/></noscript>
-<!-- End Meta Pixel Base Code -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: 'Segoe UI', 'Tahoma', 'Amiri', system-ui, sans-serif;
-    background-color: #0a0a0a;
-    color: #d4d4d4;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    position: relative;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
-    z-index: -2;
-  }
-
-  .tribute-container {
-    max-width: 550px;
-    width: 100%;
-    background: rgba(20, 20, 20, 0.75);
-    backdrop-filter: blur(8px);
-    border-radius: 48px;
-    padding: 30px 24px 40px;
-    text-align: center;
-    box-shadow: 0 25px 45px rgba(0,0,0,0.5), 0 0 0 1px rgba(139,0,0,0.2);
-    border: 1px solid rgba(139,0,0,0.3);
-  }
-
-  .tribute-text {
-    font-size: 1.4rem;
-    line-height: 1.8;
-    margin-bottom: 30px;
-    font-weight: 500;
-  }
-  .tribute-text strong {
-    color: #b33;
-    font-weight: 700;
-    display: block;
-    margin-bottom: 20px;
-    font-size: 1.6rem;
-    letter-spacing: -0.5px;
-  }
-
-  .closure-message {
-    background: rgba(0,0,0,0.4);
-    padding: 16px;
-    border-radius: 32px;
-    margin: 20px 0;
-    font-size: 1.1rem;
-    border-right: 3px solid #8B0000;
-  }
-
-  .date-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: #1f1f1f;
-    padding: 8px 18px;
-    border-radius: 40px;
-    font-size: 0.9rem;
-    color: #aaa;
-    margin-top: 10px;
-  }
-  .date-badge i {
-    color: #8B0000;
-  }
-
-  .social-footer {
-    margin-top: 35px;
-    display: flex;
-    justify-content: center;
-    gap: 28px;
-    flex-wrap: wrap;
-  }
-  .social-footer a {
-    color: #aaa;
-    font-size: 1.8rem;
-    transition: all 0.2s ease;
-    background: #1c1c1c;
-    width: 52px;
-    height: 52px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    text-decoration: none;
-    border: 1px solid #333;
-  }
-  .social-footer a:hover {
-    color: #fff;
-    background: #8B0000;
-    transform: translateY(-4px);
-    border-color: #8B0000;
-  }
-
-  .copyright {
-    text-align: center;
-    font-size: 0.7rem;
-    color: #555;
-    margin-top: 25px;
-  }
-
-  .dark-toggle {
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    background: #222;
-    border: none;
-    color: #ddd;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    font-size: 1.3rem;
-    cursor: pointer;
-    z-index: 100;
-    backdrop-filter: blur(5px);
-    transition: 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .dark-toggle:hover {
-    background: #8B0000;
-    color: white;
-  }
-
-  body.light-mode {
-    background-color: #e8e8e8;
-  }
-  body.light-mode::before {
-    background: radial-gradient(circle at center, #f0f0f0 0%, #d0d0d0 100%);
-  }
-  body.light-mode .tribute-container {
-    background: rgba(245, 245, 245, 0.9);
-    color: #2c2c2c;
-    border-color: rgba(180, 0, 0, 0.4);
-  }
-  body.light-mode .closure-message {
-    background: rgba(0,0,0,0.05);
-    color: #333;
-  }
-  body.light-mode .date-badge {
-    background: #e0e0e0;
-    color: #444;
-  }
-  body.light-mode .social-footer a {
-    background: #f0f0f0;
-    color: #444;
-  }
-  body.light-mode .social-footer a:hover {
-    background: #8B0000;
-    color: white;
-  }
-
-  @media (max-width: 550px) {
-    body {
-      padding: 16px;
-    }
-    .tribute-container {
-      padding: 24px 18px 32px;
-    }
-    .tribute-text {
-      font-size: 1.1rem;
-    }
-    .tribute-text strong {
-      font-size: 1.3rem;
-    }
-    .closure-message {
-      font-size: 1rem;
-      padding: 12px;
-    }
-    .social-footer a {
-      width: 48px;
-      height: 48px;
-      font-size: 1.5rem;
-    }
-    .dark-toggle {
-      width: 38px;
-      height: 38px;
-      font-size: 1rem;
-      top: 12px;
-      left: 12px;
-    }
-  }
-</style>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-<button class="dark-toggle" id="themeToggle" aria-label="تبديل الوضع"><i class="fas fa-sun"></i></button>
+<body id="bodyRoot">
 
-<div class="tribute-container">
-  <div class="tribute-text">
-    <strong>أعظم الله أجورنا وأجوركم<br>بمصاب أبي عبد الله الحسين عليه السلام</strong>
+<!-- PTR Indicator -->
+<div class="ptr-bar" id="ptrBar"><i class="fas fa-sync-alt"></i><span id="ptrTxt">اسحب للتحديث</span></div>
+
+<!-- HEADER -->
+<header>
+  <!-- Left: Help/Tutorial button -->
+  <div class="hside">
+    <button class="hbtn" id="helpBtn" title="دليل الاستخدام" style="font-size:18px;font-weight:900;">?</button>
   </div>
-  <div class="closure-message">
-    <i class="fas fa-store-slash" style="margin-left: 8px; color:#8B0000;"></i>
-    زبائننا الكرام، المتجر متوقف مؤقتاً<br>
-    إلى بعد يوم <strong>13 من شهر محرم الحرام</strong>
+  <!-- Center: Logo -->
+  <div class="hlogo">
+    <span class="htitle" id="hTitle">متجر جود العباس</span>
+    <span class="hsub" id="hSub">Jood ALabbas Store</span>
   </div>
-  <div class="date-badge">
-    <i class="fas fa-calendar-alt"></i> 1 - 13 محرم الحرام 1448 هـ
-    <i class="fas fa-heart-broken" style="margin-right: 6px;"></i>
+  <!-- Right: Dark + Lang -->
+  <div class="hside">
+    <button class="hbtn" id="darkBtn"><i class="fas fa-moon"></i></button>
+    <div class="lsw">
+      <button class="lopt on" data-lang="ar">ع</button>
+      <button class="lopt" data-lang="en">EN</button>
+      <button class="lopt" data-lang="ku">ک</button>
+    </div>
   </div>
-  <div class="social-footer">
-    <a href="https://wa.me/9647766142936" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>
-    <a href="https://t.me/jaiq19" target="_blank" title="تليجرام"><i class="fab fa-telegram"></i></a>
-    <a href="https://www.instagram.com/jaiq19_/" target="_blank" title="انستقرام"><i class="fab fa-instagram"></i></a>
-    <a href="https://www.facebook.com/profile.php?id=61573593535175" target="_blank" title="فيسبوك"><i class="fab fa-facebook-f"></i></a>
-  </div>
-  <div class="copyright">
-    <i class="fas fa-hussar"></i> شكراً لثقتكم بنا | متجر جود العباس
+</header>
+
+<!-- OFFLINE BANNER -->
+<div class="offline-bar" id="offlineBar"><span id="offlineTxt">بيانات محفوظة</span></div>
+
+<!-- PROMO BANNER -->
+<div class="promo" id="promoBanner">
+  🎉 <b id="promoTxt">خصم 50% — ينتهي العرض خلال:</b>
+  <span class="cd"><span class="cdu" id="cdH">00</span><span class="cdsep">:</span><span class="cdu" id="cdM">00</span><span class="cdsep">:</span><span class="cdu" id="cdS">00</span></span>
+  <button class="promo-x" id="promoX">✕</button>
+</div>
+
+<!-- WELCOME -->
+<div class="welcome" id="welcomeEl">أهلاً بكم في متجر جود العباس! تسوق سعيد 🌟</div>
+
+<!-- SEARCH -->
+<div class="srch-wrap">
+  <div class="srch-row">
+    <input type="search" class="srch-in" id="searchIn" placeholder="ابحث بالـ ID أو القياس...">
+    <button class="srch-rst" id="rstBtn">مسح</button>
   </div>
 </div>
 
-<script>
-  const toggleBtn = document.getElementById('themeToggle');
-  const icon = toggleBtn.querySelector('i');
-  
-  function setTheme(isDark) {
-    if(isDark) {
-      document.body.classList.remove('light-mode');
-      icon.className = 'fas fa-sun';
-    } else {
-      document.body.classList.add('light-mode');
-      icon.className = 'fas fa-moon';
-    }
-  }
-  
-  const savedTheme = localStorage.getItem('tributeTheme');
-  if(savedTheme === 'light') {
-    setTheme(false);
-  } else {
-    setTheme(true);
-  }
-  
-  toggleBtn.addEventListener('click', () => {
-    const isDark = !document.body.classList.contains('light-mode');
-    if(isDark) {
-      setTheme(false);
-      localStorage.setItem('tributeTheme', 'light');
-    } else {
-      setTheme(true);
-      localStorage.setItem('tributeTheme', 'dark');
-    }
-  });
-</script>
+<!-- FILTER BUTTON ROW -->
+<div class="flt-row">
+  <button class="flt-btn" id="fltOpenBtn">
+    <i class="fas fa-sliders-h"></i>
+    <span id="fltBtnLbl">الفلاتر</span>
+    <span class="flt-badge" id="fltBadge" style="display:none;">0</span>
+  </button>
+  <button class="flt-clear" id="fltClearBtn" title="مسح الفلاتر"><i class="fas fa-times"></i></button>
+</div>
+
+<div class="rcount" id="rcount"></div>
+<div id="prodCont"></div>
+
+<footer id="footerEl">© 2025 متجر جود العباس — جميع الحقوق محفوظة</footer>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <div class="bnav-inner">
+    <button class="bnavbtn on" id="bnHome"><i class="fas fa-home"></i><span id="navHome">رئيسية</span></button>
+    <button class="bnavbtn" id="bnSearch"><i class="fas fa-search"></i><span id="navSearch">بحث</span></button>
+    <button class="bnavbtn" id="bnCart">
+      <span class="cnav-wrap"><i class="fas fa-shopping-cart"></i><span class="cdot" id="cdot">0</span></span>
+      <span id="navCart">سلتي</span>
+    </button>
+    <button class="bnavbtn" id="bnInstall"><i class="fas fa-download"></i><span id="navInstall">تثبيت</span></button>
+    <button class="bnavbtn" id="bnContact"><i class="fas fa-comments"></i><span id="navContact">تواصل</span></button>
+  </div>
+</nav>
+
+<button class="measbtn" id="measBtn"><i class="fas fa-ruler"></i></button>
+<button class="stbtn" id="stBtn"><i class="fas fa-chevron-up"></i></button>
+
+<!-- MEASUREMENTS PANEL -->
+<div class="fpanel" id="fpanel">
+  <div class="fptitle" id="fpTitle">📏 شرح القياسات</div>
+  <ul class="fplist">
+    <li>55 — <span id="s55">0-2 شهر</span></li><li>60 — <span id="s60">2-4 أشهر</span></li>
+    <li>65 — <span id="s65">4-6 أشهر</span></li><li>70 — <span id="s70">6-8 أشهر</span></li>
+    <li>75 — <span id="s75">8-10 أشهر</span></li><li>80 — <span id="s80">1 سنة</span></li>
+    <li>90 — <span id="s90">2 سنة</span></li><li>100 — <span id="s100">3 سنوات</span></li>
+    <li>110 — <span id="s110">4 سنوات</span></li><li>120 — <span id="s120">4-5 سنوات</span></li>
+    <li>130 — <span id="s130">6-7 سنوات</span></li><li>140 — <span id="s140">8-9 سنوات</span></li>
+    <li>150 — <span id="s150">10-11 سنة</span></li><li>160 — <span id="s160">12-13 سنة</span></li>
+    <li>170 — <span id="s170">14-15 سنة</span></li>
+  </ul>
+  <button class="fpclose" id="fpClose">إغلاق</button>
+</div>
+
+<!-- PWA BANNER -->
+<div id="pwaBar">
+  <div id="pwaTxt">📲 ثبّت التطبيق على هاتفك!</div>
+  <div class="pwa-acts">
+    <button class="pwa-inst" id="pwaInstBtn">تثبيت</button>
+    <button class="pwa-skip" id="pwaSkip">لاحقاً</button>
+  </div>
+</div>
+
+<!-- SHEET OVERLAY -->
+<div class="overlay" id="shOv"></div>
+
+<!-- FILTER SHEET -->
+<div class="sheet" id="filterSheet">
+  <div class="sh-drag" id="filterDrag"><div class="sh-handle"></div></div>
+  <div class="sh-hdr">
+    <div class="sh-title"><i class="fas fa-sliders-h"></i><span id="filterShTitle">الفلاتر</span></div>
+    <button class="sh-close" id="filterShClose"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="sh-body">
+    <div class="filt-section-lbl" id="fSeaLbl">الموسم</div>
+    <div class="filt-tabs" id="fSeaTabs">
+      <button class="filt-tab on" data-v="">الكل</button>
+      <button class="filt-tab" data-v="صيفي">☀️ صيفي</button>
+      <button class="filt-tab" data-v="شتوي">❄️ شتوي</button>
+      <button class="filt-tab" data-v="بهاري">🌸 بهاري</button>
+    </div>
+    <div class="filt-section-lbl" id="fTypLbl">النوع</div>
+    <div class="filt-tabs" id="fTypTabs">
+      <button class="filt-tab on" data-v="">الكل</button>
+      <button class="filt-tab" data-v="طلعة">👗 طلعة</button>
+      <button class="filt-tab" data-v="تركات منزلية">🏠 منزلي</button>
+    </div>
+    <div class="filt-section-lbl" id="fSortLbl">ترتيب حسب</div>
+    <div class="filt-tabs" id="fSortTabs">
+      <button class="filt-tab on" data-v="">الافتراضي</button>
+      <button class="filt-tab" data-v="asc">السعر ↑</button>
+      <button class="filt-tab" data-v="desc">السعر ↓</button>
+    </div>
+  </div>
+  <div class="sh-foot">
+    <button class="shbtn shbtn-go" id="applyFltBtn"><i class="fas fa-check"></i><span id="applyFltLbl">عرض النتائج</span></button>
+    <button class="shbtn" style="background:var(--bg);color:var(--txt2);border:1px solid var(--bdr);" id="resetFltBtn"><i class="fas fa-undo"></i><span id="resetFltLbl">مسح الفلاتر</span></button>
+  </div>
+</div>
+
+<!-- CART SHEET -->
+<div class="sheet" id="cartSheet">
+  <div class="sh-drag" id="cartDrag"><div class="sh-handle"></div></div>
+  <div class="sh-hdr">
+    <div class="sh-title"><i class="fas fa-shopping-cart"></i><span id="cartShTitle">السلة</span></div>
+    <button class="sh-close" id="cartShClose"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="sh-body" id="cartBody"></div>
+  <div class="sh-foot">
+    <div class="ctotrow" id="cartTot"></div>
+    <button class="shbtn shbtn-go" id="checkoutBtn"><i class="fab fa-whatsapp"></i><span id="checkoutLbl">إتمام الشراء</span></button>
+    <button class="shbtn shbtn-del" id="clearCartBtn"><i class="fas fa-trash"></i><span id="clearCartLbl">إفراغ السلة</span></button>
+  </div>
+</div>
+
+<!-- CONTACT SHEET -->
+<div class="sheet" id="contactSheet">
+  <div class="sh-drag" id="contactDrag"><div class="sh-handle"></div></div>
+  <div class="sh-hdr">
+    <div class="sh-title"><i class="fas fa-comments"></i><span id="contactShTitle">تواصل معنا</span></div>
+    <button class="sh-close" id="contactShClose"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="sh-body">
+    <div class="contact-grid">
+      <a href="https://wa.me/9647766142936" class="contact-sheet-link" style="color:#25D366;" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i><span>واتساب</span></a>
+      <a href="https://t.me/jaiq19" class="contact-sheet-link" style="color:#2196F3;" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram"></i><span>تليجرام</span></a>
+      <a href="https://www.instagram.com/jaiq19_/" class="contact-sheet-link" style="color:#E91E63;" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i><span>انستقرام</span></a>
+      <a href="https://www.facebook.com/profile.php?id=61573593535175" class="contact-sheet-link" style="color:#1976D2;" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook"></i><span>فيسبوك</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- DIALOG OVERLAY -->
+<div class="dlg-ov" id="dlgOv">
+  <div class="dlg-box">
+    <div class="dlg-title" id="dlgTitle"></div>
+    <div class="dlg-msg" id="dlgMsg"></div>
+    <div class="dlg-acts" id="dlgActs"></div>
+  </div>
+</div>
+
+<!-- SIZE DIALOG -->
+<div class="dlg-ov" id="szOv">
+  <div class="dlg-box">
+    <div class="dlg-title" id="szTitle">اختر القياس</div>
+    <div class="sz-grid" id="szGrid"></div>
+    <button class="dlg-btn dlg-no" id="szCancel" style="width:100%;">إلغاء</button>
+  </div>
+</div>
+
+<!-- CHECKOUT DIALOG -->
+<div class="dlg-ov" id="ckOv">
+  <div class="dlg-box" style="max-width:420px;text-align:right;">
+    <div class="dlg-title" id="ckTitle">معلومات الزبون</div>
+    <div class="ck-fields">
+      <input class="ck-in" type="text" id="ckName" placeholder="الاسم الكامل" maxlength="80" autocomplete="name">
+      <input class="ck-in" type="tel" id="ckPhone" inputmode="numeric" dir="ltr" placeholder="رقم الهاتف" maxlength="15" autocomplete="off">
+      <textarea class="ck-in" id="ckAddr" placeholder="العنوان..." rows="2" maxlength="300"></textarea>
+    </div>
+    <div class="ck-methods">
+      <button class="ck-wa" id="ckWA"><i class="fab fa-whatsapp"></i><span id="ckWALbl">واتساب</span></button>
+      <button class="ck-tg" id="ckTG"><i class="fab fa-telegram"></i><span id="ckTGLbl">تليجرام</span></button>
+    </div>
+    <div class="ck-note" id="ckNote">يجب إرسال الرسالة لتثبيت الطلب</div>
+    <button class="dlg-btn" id="ckCopy" style="width:100%;background:var(--bg);color:var(--txt2);border:1px solid var(--bdr);margin-bottom:6px;"><i class="fas fa-copy"></i> <span id="ckCopyLbl">نسخ نص الطلب للإرسال اليدوي</span></button>
+    <button class="dlg-btn" id="ckCancel" style="width:100%;background:var(--bg);color:var(--txt2);border:1px solid var(--bdr);">← رجوع</button>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="LB"><button id="LB-x"><i class="fas fa-times"></i></button><img id="LB-img" src="" alt=""></div>
+
+<!-- TUTORIAL -->
+<div id="tutPnl">
+  <div id="tutBox">
+    <div class="tut-step" id="tutStep">1 / 8</div>
+    <div class="tut-dots" id="tutDots"></div>
+    <div id="tutTxt"></div>
+    <div class="tut-acts">
+      <button class="tut-btn tut-next" id="tutNext">التالي</button>
+      <button class="tut-btn tut-skip" id="tutSkip">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- PWA INSTALL MODAL -->
+<div class="dlg-ov" id="pwaInstallModal">
+  <div class="dlg-box" style="max-width:380px;">
+    <div class="dlg-title">📲 <span id="pwaModalTitle">تثبيت التطبيق</span></div>
+    <div id="pwaModalBody" style="text-align:right;font-size:14px;"></div>
+    <button class="dlg-btn dlg-ok" id="pwaModalInstBtn" style="width:100%;margin-top:12px;display:none;"></button>
+    <button class="dlg-btn" id="pwaModalClose" style="width:100%;margin-top:8px;background:var(--bg);color:var(--txt2);border:1px solid var(--bdr);">إغلاق</button>
+  </div>
+</div>
+
+  <script src="js/lang.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
