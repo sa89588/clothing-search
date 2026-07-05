@@ -586,13 +586,9 @@ async function submitOrder(method){
   saveOrderToGAS({
     action:  'saveOrder',
     orderId: orderId,
-    name:    name,
     phone:   phone,
-    address: addr,
-    items:   JSON.stringify(cart.map(function(i){ return {id:i.id, size:i.size, disc:i.disc}; })),
-    total:   total,
-    channel: method,
-    message: msg
+    message: msg,
+    channel: method
   });
 
   // الأمر المرئي: فتح واتساب/تليجرام — مباشرة بلا setTimeout
