@@ -493,18 +493,35 @@ document.getElementById('szOv').addEventListener('click',e=>{if(e.target===e.cur
 
 /* ==================== SAVE ORDER TO GAS ==================== */
 /* تسجيل الطلب في Google Sheets فور الضغط على زر الإرسال
-   ⚠️ نستخدم text/plain بدل application/json لتجنب CORS Preflight
-   GAS يقرأ الـ body من e.postData.contents بغض النظر عن Content-Type */
-async function saveOrderToGAS(orderData) {
+   نستخدم navigator.sendBeacon (الأكثر موثوقية) لأنه يضمن إرسال
+   الطلب حتى لو فُتحت نافذة جديدة أو غادر المستخدم الصفحة فوراً.
+   fetch مع keepalive كخطة بديلة. */
+function saveOrderToGAS(orderData) {
+  const body = JSON.stringify(orderData);
+  // الطريقة 1: sendBeacon — مصمّمة تحديداً لهذه الحالة
   try {
-    await fetch(API, {
-      method:  'POST',
-      mode:    'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-      body:    JSON.stringify(orderData)
+    if (navigator.sendBeacon) {
+      const blob = new Blob([body], { type: 'text/plain;charset=UTF-8' });
+      const ok = navigator.sendBeacon(API, blob);
+      if (ok) { console.log('✅ Order sent via sendBeacon'); return; }
+    }
+  } catch (e) {
+    console.warn('sendBeacon failed:', e.message);
+  }
+  // الطريقة 2: fetch مع keepalive — يستمر حتى بعد فتح نافذة
+  try {
+    fetch(API, {
+      method:    'POST',
+      mode:      'no-cors',
+      keepalive: true,
+      headers:   { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body:      body
+    }).then(function() {
+      console.log('✅ Order sent via fetch');
+    }).catch(function(e) {
+      console.warn('fetch failed:', e.message);
     });
   } catch (e) {
-    /* خطأ في الحفظ لا يوقف الموقع */
     console.warn('saveOrderToGAS failed:', e.message);
   }
 }
@@ -569,7 +586,10 @@ async function submitOrder(method){
     message: msg
   });
 
-  window.open(method==='whatsapp'?waUrl:tgUrl,'_blank');
+  /* تأخير 400ms يضمن إرسال الطلب قبل فتح نافذة واتساب على الجوال */
+  setTimeout(function(){
+    window.open(method==='whatsapp'?waUrl:tgUrl,'_blank');
+  }, 400);
   /* Meta Pixel — استخدم meta.js إذا كان محمّلاً */
   try{
     if(typeof metaWhatsAppOpened==='function' && method==='whatsapp') metaWhatsAppOpened(orderId);
