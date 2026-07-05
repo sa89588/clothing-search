@@ -491,18 +491,21 @@ function closeSzDlg(){ document.getElementById('szOv').classList.remove('open');
 document.getElementById('szCancel').addEventListener('click',closeSzDlg);
 document.getElementById('szOv').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSzDlg();});
 
-
 /* ==================== SAVE ORDER TO GAS ==================== */
+/* تسجيل الطلب في Google Sheets فور الضغط على زر الإرسال
+   ⚠️ نستخدم text/plain بدل application/json لتجنب CORS Preflight
+   GAS يقرأ الـ body من e.postData.contents بغض النظر عن Content-Type */
 async function saveOrderToGAS(orderData) {
   try {
     await fetch(API, {
       method:  'POST',
-      mode:    'cors',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ action: 'saveOrder', ...orderData })
+      mode:    'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body:    JSON.stringify(orderData)
     });
   } catch (e) {
     /* خطأ في الحفظ لا يوقف الموقع */
+    console.warn('saveOrderToGAS failed:', e.message);
   }
 }
 
@@ -531,6 +534,8 @@ document.getElementById('ckCancel').addEventListener('click',closeCheckout);
 document.getElementById('ckOv').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCheckout();});
 
 async function submitOrder(method){
+  /* توليد Order ID فريد لهذا الطلب */
+  const orderId = 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2,6).toUpperCase();
   const name=document.getElementById('ckName').value.trim().slice(0,80);
   const phone=document.getElementById('ckPhone').value.trim().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[^0-9+]/g,'').slice(0,15);
   const addr=document.getElementById('ckAddr').value.trim().slice(0,300);
@@ -551,23 +556,35 @@ async function submitOrder(method){
   msg+='معلومات الزبون:\nالاسم: '+name+'\nالهاتف: '+phone+'\nالعنوان: '+addr;
   const waUrl='https://wa.me/9647766142936?text='+encodeURIComponent(msg);
   const tgUrl='https://t.me/jaiq19?text='+encodeURIComponent(msg);
-  /* تسجيل الطلب في Google Sheets قبل فتح واتساب */
+  /* ===== تسجيل الطلب في Google Sheets ===== */
   saveOrderToGAS({
+    action:  'saveOrder',
     orderId: orderId,
     name:    name,
     phone:   phone,
     address: addr,
-    items:   JSON.stringify(cart.map(i => ({ id: i.id, size: i.size, disc: i.disc }))),
+    items:   JSON.stringify(cart.map(function(i){ return {id:i.id, size:i.size, disc:i.disc}; })),
     total:   total,
     channel: method,
     message: msg
   });
+
   window.open(method==='whatsapp'?waUrl:tgUrl,'_blank');
-  try{if(typeof fbq==='function')fbq('track','Purchase',{value:total,currency:'IQD'});}catch(_){}
+  /* Meta Pixel — استخدم meta.js إذا كان محمّلاً */
+  try{
+    if(typeof metaWhatsAppOpened==='function' && method==='whatsapp') metaWhatsAppOpened(orderId);
+    else if(typeof metaTelegramOpened==='function' && method==='telegram') metaTelegramOpened(orderId);
+    else if(typeof fbq==='function') fbq('track','Contact',{},{eventID:'CT-'+orderId});
+  }catch(_){}
   let retries=0;
   const askSent=(m)=>{
     showDlg('✅',t('sentQ'),[
-      {lbl:t('sentY'),cls:'dlg-yes',fn:()=>{showDlg('🗑️',t('clrAfQ'),[{lbl:t('clrAY'),cls:'dlg-yes',fn:()=>{cart=[];saveCart();updateCartBadge();closeCheckout();notify('✅','s');}},{lbl:t('clrAN'),cls:'dlg-no',fn:()=>closeCheckout()}]);}},
+      {lbl:t('sentY'),cls:'dlg-yes',fn:()=>{
+        /* Meta: Lead بعد تأكيد الزبون */
+        try{
+          if(typeof metaLead==='function') metaLead(cart,total,orderId,phone,name);
+        }catch(_){}
+        showDlg('🗑️',t('clrAfQ'),[{lbl:t('clrAY'),cls:'dlg-yes',fn:()=>{cart=[];saveCart();updateCartBadge();closeCheckout();notify('✅','s');}},{lbl:t('clrAN'),cls:'dlg-no',fn:()=>closeCheckout()}]);}},
       {lbl:t('sentN'),cls:'dlg-no',fn:()=>{ if(retries===0){retries++;const nm=m==='whatsapp'?'telegram':'whatsapp';window.open(nm==='whatsapp'?waUrl:tgUrl,'_blank');setTimeout(()=>askSent(nm),1500);}else notify(t('orderNote'),'w'); }}
     ]);
   };
@@ -675,43 +692,60 @@ function showTutorial(){
 }
 function initTutorial(){ if(!localStorage.getItem('tut')) showTutorial(); }
 
-/* ==================== AUTO REFRESH (Smart Hash-Based) ==================== */
-/* بدلاً من جلب كل البيانات كل 25 ثانية، نتحقق من hash أولاً
-   فقط إذا تغيّر الـ hash نجلب البيانات الكاملة — أقل استهلاكاً للبيانات */
-let _lastDataHash = null;
+/* ==================== AUTO REFRESH ==================== */
+setInterval(async()=>{
+  try{
 
-async function checkForUpdates() {
-  try {
-    const r = await fetch(API + '?action=getDataHash', { mode: 'cors' });
-    if (!r.ok) return;
-    const { hash } = await r.json();
-    if (!hash || hash === _lastDataHash) return; // لا تغيير
-    _lastDataHash = hash;
-    // البيانات تغيّرت — نجلب كاملة
-    const dr = await fetch(API, { mode: 'cors' });
-    if (!dr.ok) return;
-    const newData = await dr.json();
-    localStorage.setItem('pc', JSON.stringify({ d: newData, ts: Date.now() }));
-    document.getElementById('offlineBar').classList.remove('show');
+    const r = await fetch(API);
+    if(!r.ok) return;
+
+    const newData = await r.json();
+
+    localStorage.setItem(
+      'pc',
+      JSON.stringify({d:newData,ts:Date.now()})
+    );
+
+    document.getElementById('offlineBar')
+      .classList.remove('show');
+
     addJsonLD(newData);
-    // إزالة البطاقات المنتهية
-    const oldIds = new Set(allData.map(x => String(x.Id)));
-    const newIds = new Set(newData.map(x => String(x.Id)));
-    oldIds.forEach(id => {
-      if (!newIds.has(id)) {
-        document.querySelectorAll('.pcard').forEach(card => {
-          const cid = card.querySelector('.cid');
-          if (cid && cid.textContent.includes(id)) card.remove();
+
+    const oldIds = new Set(
+      allData.map(x=>String(x.Id))
+    );
+
+    const newIds = new Set(
+      newData.map(x=>String(x.Id))
+    );
+
+    oldIds.forEach(id=>{
+      if(!newIds.has(id)){
+
+        const cards =
+          document.querySelectorAll('.pcard');
+
+        cards.forEach(card=>{
+          const cid =
+            card.querySelector('.cid');
+
+          if(
+            cid &&
+            cid.textContent.includes(id)
+          ){
+            card.remove();
+          }
         });
+
       }
     });
-    allData = newData;
-    updateFilterCounts();
-    doFilter(false);
-  } catch (_) {}
-}
-setInterval(checkForUpdates, 15000); // كل 15 ثانية
 
+    allData = newData;
+
+    updateFilterCounts();
+
+  }catch(_){}
+},25000);
 
 /* ==================== KEYBOARD ==================== */
 document.addEventListener('keydown',e=>{
