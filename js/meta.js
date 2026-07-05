@@ -89,6 +89,25 @@ function px(eventType, eventName, params, eventId) {
 }
 
 /* ============================================================
+   تحقق من صحة value وcurrency قبل الإرسال
+   Meta تشترط: value > 0 ، currency بدون مسافات أو رموز خاصة
+   ============================================================ */
+function safeValue(v) {
+  const n = Number(v);
+  return (isFinite(n) && n > 0) ? n : null; // null = لا نرسله
+}
+const CURRENCY = 'IQD'; // ثابت — لا مسافات، لا رموز
+
+function buildParams(obj) {
+  // يحذف أي key قيمته null أو undefined
+  const clean = {};
+  Object.keys(obj).forEach(function(k) {
+    if (obj[k] !== null && obj[k] !== undefined) clean[k] = obj[k];
+  });
+  return clean;
+}
+
+/* ============================================================
    Advanced Matching — يُنفَّذ مرة واحدة فقط
    الملاحظة الأولى: بدل fbq('init') المتكررة
    ============================================================ */
@@ -122,15 +141,16 @@ function metaUpdateUser(phone, name, externalId) {
    ============================================================ */
 function metaViewContent(productId, price, season, type) {
   const evId = newEventId('VC');
-  px('track', 'ViewContent', {
+  const vcValue = safeValue(price);
+  px('track', 'ViewContent', buildParams({
     content_ids:      [String(productId)],
     content_type:     'product',
     content_name:     'منتج #' + productId,
     content_category: [season, type].filter(Boolean).join(' / ') || undefined,
     contents:         [{ id: String(productId), quantity: 1 }],
-    value:            Number(price) || 0,
-    currency:         'IQD'
-  }, evId);
+    value:            vcValue,
+    currency:         vcValue ? CURRENCY : null
+  }), evId);
 }
 
 /* ============================================================
@@ -157,17 +177,17 @@ function metaSearch(query) {
    ============================================================ */
 function metaAddToCart(productId, discPrice, size, season, type) {
   const evId = newEventId('ATC');
-  px('track', 'AddToCart', {
+  const atcValue = safeValue(discPrice);
+  if (!atcValue) { _warn('AddToCart: invalid value ' + discPrice); return; }
+  px('track', 'AddToCart', buildParams({
     content_ids:      [String(productId)],
     content_type:     'product',
     content_name:     'منتج #' + productId,
     content_category: [season, type, size ? 'Q:' + size : null].filter(Boolean).join(' / ') || undefined,
-    /* الملاحظة الثانية: quantity = 1 دائماً هنا لأن كل قياس
-       يُعامَل كـ variant منفصل في سلة المتجر */
-    contents: [{ id: String(productId), quantity: 1, item_price: Number(discPrice) }],
-    value:    Number(discPrice),
-    currency: 'IQD'
-  }, evId);
+    contents: [{ id: String(productId), quantity: 1, item_price: atcValue }],
+    value:    atcValue,
+    currency: CURRENCY
+  }), evId);
 }
 
 /* ============================================================
@@ -175,17 +195,19 @@ function metaAddToCart(productId, discPrice, size, season, type) {
    ============================================================ */
 function metaInitiateCheckout(cartItems, total) {
   const evId = generateEventId('IC'); // محفوظ في session
+  const icValue = safeValue(total);
+  if (!icValue) { _warn('InitiateCheckout: invalid total ' + total); return; }
   px('track', 'InitiateCheckout', {
-    content_ids:  cartItems.map(i => String(i.id)),
+    content_ids:  cartItems.map(function(i) { return String(i.id); }),
     content_type: 'product',
-    contents:     cartItems.map(i => ({
+    contents:     cartItems.map(function(i) { return {
                     id:         String(i.id),
                     quantity:   1,
-                    item_price: Number(i.disc)
-                  })),
+                    item_price: safeValue(i.disc) || 0
+                  }; }),
     num_items:    cartItems.length,
-    value:        Number(total),
-    currency:     'IQD'
+    value:        icValue,
+    currency:     CURRENCY
   }, evId);
 }
 
@@ -221,19 +243,21 @@ function metaLead(cartItems, total, orderId, phone, name) {
   const evId = orderId || generateEventId('LEAD');
   // تحديث Advanced Matching بالبيانات الحقيقية للزبون
   metaUpdateUser(phone, name, evId);
-  px('track', 'Lead', {
-    content_ids:  cartItems.map(i => String(i.id)),
+  const leadValue = safeValue(total);
+  if (!leadValue) { _warn('Lead: invalid total ' + total); }
+  px('track', 'Lead', buildParams({
+    content_ids:  cartItems.map(function(i) { return String(i.id); }),
     content_type: 'product',
-    contents:     cartItems.map(i => ({
+    contents:     cartItems.map(function(i) { return {
                     id:         String(i.id),
                     quantity:   1,
-                    item_price: Number(i.disc)
-                  })),
+                    item_price: safeValue(i.disc) || 0
+                  }; }),
     num_items:    cartItems.length,
-    value:        Number(total),
-    currency:     'IQD',
+    value:        leadValue,
+    currency:     leadValue ? CURRENCY : null,
     external_id:  evId
-  }, evId);
+  }), evId);
   // مسح session key بعد الإرسال الناجح لإتاحة طلب جديد
   sessionStorage.removeItem('meta_ev_LEAD');
   sessionStorage.removeItem('meta_ev_IC');
@@ -248,17 +272,19 @@ function metaPurchase(cartItems, total, orderId, phone, name) {
   const evId   = orderId || generateEventId('PRCH');
   const normPh = normalizePhone(phone);
   const names  = splitName(name);
+  const purValue = safeValue(total);
+  if (!purValue) { _warn('Purchase: invalid total ' + total); return; }
   px('track', 'Purchase', {
-    content_ids:  cartItems.map(i => String(i.id)),
+    content_ids:  cartItems.map(function(i) { return String(i.id); }),
     content_type: 'product',
-    contents:     cartItems.map(i => ({
+    contents:     cartItems.map(function(i) { return {
                     id:         String(i.id),
                     quantity:   1,
-                    item_price: Number(i.disc)
-                  })),
+                    item_price: safeValue(i.disc) || 0
+                  }; }),
     num_items:    cartItems.length,
-    value:        Number(total),
-    currency:     'IQD',
+    value:        purValue,
+    currency:     CURRENCY,
     external_id:  evId
   }, evId);
   /* للاستخدام مع CAPI مستقبلاً:
@@ -275,9 +301,8 @@ function metaCompleteRegistration() {
   const evId = newEventId('PWA');
   px('track', 'CompleteRegistration', {
     content_name: 'PWA Install',
-    status:       true,
-    currency:     'IQD',
-    value:        0
+    status:       true
+    /* لا نرسل value أو currency هنا — ليس لها قيمة مالية حقيقية */
   }, evId);
   _log('PWA installed — CompleteRegistration fired');
 }
