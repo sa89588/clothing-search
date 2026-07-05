@@ -491,6 +491,21 @@ function closeSzDlg(){ document.getElementById('szOv').classList.remove('open');
 document.getElementById('szCancel').addEventListener('click',closeSzDlg);
 document.getElementById('szOv').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSzDlg();});
 
+
+/* ==================== SAVE ORDER TO GAS ==================== */
+async function saveOrderToGAS(orderData) {
+  try {
+    await fetch(API, {
+      method:  'POST',
+      mode:    'cors',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action: 'saveOrder', ...orderData })
+    });
+  } catch (e) {
+    /* خطأ في الحفظ لا يوقف الموقع */
+  }
+}
+
 /* ==================== CHECKOUT ==================== */
 document.getElementById('checkoutBtn').addEventListener('click',async()=>{
   if(!cart.length){notify(t('cartEmpty'),'w');return;}
@@ -536,6 +551,17 @@ async function submitOrder(method){
   msg+='معلومات الزبون:\nالاسم: '+name+'\nالهاتف: '+phone+'\nالعنوان: '+addr;
   const waUrl='https://wa.me/9647766142936?text='+encodeURIComponent(msg);
   const tgUrl='https://t.me/jaiq19?text='+encodeURIComponent(msg);
+  /* تسجيل الطلب في Google Sheets قبل فتح واتساب */
+  saveOrderToGAS({
+    orderId: orderId,
+    name:    name,
+    phone:   phone,
+    address: addr,
+    items:   JSON.stringify(cart.map(i => ({ id: i.id, size: i.size, disc: i.disc }))),
+    total:   total,
+    channel: method,
+    message: msg
+  });
   window.open(method==='whatsapp'?waUrl:tgUrl,'_blank');
   try{if(typeof fbq==='function')fbq('track','Purchase',{value:total,currency:'IQD'});}catch(_){}
   let retries=0;
@@ -649,60 +675,43 @@ function showTutorial(){
 }
 function initTutorial(){ if(!localStorage.getItem('tut')) showTutorial(); }
 
-/* ==================== AUTO REFRESH ==================== */
-setInterval(async()=>{
-  try{
+/* ==================== AUTO REFRESH (Smart Hash-Based) ==================== */
+/* بدلاً من جلب كل البيانات كل 25 ثانية، نتحقق من hash أولاً
+   فقط إذا تغيّر الـ hash نجلب البيانات الكاملة — أقل استهلاكاً للبيانات */
+let _lastDataHash = null;
 
-    const r = await fetch(API);
-    if(!r.ok) return;
-
-    const newData = await r.json();
-
-    localStorage.setItem(
-      'pc',
-      JSON.stringify({d:newData,ts:Date.now()})
-    );
-
-    document.getElementById('offlineBar')
-      .classList.remove('show');
-
+async function checkForUpdates() {
+  try {
+    const r = await fetch(API + '?action=getDataHash', { mode: 'cors' });
+    if (!r.ok) return;
+    const { hash } = await r.json();
+    if (!hash || hash === _lastDataHash) return; // لا تغيير
+    _lastDataHash = hash;
+    // البيانات تغيّرت — نجلب كاملة
+    const dr = await fetch(API, { mode: 'cors' });
+    if (!dr.ok) return;
+    const newData = await dr.json();
+    localStorage.setItem('pc', JSON.stringify({ d: newData, ts: Date.now() }));
+    document.getElementById('offlineBar').classList.remove('show');
     addJsonLD(newData);
-
-    const oldIds = new Set(
-      allData.map(x=>String(x.Id))
-    );
-
-    const newIds = new Set(
-      newData.map(x=>String(x.Id))
-    );
-
-    oldIds.forEach(id=>{
-      if(!newIds.has(id)){
-
-        const cards =
-          document.querySelectorAll('.pcard');
-
-        cards.forEach(card=>{
-          const cid =
-            card.querySelector('.cid');
-
-          if(
-            cid &&
-            cid.textContent.includes(id)
-          ){
-            card.remove();
-          }
+    // إزالة البطاقات المنتهية
+    const oldIds = new Set(allData.map(x => String(x.Id)));
+    const newIds = new Set(newData.map(x => String(x.Id)));
+    oldIds.forEach(id => {
+      if (!newIds.has(id)) {
+        document.querySelectorAll('.pcard').forEach(card => {
+          const cid = card.querySelector('.cid');
+          if (cid && cid.textContent.includes(id)) card.remove();
         });
-
       }
     });
-
     allData = newData;
-
     updateFilterCounts();
+    doFilter(false);
+  } catch (_) {}
+}
+setInterval(checkForUpdates, 15000); // كل 15 ثانية
 
-  }catch(_){}
-},25000);
 
 /* ==================== KEYBOARD ==================== */
 document.addEventListener('keydown',e=>{
