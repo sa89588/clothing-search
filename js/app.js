@@ -493,51 +493,34 @@ document.getElementById('szOv').addEventListener('click',e=>{if(e.target===e.cur
 
 /* ==================== SAVE ORDER TO GAS ==================== */
 /* تسجيل الطلب في Google Sheets فور الضغط على زر الإرسال.
-   الطلب يُسجَّل حتى لو لم يُكمل الزبون الإرسال — هذا مقصود
-   لمتابعة الطلبات الضائعة.
-   حماية ضد التكرار: كل orderId يُرسَل مرة واحدة فقط. */
+   نستخدم نفس طريقة موقع التجهيز الناجحة: fetch بسيط بدون no-cors
+   حتى نتمكن من قراءة رد GAS والتأكد من نجاح التسجيل.
+   الطلب يُسجَّل حتى لو لم يُكمل الزبون الإرسال (مقصود). */
 const _sentOrderIds = new Set();
 
-function saveOrderToGAS(orderData) {
-  // منع إرسال نفس الطلب أكثر من مرة (حماية طرف العميل)
+async function saveOrderToGAS(orderData) {
+  // منع إرسال نفس الطلب أكثر من مرة
   if (orderData.orderId && _sentOrderIds.has(orderData.orderId)) {
-    console.log('⏭️ Order already sent, skipping:', orderData.orderId);
+    console.log('⏭️ Order already sent:', orderData.orderId);
     return;
   }
   if (orderData.orderId) _sentOrderIds.add(orderData.orderId);
 
-  const body = JSON.stringify(orderData);
-  // نستخدم طريقة واحدة فقط لتجنب الإرسال المزدوج
-  // sendBeacon أولاً لأنه الأكثر موثوقية عند مغادرة الصفحة
   try {
-    if (navigator.sendBeacon) {
-      const blob = new Blob([body], { type: 'text/plain;charset=UTF-8' });
-      const ok = navigator.sendBeacon(API, blob);
-      if (ok) {
-        console.log('✅ Order sent via sendBeacon:', orderData.orderId);
-        return; // نجح — لا نرسل مجدداً
-      }
+    // نفس طريقة موقع التجهيز بالضبط — fetch بسيط بدون headers أو no-cors
+    const response = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify(orderData)
+    });
+    const result = await response.json();
+    if (result.success) {
+      console.log('✅ Order saved:', orderData.orderId, result.duplicate ? '(duplicate skipped)' : '');
+    } else {
+      console.warn('⚠️ Save returned:', result);
     }
   } catch (e) {
-    console.warn('sendBeacon failed:', e.message);
-  }
-  // fetch فقط إذا فشل sendBeacon (ليس معه)
-  try {
-    fetch(API, {
-      method:    'POST',
-      mode:      'no-cors',
-      keepalive: true,
-      headers:   { 'Content-Type': 'text/plain;charset=UTF-8' },
-      body:      body
-    }).then(function() {
-      console.log('✅ Order sent via fetch:', orderData.orderId);
-    }).catch(function(e) {
-      console.warn('fetch failed:', e.message);
-      // فشل الإرسال — نزيل الـ id للسماح بإعادة المحاولة
-      if (orderData.orderId) _sentOrderIds.delete(orderData.orderId);
-    });
-  } catch (e) {
-    console.warn('saveOrderToGAS failed:', e.message);
+    console.warn('❌ saveOrderToGAS failed:', e.message);
+    // فشل — نزيل الـ id للسماح بإعادة المحاولة
     if (orderData.orderId) _sentOrderIds.delete(orderData.orderId);
   }
 }
