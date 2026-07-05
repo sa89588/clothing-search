@@ -509,8 +509,9 @@ async function saveOrderToGAS(orderData) {
   try {
     // نفس طريقة موقع التجهيز بالضبط — fetch بسيط بدون headers أو no-cors
     const response = await fetch(API, {
-      method: 'POST',
-      body: JSON.stringify(orderData)
+      method:    'POST',
+      body:      JSON.stringify(orderData),
+      keepalive: true
     });
     const result = await response.json();
     if (result.success) {
@@ -572,7 +573,13 @@ async function submitOrder(method){
   msg+='معلومات الزبون:\nالاسم: '+name+'\nالهاتف: '+phone+'\nالعنوان: '+addr;
   const waUrl='https://wa.me/9647766142936?text='+encodeURIComponent(msg);
   const tgUrl='https://t.me/jaiq19?text='+encodeURIComponent(msg);
-  /* ===== تسجيل الطلب في Google Sheets ===== */
+  /* ===== الأمران يعملان معاً لحظة النقر بلا تأخير =====
+     الأمر 1 (مرئي): فتح واتساب/تليجرام — يجب أن يكون synchronous
+                     داخل حدث النقر مباشرة وإلا يحجبه المتصفح
+     الأمر 2 (مخفي): تسجيل الطلب في Sheets — يبدأ في نفس اللحظة
+                     ويستمر بالخلفية حتى لو انتقل المستخدم لواتساب */
+
+  // الأمر المخفي: تسجيل الطلب (يبدأ فوراً، لا ننتظره)
   saveOrderToGAS({
     action:  'saveOrder',
     orderId: orderId,
@@ -585,10 +592,8 @@ async function submitOrder(method){
     message: msg
   });
 
-  /* تأخير 400ms يضمن إرسال الطلب قبل فتح نافذة واتساب على الجوال */
-  setTimeout(function(){
-    window.open(method==='whatsapp'?waUrl:tgUrl,'_blank');
-  }, 400);
+  // الأمر المرئي: فتح واتساب/تليجرام — مباشرة بلا setTimeout
+  window.open(method==='whatsapp'?waUrl:tgUrl,'_blank');
   /* Meta Pixel — استخدم meta.js إذا كان محمّلاً */
   try{
     if(typeof metaWhatsAppOpened==='function' && method==='whatsapp') metaWhatsAppOpened(orderId);
