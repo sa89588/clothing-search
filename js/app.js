@@ -492,23 +492,36 @@ document.getElementById('szCancel').addEventListener('click',closeSzDlg);
 document.getElementById('szOv').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSzDlg();});
 
 /* ==================== SAVE ORDER TO GAS ==================== */
-/* تسجيل الطلب في Google Sheets فور الضغط على زر الإرسال
-   نستخدم navigator.sendBeacon (الأكثر موثوقية) لأنه يضمن إرسال
-   الطلب حتى لو فُتحت نافذة جديدة أو غادر المستخدم الصفحة فوراً.
-   fetch مع keepalive كخطة بديلة. */
+/* تسجيل الطلب في Google Sheets فور الضغط على زر الإرسال.
+   الطلب يُسجَّل حتى لو لم يُكمل الزبون الإرسال — هذا مقصود
+   لمتابعة الطلبات الضائعة.
+   حماية ضد التكرار: كل orderId يُرسَل مرة واحدة فقط. */
+const _sentOrderIds = new Set();
+
 function saveOrderToGAS(orderData) {
+  // منع إرسال نفس الطلب أكثر من مرة (حماية طرف العميل)
+  if (orderData.orderId && _sentOrderIds.has(orderData.orderId)) {
+    console.log('⏭️ Order already sent, skipping:', orderData.orderId);
+    return;
+  }
+  if (orderData.orderId) _sentOrderIds.add(orderData.orderId);
+
   const body = JSON.stringify(orderData);
-  // الطريقة 1: sendBeacon — مصمّمة تحديداً لهذه الحالة
+  // نستخدم طريقة واحدة فقط لتجنب الإرسال المزدوج
+  // sendBeacon أولاً لأنه الأكثر موثوقية عند مغادرة الصفحة
   try {
     if (navigator.sendBeacon) {
       const blob = new Blob([body], { type: 'text/plain;charset=UTF-8' });
       const ok = navigator.sendBeacon(API, blob);
-      if (ok) { console.log('✅ Order sent via sendBeacon'); return; }
+      if (ok) {
+        console.log('✅ Order sent via sendBeacon:', orderData.orderId);
+        return; // نجح — لا نرسل مجدداً
+      }
     }
   } catch (e) {
     console.warn('sendBeacon failed:', e.message);
   }
-  // الطريقة 2: fetch مع keepalive — يستمر حتى بعد فتح نافذة
+  // fetch فقط إذا فشل sendBeacon (ليس معه)
   try {
     fetch(API, {
       method:    'POST',
@@ -517,12 +530,15 @@ function saveOrderToGAS(orderData) {
       headers:   { 'Content-Type': 'text/plain;charset=UTF-8' },
       body:      body
     }).then(function() {
-      console.log('✅ Order sent via fetch');
+      console.log('✅ Order sent via fetch:', orderData.orderId);
     }).catch(function(e) {
       console.warn('fetch failed:', e.message);
+      // فشل الإرسال — نزيل الـ id للسماح بإعادة المحاولة
+      if (orderData.orderId) _sentOrderIds.delete(orderData.orderId);
     });
   } catch (e) {
     console.warn('saveOrderToGAS failed:', e.message);
+    if (orderData.orderId) _sentOrderIds.delete(orderData.orderId);
   }
 }
 
