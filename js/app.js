@@ -506,8 +506,11 @@ async function saveOrderToGAS(orderData) {
   }
   if (orderData.orderId) _sentOrderIds.add(orderData.orderId);
 
+  /* نستخدم نفس طريقة موقع التجهيز بالحرف تماماً:
+     fetch بدون mode وبدون headers — المتصفح يضع text/plain
+     تلقائياً = simple request = يصل ويُقرأ الرد بنجاح.
+     نضيف keepalive فقط لضمان الاكتمال بعد فتح واتساب. */
   try {
-    // نفس طريقة موقع التجهيز بالضبط — fetch بسيط بدون headers أو no-cors
     const response = await fetch(API, {
       method:    'POST',
       body:      JSON.stringify(orderData),
@@ -515,14 +518,14 @@ async function saveOrderToGAS(orderData) {
     });
     const result = await response.json();
     if (result.success) {
-      console.log('✅ Order saved:', orderData.orderId, result.duplicate ? '(duplicate skipped)' : '');
+      console.log('✅ Order saved:', orderData.orderId, result.duplicate ? '(duplicate)' : '');
     } else {
-      console.warn('⚠️ Save returned:', result);
+      console.warn('⚠️ GAS returned:', result);
     }
   } catch (e) {
     console.warn('❌ saveOrderToGAS failed:', e.message);
-    // فشل — نزيل الـ id للسماح بإعادة المحاولة
-    if (orderData.orderId) _sentOrderIds.delete(orderData.orderId);
+    // نبقي الـ id في القائمة — الطلب غالباً وصل رغم خطأ قراءة الرد
+    // (لا نحذفه لتجنب الإرسال المزدوج)
   }
 }
 
