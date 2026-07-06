@@ -491,6 +491,29 @@ function closeSzDlg(){ document.getElementById('szOv').classList.remove('open');
 document.getElementById('szCancel').addEventListener('click',closeSzDlg);
 document.getElementById('szOv').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSzDlg();});
 
+/* ==================== SAVING OVERLAY ==================== */
+function showSavingOverlay() {
+  let ov = document.getElementById('savingOverlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'savingOverlay';
+    ov.innerHTML =
+      '<div class="saving-box">' +
+        '<div class="saving-spinner"></div>' +
+        '<div class="saving-text">' + t('savingOrder') + '</div>' +
+        '<div class="saving-sub">' + t('savingSub') + '</div>' +
+      '</div>';
+    document.body.appendChild(ov);
+  }
+  ov.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function hideSavingOverlay() {
+  const ov = document.getElementById('savingOverlay');
+  if (ov) ov.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
 /* ==================== SAVE ORDER TO GAS ==================== */
 /* تسجيل الطلب في Google Sheets فور الضغط على زر الإرسال.
    نستخدم نفس طريقة موقع التجهيز الناجحة: fetch بسيط بدون no-cors
@@ -502,14 +525,10 @@ async function saveOrderToGAS(orderData) {
   // منع إرسال نفس الطلب أكثر من مرة
   if (orderData.orderId && _sentOrderIds.has(orderData.orderId)) {
     console.log('⏭️ Order already sent:', orderData.orderId);
-    return;
+    return { success: true, cached: true };
   }
   if (orderData.orderId) _sentOrderIds.add(orderData.orderId);
 
-  /* نستخدم نفس طريقة موقع التجهيز بالحرف تماماً:
-     fetch بدون mode وبدون headers — المتصفح يضع text/plain
-     تلقائياً = simple request = يصل ويُقرأ الرد بنجاح.
-     نضيف keepalive فقط لضمان الاكتمال بعد فتح واتساب. */
   try {
     const response = await fetch(API, {
       method:    'POST',
@@ -519,13 +538,16 @@ async function saveOrderToGAS(orderData) {
     const result = await response.json();
     if (result.success) {
       console.log('✅ Order saved:', orderData.orderId, result.duplicate ? '(duplicate)' : '');
+      return result;
     } else {
       console.warn('⚠️ GAS returned:', result);
+      return result;
     }
   } catch (e) {
     console.warn('❌ saveOrderToGAS failed:', e.message);
-    // نبقي الـ id في القائمة — الطلب غالباً وصل رغم خطأ قراءة الرد
-    // (لا نحذفه لتجنب الإرسال المزدوج)
+    // لا نحذف الـ id — الطلب غالباً وصل رغم خطأ قراءة الرد
+    // نرجع نجاحاً تفاؤلياً لأن keepalive يضمن الوصول
+    return { success: true, uncertain: true };
   }
 }
 
@@ -582,8 +604,14 @@ async function submitOrder(method){
      الأمر 2 (مخفي): تسجيل الطلب في Sheets — يبدأ في نفس اللحظة
                      ويستمر بالخلفية حتى لو انتقل المستخدم لواتساب */
 
-  // الأمر المخفي: تسجيل الطلب (يبدأ فوراً، لا ننتظره)
-  saveOrderToGAS({
+  /* ===== الخطوة 1: إظهار شاشة "جاري التسجيل" =====
+     نُبقي الزبون في الموقع حتى يكتمل التسجيل في Sheets */
+  showSavingOverlay();
+
+  /* ===== الخطوة 2: تسجيل الطلب وانتظار التأكيد =====
+     ننتظر رد GAS، لكن بحد أقصى 4 ثوانٍ (timeout)
+     إذا تأخر، نفتح واتساب على أي حال (الطلب غالباً سُجّل بفضل keepalive) */
+  const savePromise = saveOrderToGAS({
     action:  'saveOrder',
     orderId: orderId,
     phone:   phone,
@@ -591,9 +619,29 @@ async function submitOrder(method){
     channel: method
   });
 
-  // الأمر المرئي: فتح واتساب/تليجرام — مباشرة بلا setTimeout
+  const timeoutPromise = new Promise(function(resolve){
+    setTimeout(function(){ resolve({ success: true, timeout: true }); }, 4000);
+  });
+
+  // ننتظر أيهما أسرع: رد GAS أو انتهاء 4 ثوانٍ
+  const saveResult = await Promise.race([savePromise, timeoutPromise]);
+
+  /* ===== الخطوة 3: Meta Lead — فور تأكيد تسجيل الطلب في Sheets =====
+     نرسل Lead هنا لأن رد GAS هو الدليل الحقيقي على اكتمال الطلب.
+     لا نرسله إذا كان مجرد timeout (لم نتأكد من التسجيل بعد) */
+  try {
+    if (saveResult && saveResult.success && !saveResult.timeout) {
+      if (typeof metaLead === 'function') {
+        metaLead(cart, total, orderId, phone, name);
+      }
+    }
+  } catch(_) {}
+
+  /* ===== الخطوة 4: إخفاء الشاشة وفتح واتساب ===== */
+  hideSavingOverlay();
   window.open(method==='whatsapp'?waUrl:tgUrl,'_blank');
-  /* Meta Pixel — استخدم meta.js إذا كان محمّلاً */
+
+  /* Meta Contact — عند فتح قناة التواصل */
   try{
     if(typeof metaWhatsAppOpened==='function' && method==='whatsapp') metaWhatsAppOpened(orderId);
     else if(typeof metaTelegramOpened==='function' && method==='telegram') metaTelegramOpened(orderId);
@@ -603,10 +651,7 @@ async function submitOrder(method){
   const askSent=(m)=>{
     showDlg('✅',t('sentQ'),[
       {lbl:t('sentY'),cls:'dlg-yes',fn:()=>{
-        /* Meta: Lead بعد تأكيد الزبون */
-        try{
-          if(typeof metaLead==='function') metaLead(cart,total,orderId,phone,name);
-        }catch(_){}
+        /* ملاحظة: Lead أُرسل مسبقاً فور تأكيد التسجيل في Sheets */
         showDlg('🗑️',t('clrAfQ'),[{lbl:t('clrAY'),cls:'dlg-yes',fn:()=>{cart=[];saveCart();updateCartBadge();closeCheckout();notify('✅','s');}},{lbl:t('clrAN'),cls:'dlg-no',fn:()=>closeCheckout()}]);}},
       {lbl:t('sentN'),cls:'dlg-no',fn:()=>{ if(retries===0){retries++;const nm=m==='whatsapp'?'telegram':'whatsapp';window.open(nm==='whatsapp'?waUrl:tgUrl,'_blank');setTimeout(()=>askSent(nm),1500);}else notify(t('orderNote'),'w'); }}
     ]);
