@@ -3,7 +3,7 @@
 
 /* ==================== TRANSLATIONS ==================== */
 const L = {
-  copyBtn:'نسخ نص الطلب للإرسال اليدوي',ar:{
+  copyBtn:'نسخ نص الطلب للإرسال اليدوي',savingOrder:'جاري تسجيل طلبك...',savingSub:'لحظة من فضلك، لا تغلق الصفحة',ar:{
     dir:'rtl',
     hTitle:'متجر جود العباس',hSub:'Jood ALabbas Store',
     welcome:'أهلاً بكم في متجر جود العباس! تسوق سعيد 🌟',
@@ -48,7 +48,7 @@ const L = {
       '🌙 <b>الإعدادات</b><br>• غيّر اللغة (عربي / English / کوردی) من أزرار اللغة في الهيدر<br>• فعّل الوضع الداكن 🌙 من الزر بجانب اللغة<br>• اسحب الصفحة للأسفل لتحديث المنتجات<br>• يمكن تثبيت المتجر كتطبيق على هاتفك!'
     ]
   },
-  copyBtn:'Copy order text for manual sending',en:{
+  copyBtn:'Copy order text for manual sending',savingOrder:'Saving your order...',savingSub:'Please wait, do not close the page',en:{
     dir:'ltr',
     hTitle:'Jood ALabbas Store',hSub:"Children's Fashion • Iraq",
     welcome:'Welcome to Jood ALabbas Store! Happy shopping 🌟',
@@ -93,7 +93,7 @@ const L = {
       '🌙 <b>Settings</b><br>• Switch language (Arabic / English / Kurdish) from the header buttons<br>• Enable dark mode 🌙 from the button next to language<br>• Pull down to refresh products<br>• Install the store as an app on your phone!'
     ]
   },
-  copyBtn:'کۆپیکردنی نامەی داواکاری بۆ نێردرانی دەستی',ku:{
+  copyBtn:'کۆپیکردنی نامەی داواکاری بۆ نێردرانی دەستی',savingOrder:'داواکارییەکەت تۆمار دەکرێت...',savingSub:'تکایە چاوەڕوانبە، پەڕەکە دامەخە',ku:{
     dir:'rtl',
     hTitle:'فرۆشگای جوود العباس',hSub:'جلوبەرگی منداڵ • عێراق',
     welcome:'بەخێربێن بۆ فرۆشگای جوود العباس! کڕینتان خۆش بێت 🌟',
