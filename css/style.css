@@ -388,3 +388,48 @@ body.dark .cimg-w{
 .sh-body{
   will-change: scroll-position;
 }
+
+/* ===== شاشة "جاري تسجيل الطلب" ===== */
+#savingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 5000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+}
+#savingOverlay.show { display: flex; animation: fadeIn 0.2s; }
+.saving-box {
+  background: var(--card, #fff);
+  border-radius: 20px;
+  padding: 32px 40px;
+  text-align: center;
+  max-width: 300px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+}
+.saving-spinner {
+  width: 54px;
+  height: 54px;
+  border: 5px solid #E3F2FD;
+  border-top-color: #1565C0;
+  border-radius: 50%;
+  margin: 0 auto 18px;
+  animation: savingSpin 0.8s linear infinite;
+}
+@keyframes savingSpin { to { transform: rotate(360deg); } }
+.saving-text {
+  font-size: 17px;
+  font-weight: 800;
+  color: #1565C0;
+  margin-bottom: 8px;
+}
+.saving-sub {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.6;
+}
+body.dark .saving-box { background: #1A1A2E; }
+body.dark .saving-sub { color: #aaa; }
+body.dark .saving-spinner { border-color: #252540; border-top-color: #1976D2; }
