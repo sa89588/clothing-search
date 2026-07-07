@@ -5,11 +5,32 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: interest-cohort=()
 
+# ملفات JS و CSS: يفحص المتصفح التحديث في كل مرة
+# max-age=0 + must-revalidate = يتأكد دائماً من وجود نسخة أحدث
+# لكنه يستخدم النسخة المحفوظة إذا لم يتغير الملف (سريع + محدّث)
 /css/*
-  Cache-Control: public, max-age=2592000, immutable
+  Cache-Control: public, max-age=0, must-revalidate
 
 /js/*
-  Cache-Control: public, max-age=2592000, immutable
+  Cache-Control: public, max-age=0, must-revalidate
 
+# HTML: دائماً يتحقق من الأحدث
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# ملف الـ manifest للـ PWA: دائماً محدّث
+/manifest.json
+  Cache-Control: public, max-age=0, must-revalidate
+
+# الصور والأيقونات: يمكن تخزينها لفترة (نادراً تتغير)
+/*.png
+  Cache-Control: public, max-age=86400
+
+/*.jpg
+  Cache-Control: public, max-age=86400
+
+/*.ico
+  Cache-Control: public, max-age=86400
