@@ -34,7 +34,7 @@ function applyTrans(){
     fpTitle:'fpTitle',fpClose:'fpClose',footerEl:'footer',
     cartShTitle:'cartT',checkoutLbl:'checkout',clearCartLbl:'clearCart',shareCartLbl:'shareCart',
     wishShTitle:'wishT',contactShTitle:'contactT',
-    ckTitle:'ckTitle',ckWALbl:'wa',ckTGLbl:'tg',ckNote:'orderNote',ckCancel:'cancel',
+    ckTitle:'ckTitle',ckConfirmLbl:'confirmOrder',ckNote:'orderNoteNew',ckCancel:'back',
     szTitle:'szTitle',pwaTxt:'pwaTxt',pwaInstBtn:'pwaInst',pwaSkip:'pwaSkip',
     offlineTxt:'offline',ptrTxt:'ptrTxt'
   };
@@ -139,8 +139,9 @@ document.getElementById('helpBtn').addEventListener('click',()=>{
   showTutorial();
 });
 
-/* ==================== COPY ORDER TEXT ==================== */
-document.getElementById('ckCopy').addEventListener('click',()=>{
+/* ==================== COPY ORDER TEXT (اختياري) ==================== */
+const _ckCopyBtn = document.getElementById('ckCopy');
+if (_ckCopyBtn) _ckCopyBtn.addEventListener('click',()=>{
   const name=document.getElementById('ckName').value.trim();
   const phone=document.getElementById('ckPhone').value.trim();
   const addr=document.getElementById('ckAddr').value.trim();
