@@ -555,8 +555,8 @@ async function saveOrderToGAS(orderData) {
 document.getElementById('checkoutBtn').addEventListener('click',async()=>{
   if(!cart.length){notify(t('cartEmpty'),'w');return;}
   closeSheets();
-  ['ckTitle','ckWALbl','ckTGLbl','ckNote','ckCancel'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.textContent=t({ckTitle:'ckTitle',ckWALbl:'wa',ckTGLbl:'tg',ckNote:'orderNote',ckCancel:'back'}[id]);
+  ['ckTitle','ckConfirmLbl','ckNote','ckCancel'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent=t({ckTitle:'ckTitle',ckConfirmLbl:'confirmOrder',ckNote:'orderNoteNew',ckCancel:'back'}[id]);
   });
   document.getElementById('ckOv').classList.add('open'); document.body.style.overflow='hidden';
   setTimeout(()=>document.getElementById('ckName').focus(),300);
@@ -575,7 +575,7 @@ function closeCheckout(){ document.getElementById('ckOv').classList.remove('open
 document.getElementById('ckCancel').addEventListener('click',closeCheckout);
 document.getElementById('ckOv').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCheckout();});
 
-async function submitOrder(method){
+async function submitOrder(){
   /* توليد Order ID فريد لهذا الطلب */
   const orderId = 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2,6).toUpperCase();
   const name=document.getElementById('ckName').value.trim().slice(0,80);
@@ -596,70 +596,53 @@ async function submitOrder(method){
   msg+='تكلفة النقل: '+ship.toLocaleString()+' دينار\n';
   msg+='المجموع النهائي: '+total.toLocaleString()+' دينار\n\n';
   msg+='معلومات الزبون:\nالاسم: '+name+'\nالهاتف: '+phone+'\nالعنوان: '+addr;
-  const waUrl='https://wa.me/9647766142936?text='+encodeURIComponent(msg);
-  const tgUrl='https://t.me/jaiq19?text='+encodeURIComponent(msg);
-  /* ===== الأمران يعملان معاً لحظة النقر بلا تأخير =====
-     الأمر 1 (مرئي): فتح واتساب/تليجرام — يجب أن يكون synchronous
-                     داخل حدث النقر مباشرة وإلا يحجبه المتصفح
-     الأمر 2 (مخفي): تسجيل الطلب في Sheets — يبدأ في نفس اللحظة
-                     ويستمر بالخلفية حتى لو انتقل المستخدم لواتساب */
 
-  /* ===== الخطوة 1: إظهار شاشة "جاري التسجيل" =====
-     نُبقي الزبون في الموقع حتى يكتمل التسجيل في Sheets */
+  /* ===== الخطوة 1: إظهار شاشة "جاري التسجيل" ===== */
   showSavingOverlay();
 
-  /* ===== الخطوة 2: تسجيل الطلب وانتظار التأكيد =====
-     ننتظر رد GAS، لكن بحد أقصى 4 ثوانٍ (timeout)
-     إذا تأخر، نفتح واتساب على أي حال (الطلب غالباً سُجّل بفضل keepalive) */
+  /* ===== الخطوة 2: تسجيل الطلب وانتظار تأكيد GAS ===== */
   const savePromise = saveOrderToGAS({
     action:  'saveOrder',
     orderId: orderId,
+    name:    name,
     phone:   phone,
+    address: addr,
     message: msg,
-    channel: method
+    total:   total,
+    channel: 'website'
   });
 
   const timeoutPromise = new Promise(function(resolve){
-    setTimeout(function(){ resolve({ success: true, timeout: true }); }, 4000);
+    setTimeout(function(){ resolve({ success: true, timeout: true }); }, 8000);
   });
 
-  // ننتظر أيهما أسرع: رد GAS أو انتهاء 4 ثوانٍ
   const saveResult = await Promise.race([savePromise, timeoutPromise]);
 
-  /* ===== الخطوة 3: Meta Lead — فور تأكيد تسجيل الطلب في Sheets =====
-     نرسل Lead هنا لأن رد GAS هو الدليل الحقيقي على اكتمال الطلب.
-     لا نرسله إذا كان مجرد timeout (لم نتأكد من التسجيل بعد) */
+  /* ===== الخطوة 3: إخفاء الشاشة ===== */
+  hideSavingOverlay();
+
+  /* ===== الخطوة 4: Meta Lead — فور تأكيد التسجيل ===== */
   try {
     if (saveResult && saveResult.success && !saveResult.timeout) {
-      if (typeof metaLead === 'function') {
-        metaLead(cart, total, orderId, phone, name);
-      }
+      if (typeof metaLead === 'function') metaLead(cart, total, orderId, phone, name);
     }
   } catch(_) {}
 
-  /* ===== الخطوة 4: إخفاء الشاشة وفتح واتساب ===== */
-  hideSavingOverlay();
-  window.open(method==='whatsapp'?waUrl:tgUrl,'_blank');
-
-  /* Meta Contact — عند فتح قناة التواصل */
-  try{
-    if(typeof metaWhatsAppOpened==='function' && method==='whatsapp') metaWhatsAppOpened(orderId);
-    else if(typeof metaTelegramOpened==='function' && method==='telegram') metaTelegramOpened(orderId);
-    else if(typeof fbq==='function') fbq('track','Contact',{},{eventID:'CT-'+orderId});
-  }catch(_){}
-  let retries=0;
-  const askSent=(m)=>{
-    showDlg('✅',t('sentQ'),[
-      {lbl:t('sentY'),cls:'dlg-yes',fn:()=>{
-        /* ملاحظة: Lead أُرسل مسبقاً فور تأكيد التسجيل في Sheets */
-        showDlg('🗑️',t('clrAfQ'),[{lbl:t('clrAY'),cls:'dlg-yes',fn:()=>{cart=[];saveCart();updateCartBadge();closeCheckout();notify('✅','s');}},{lbl:t('clrAN'),cls:'dlg-no',fn:()=>closeCheckout()}]);}},
-      {lbl:t('sentN'),cls:'dlg-no',fn:()=>{ if(retries===0){retries++;const nm=m==='whatsapp'?'telegram':'whatsapp';window.open(nm==='whatsapp'?waUrl:tgUrl,'_blank');setTimeout(()=>askSent(nm),1500);}else notify(t('orderNote'),'w'); }}
+  /* ===== الخطوة 5: رسالة نجاح ثم إفراغ السلة ===== */
+  if (saveResult && saveResult.success) {
+    showDlg('✅', t('orderSuccess'), [
+      { lbl: t('orderSuccessOk'), cls: 'dlg-yes', fn: ()=>{
+        cart=[]; saveCart(); updateCartBadge(); closeCheckout();
+      }}
     ]);
-  };
-  setTimeout(()=>askSent(method),2000);
+  } else {
+    // فشل التسجيل — نُبقي البيانات ليعيد المحاولة
+    showDlg('⚠️', t('orderFail'), [
+      { lbl: t('tryAgain'), cls: 'dlg-yes', fn: ()=>closeDlg() }
+    ]);
+  }
 }
-document.getElementById('ckWA').addEventListener('click',()=>submitOrder('whatsapp'));
-document.getElementById('ckTG').addEventListener('click',()=>submitOrder('telegram'));
+document.getElementById('ckConfirm').addEventListener('click',()=>submitOrder());
 
 /* ==================== PWA ==================== */
 function setupPWA(){
