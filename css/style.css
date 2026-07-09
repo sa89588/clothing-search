@@ -433,3 +433,27 @@ body.dark .cimg-w{
 body.dark .saving-box { background: #1A1A2E; }
 body.dark .saving-sub { color: #aaa; }
 body.dark .saving-spinner { border-color: #252540; border-top-color: #1976D2; }
+
+/* ===== زر تأكيد الطلب (بدل واتساب/تليجرام) ===== */
+.ck-confirm {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #1565C0, #1976D2);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  transition: transform .15s, box-shadow .2s;
+  box-shadow: 0 4px 14px rgba(21, 101, 192, 0.35);
+}
+.ck-confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(21, 101, 192, 0.45); }
+.ck-confirm:active { transform: translateY(0); }
+.ck-confirm i { font-size: 18px; }
+body.dark .ck-confirm { background: linear-gradient(135deg, #1976D2, #2196F3); }
