@@ -3,7 +3,7 @@
 
 /* ==================== TRANSLATIONS ==================== */
 const L = {
-  copyBtn:'نسخ نص الطلب للإرسال اليدوي',savingOrder:'جاري تسجيل طلبك...',savingSub:'لحظة من فضلك، لا تغلق الصفحة',ar:{
+  ar:{
     dir:'rtl',
     hTitle:'متجر جود العباس',hSub:'Jood ALabbas Store',
     welcome:'أهلاً بكم في متجر جود العباس! تسوق سعيد 🌟',
@@ -18,14 +18,15 @@ const L = {
     saved:'وفّرت',copyId:'تم نسخ الرقم',
     cartT:'السلة',wishT:'المفضلة',contactT:'تواصل معنا',
     checkout:'إتمام الشراء',clearCart:'إفراغ السلة',shareCart:'مشاركة السلة',
-    cartEmpty:'السلة فارغة 🛒',
+    cartEmpty:'السلة فارغة 🛒',wishEmpty:'لا توجد مفضلات ❤️',
     sub:'المجموع الأصلي',ship:'تكلفة النقل',tot:'المجموع النهائي',subDisc:'بعد الخصم 50%',
     ckTitle:'معلومات الزبون',namePh:'الاسم الكامل',phonePh:'رقم الهاتف',addrPh:'العنوان...',
     wa:'واتساب',tg:'تليجرام',orderNote:'يجب إرسال الرسالة لتثبيت الطلب',
-    cancel:'إلغاء',back:'← رجوع',tapSizeToAdd:'اضغط على القياس للإضافة',addCart:'أضف للسلة',navInstall:'تثبيت',swipeHint:'اسحب يميناً لحذف المنتج',copySuccess:'✅ تم النسخ — الصقه في واتساب أو تليجرام يدوياً',copyFail:'تعذّر النسخ — انسخه يدوياً',appInstalled:'تم تثبيت التطبيق',alreadyInstalled:'التطبيق مثبت بالفعل!',androidInstallDesc:'اضغط الزر لتثبيت المتجر على شاشتك الرئيسية.',installNow:'تثبيت الآن',iosStep1:'افتح المتجر في Safari',iosStep2:'اضغط زر المشاركة ↑ أسفل الشاشة',iosStep3:'اختر إضافة إلى الشاشة الرئيسية',iosStep4:'اضغط إضافة — تم!',desktopStep1:'افتح قائمة المتصفح ⋮',desktopStep2:'ابحث عن تثبيت التطبيق',desktopStep3:'اضغط تثبيت — تم!',szTitle:'اختر القياس المطلوب',
+    cancel:'إلغاء',back:'← رجوع',tapSizeToAdd:'اضغط على القياس للإضافة',addCart:'أضف للسلة',navInstall:'تثبيت',swipeHint:'اسحب يميناً لحذف المنتج',appInstalled:'تم تثبيت التطبيق',alreadyInstalled:'التطبيق مثبت بالفعل!',androidInstallDesc:'اضغط الزر لتثبيت المتجر على شاشتك الرئيسية.',installNow:'تثبيت الآن',iosStep1:'افتح المتجر في Safari',iosStep2:'اضغط زر المشاركة ↑ أسفل الشاشة',iosStep3:'اختر إضافة إلى الشاشة الرئيسية',iosStep4:'اضغط إضافة — تم!',desktopStep1:'افتح قائمة المتصفح ⋮',desktopStep2:'ابحث عن تثبيت التطبيق',desktopStep3:'اضغط تثبيت — تم!',szTitle:'اختر القياس المطلوب',
     loading:'جاري التحميل...',noRes:'لا توجد نتائج 😕',
     errMsg:'تعذّر تحميل المنتجات',retry:'إعادة المحاولة',
     cartAdded:'تمت الإضافة للسلة 🛒',already:'المنتج موجود في السلة',
+    wishAdd:'تمت الإضافة للمفضلة ❤️',wishRm:'تمت الإزالة من المفضلة',
     delQ:'هل تريد حذف هذا المنتج من السلة؟',clrQ:'هل تريد إفراغ السلة بالكامل؟',
     yes:'نعم',no:'إلغاء',
     sentQ:'هل تم إرسال رسالة الطلب بنجاح؟',sentY:'نعم، تم الإرسال',sentN:'لم يتم الإرسال',
@@ -39,16 +40,18 @@ const L = {
     s80:'1 سنة',s90:'2 سنة',s100:'3 سنوات',s110:'4 سنوات',s120:'4-5 سنوات',
     s130:'6-7 سنوات',s140:'8-9 سنوات',s150:'10-11 سنة',s160:'12-13 سنة',s170:'14-15 سنة',
     tut:[
-      '📏 <b>شرح القياسات</b><br>اضغط على زر المسطرة الأحمر 📐 في أسفل يمين الشاشة لفتح جدول القياسات ومعرفة المقاس الصحيح لعمر طفلك.',
+      '📏 <b>شرح القياسات</b><br>اضغط على زر المسطرة الأحمر 📐 في أسفل يسار الشاشة لفتح جدول القياسات ومعرفة المقاس الصحيح لعمر طفلك.',
       '🔍 <b>البحث عن منتج</b><br>اكتب رقم المنتج (ID) أو رقم القياس في مربع البحث. يمكنك أيضاً الضغط مباشرةً على رقم # أي منتج لنسخه.',
       '⚙️ <b>الفلاتر</b><br>اضغط زر "الفلاتر" لتصفية المنتجات حسب الموسم (صيفي / شتوي / بهاري) أو النوع (طلعة / منزلي) أو ترتيبها حسب السعر. الرقم على الزر يُظهر عدد الفلاتر النشطة.',
       '🛒 <b>إضافة منتج للسلة</b><br>كل منتج يُعرض قياساته كأزرار ملونة مباشرةً. اضغط على القياس المطلوب لإضافته للسلة فوراً بضغطة واحدة — بدون خطوات إضافية!',
-      '🛍️ <b>السلة والدفع</b><br>اضغط زر السلة 🛒 في الشريط السفلي لمراجعة طلبك.<br>• اسحب أي منتج <b>يميناً</b> لحذفه<br>• اضغط "إتمام الشراء"، أدخل اسمك ورقمك وعنوانك، ثم أرسل عبر واتساب أو تليجرام.',
+      '❤️ <b>المفضلة</b><br>اضغط أيقونة القلب في أعلى يسار أي منتج لحفظه في المفضلة. ادخل على مفضلاتك من زر ❤️ في الشريط السفلي.',
+      '🛍️ <b>السلة والدفع</b><br>اضغط زر السلة 🛒 في الشريط السفلي لمراجعة طلبك.<br>• اسحب أي منتج <b>يميناً</b> لحذفه<br>• اضغط 📤 لمشاركة السلة كاملةً<br>• اضغط "إتمام الشراء"، أدخل اسمك ورقمك وعنوانك، ثم أرسل عبر واتساب أو تليجرام.',
       '📞 <b>التواصل</b><br>للاستفسار عن أي منتج أو طلب، اضغط "تواصل" في الشريط السفلي أو زر ✉️ في أعلى يسار الشاشة للتواصل مباشرةً عبر واتساب أو تليجرام أو انستقرام.',
       '🌙 <b>الإعدادات</b><br>• غيّر اللغة (عربي / English / کوردی) من أزرار اللغة في الهيدر<br>• فعّل الوضع الداكن 🌙 من الزر بجانب اللغة<br>• اسحب الصفحة للأسفل لتحديث المنتجات<br>• يمكن تثبيت المتجر كتطبيق على هاتفك!'
-    ]
+    ],
+    copyBtn:'نسخ نص الطلب',savingOrder:'جاري تسجيل طلبك...',savingSub:'لحظة من فضلك، لا تغلق الصفحة',confirmOrder:'تأكيد الطلب',orderNoteNew:'سيتم تسجيل طلبك وسنتواصل معك قريباً',orderSuccess:'تم تسجيل طلبك بنجاح! سنتواصل معك قريباً 🎉',orderSuccessOk:'حسناً',orderFail:'تعذّر تسجيل الطلب، حاول مرة أخرى',tryAgain:'إعادة المحاولة'
   },
-  copyBtn:'Copy order text for manual sending',savingOrder:'Saving your order...',savingSub:'Please wait, do not close the page',en:{
+  en:{
     dir:'ltr',
     hTitle:'Jood ALabbas Store',hSub:"Children's Fashion • Iraq",
     welcome:'Welcome to Jood ALabbas Store! Happy shopping 🌟',
@@ -63,14 +66,15 @@ const L = {
     saved:'You saved',copyId:'ID copied',
     cartT:'My Cart',wishT:'Wishlist',contactT:'Contact Us',
     checkout:'Checkout',clearCart:'Clear Cart',shareCart:'Share Cart',
-    cartEmpty:'Cart is empty 🛒',
+    cartEmpty:'Cart is empty 🛒',wishEmpty:'No wishlist items ❤️',
     sub:'Original total',ship:'Shipping',tot:'Grand Total',subDisc:'After 50% discount',
     ckTitle:'Customer Info',namePh:'Full Name',phonePh:'Phone Number',addrPh:'Address...',
     wa:'WhatsApp',tg:'Telegram',orderNote:'You must send the message to confirm your order',
-    cancel:'Cancel',back:'← Back',tapSizeToAdd:'Tap a size to add',addCart:'Add to Cart',navInstall:'Install',swipeHint:'Swipe right to remove item',copySuccess:'✅ Copied — paste it in WhatsApp or Telegram manually',copyFail:'Auto-copy failed — copy it manually',appInstalled:'App installed!',alreadyInstalled:'App already installed!',androidInstallDesc:'Tap below to install the store on your home screen.',installNow:'Install Now',iosStep1:'Open the store in Safari',iosStep2:'Tap the Share button ↑ at the bottom',iosStep3:'Choose Add to Home Screen',iosStep4:'Tap Add — done!',desktopStep1:'Open browser menu ⋮',desktopStep2:'Look for Install App',desktopStep3:'Click Install — done!',szTitle:'Choose Your Size',
+    cancel:'Cancel',back:'← Back',tapSizeToAdd:'Tap a size to add',addCart:'Add to Cart',navInstall:'Install',swipeHint:'Swipe right to remove item',appInstalled:'App installed!',alreadyInstalled:'App already installed!',androidInstallDesc:'Tap below to install the store on your home screen.',installNow:'Install Now',iosStep1:'Open the store in Safari',iosStep2:'Tap the Share button ↑ at the bottom',iosStep3:'Choose Add to Home Screen',iosStep4:'Tap Add — done!',desktopStep1:'Open browser menu ⋮',desktopStep2:'Look for Install App',desktopStep3:'Click Install — done!',szTitle:'Choose Your Size',
     loading:'Loading...',noRes:'No results found 😕',
     errMsg:'Failed to load products',retry:'Retry',
     cartAdded:'Added to cart 🛒',already:'Already in cart',
+    wishAdd:'Added to wishlist ❤️',wishRm:'Removed from wishlist',
     delQ:'Remove this product from cart?',clrQ:'Clear entire cart?',
     yes:'Yes',no:'Cancel',
     sentQ:'Was the order message sent?',sentY:'Yes, sent!',sentN:'Not sent',
@@ -88,12 +92,14 @@ const L = {
       '🔍 <b>Search for a Product</b><br>Type a product ID or size number in the search box. You can also tap the # number on any product card to copy it instantly.',
       '⚙️ <b>Filters</b><br>Tap the "Filters" button to filter products by season (Summer/Winter/Spring), type (Outfits/Home), or sort by price. The badge number shows active filters count.',
       '🛒 <b>Add to Cart</b><br>Each product shows its available sizes as colored buttons. Tap the size you want to add it to your cart instantly — no extra steps!',
-      '🛍️ <b>Cart & Checkout</b><br>Tap the cart 🛒 in the bottom bar to review your order.<br>• Swipe any item <b>left</b> to delete it<br>• Tap "Checkout", fill in your info, and send via WhatsApp or Telegram.',
+      '❤️ <b>Wishlist</b><br>Tap the heart icon on any product to save it. Access your favorites from the ❤️ button in the bottom bar.',
+      '🛍️ <b>Cart & Checkout</b><br>Tap the cart 🛒 in the bottom bar to review your order.<br>• Swipe any item <b>left</b> to delete it<br>• Tap 📤 to share the whole cart<br>• Tap "Checkout", fill in your info, and send via WhatsApp or Telegram.',
       '📞 <b>Contact Us</b><br>For any inquiries, tap "Contact" in the bottom bar or the ✉️ button in the top-left corner to reach us directly on WhatsApp, Telegram or Instagram.',
       '🌙 <b>Settings</b><br>• Switch language (Arabic / English / Kurdish) from the header buttons<br>• Enable dark mode 🌙 from the button next to language<br>• Pull down to refresh products<br>• Install the store as an app on your phone!'
-    ]
+    ],
+    copyBtn:'Copy order text',savingOrder:'Saving your order...',savingSub:'Please wait, do not close the page',confirmOrder:'Confirm Order',orderNoteNew:'Your order will be registered and we will contact you soon',orderSuccess:'Order registered successfully! We will contact you soon 🎉',orderSuccessOk:'OK',orderFail:'Failed to register order, try again',tryAgain:'Try Again'
   },
-  copyBtn:'کۆپیکردنی نامەی داواکاری بۆ نێردرانی دەستی',savingOrder:'داواکارییەکەت تۆمار دەکرێت...',savingSub:'تکایە چاوەڕوانبە، پەڕەکە دامەخە',ku:{
+  ku:{
     dir:'rtl',
     hTitle:'فرۆشگای جوود العباس',hSub:'جلوبەرگی منداڵ • عێراق',
     welcome:'بەخێربێن بۆ فرۆشگای جوود العباس! کڕینتان خۆش بێت 🌟',
@@ -108,14 +114,15 @@ const L = {
     saved:'پاشەکەوتکردت',copyId:'ناسنامە کۆپیکرا',
     cartT:'سەبەتەکەم',wishT:'دڵخوازەکان',contactT:'پەیوەندیمان پێوەبکە',
     checkout:'تەواوکردنی کڕین',clearCart:'بەتاڵکردنی سەبەتە',shareCart:'هاوبەشکردنی سەبەتە',
-    cartEmpty:'سەبەتە بەتاڵە 🛒',
+    cartEmpty:'سەبەتە بەتاڵە 🛒',wishEmpty:'هیچ دڵخوازێک نییە ❤️',
     sub:'کۆی بنەڕەت',ship:'تێچووی گەیاندن',tot:'کۆی دوایی',subDisc:'دوای داشکاندنی 50%',
     ckTitle:'زانیاری کڕیار',namePh:'ناوی تەواو',phonePh:'ژمارەی تەلەفۆن',addrPh:'ناونیشان...',
     wa:'واتساپ',tg:'تێلێگرام',orderNote:'پێویستە نامەکە بنێریت بۆ پشتڕاستکردنی داواکاری',
-    cancel:'پاشگەزبوونەوە',back:'← گەڕانەوە',tapSizeToAdd:'کرتە بکە لەسەر قەبارە بۆ زیادکردن',addCart:'زیادکە بۆ سەبەتە',navInstall:'دامەزراندن',swipeHint:'بکێشە بۆ ڕاست بۆ سڕینەوە',copySuccess:'✅ کۆپیکرا — بیدەنێ بۆ واتساپ یان تێلێگرام بە دەست',copyFail:'کۆپیکردنی ئۆتۆماتیکی سەرنەکەوت — بە دەست کۆپیی بکە',appInstalled:'ئەپەکە دامەزرا!',alreadyInstalled:'ئەپەکە دامەزراوە!',androidInstallDesc:'کرتە بکە بۆ دامەزراندنی فرۆشگا لەسەر ئەکرانی سەرەکیت.',installNow:'دامەزرێنە ئێستا',iosStep1:'فرۆشگاکە لە Safari بکەرەوە',iosStep2:'دوگمەی هاوبەشکردن ↑ لە خوارەوە داگرە',iosStep3:'زیادکردن بۆ ئەکرانی سەرەکی هەڵبژێرە',iosStep4:'زیادکردن داگرە — تەواو!',desktopStep1:'مینیووی براوزەر ⋮ کردەوە',desktopStep2:'گەڕان بۆ دامەزراندنی ئەپ',desktopStep3:'کرتەی دامەزراندن بکە — تەواو!',szTitle:'قەبارە هەڵبژێرە',
+    cancel:'پاشگەزبوونەوە',back:'← گەڕانەوە',tapSizeToAdd:'کرتە بکە لەسەر قەبارە بۆ زیادکردن',addCart:'زیادکە بۆ سەبەتە',navInstall:'دامەزراندن',swipeHint:'بکێشە بۆ ڕاست بۆ سڕینەوە',appInstalled:'ئەپەکە دامەزرا!',alreadyInstalled:'ئەپەکە دامەزراوە!',androidInstallDesc:'کرتە بکە بۆ دامەزراندنی فرۆشگا لەسەر ئەکرانی سەرەکیت.',installNow:'دامەزرێنە ئێستا',iosStep1:'فرۆشگاکە لە Safari بکەرەوە',iosStep2:'دوگمەی هاوبەشکردن ↑ لە خوارەوە داگرە',iosStep3:'زیادکردن بۆ ئەکرانی سەرەکی هەڵبژێرە',iosStep4:'زیادکردن داگرە — تەواو!',desktopStep1:'مینیووی براوزەر ⋮ کردەوە',desktopStep2:'گەڕان بۆ دامەزراندنی ئەپ',desktopStep3:'کرتەی دامەزراندن بکە — تەواو!',szTitle:'قەبارە هەڵبژێرە',
     loading:'باربکردن...',noRes:'هیچ ئەنجامێک نەدۆزرایەوە 😕',
     errMsg:'بارکردن سەرنەکەوت',retry:'دووبارە هەوڵبدەرەوە',
     cartAdded:'زیادکرا بۆ سەبەتە 🛒',already:'بەرهەمەکە لە سەبەتەدایە',
+    wishAdd:'زیادکرا بۆ دڵخوازەکان ❤️',wishRm:'لە دڵخوازەکان سڕایەوە',
     delQ:'ئایا دەتەوێ ئەم بەرهەمە بسڕیتەوە لە سەبەتە؟',clrQ:'ئایا دەتەوێ سەبەتەکە بەتاڵ بکەیت؟',
     yes:'بەڵێ',no:'پاشگەزبوونەوە',
     sentQ:'ئایا نامەی داواکاری نێردرا؟',sentY:'بەڵێ، نێردرا!',sentN:'نێردرا نییە',
@@ -129,13 +136,15 @@ const L = {
     s80:'1 ساڵ',s90:'2 ساڵ',s100:'3 ساڵ',s110:'4 ساڵ',s120:'4-5 ساڵ',
     s130:'6-7 ساڵ',s140:'8-9 ساڵ',s150:'10-11 ساڵ',s160:'12-13 ساڵ',s170:'14-15 ساڵ',
     tut:[
-      '📏 <b>ڕێنمایی قەبارە</b><br>کرتە بکە لەسەر دوگمەی پیوانەی سوور 📐 بکە لە خوارەوەی لای ڕاستی لاپەڕەکە بۆ کردنەوەی خشتەی قەبارەکان و دۆزینەوەی قەبارەی گونجاو بۆ تەمەنی منداڵەکەت.',
+      '📏 <b>ڕێنمایی قەبارە</b><br>کرتە بکە لەسەر دوگمەی پیوانەی سوور 📐 لە خوارەوەی چەپی ئەکرانەوە بۆ کردنەوەی خشتەی قەبارەکان و دۆزینەوەی قەبارەی گونجاو بۆ تەمەنی منداڵەکەت.',
       '🔍 <b>گەڕان بۆ بەرهەم</b><br>ژمارەی ناسنامە یان قەبارە بنووسە لە خانەی گەڕان. ئەگەر کرتەی دووبارە بکەیت لەسەر ژمارەی # هەر بەرهەمێک دەتوانیت کۆپیی بکەیت.',
       '⚙️ <b>فلتەرەکان</b><br>کرتە بکە لەسەر دوگمەی "فلتەرەکان" بۆ فلتەرکردنی بەرهەمەکان بەپێی وەرز یان جۆر یان ڕیزکردن بەپێی نرخ. ژمارەی لەسەر دوگمەکە دەریدەخات چەند فلتەرێک چالاکە.',
       '🛒 <b>زیادکردن بۆ سەبەتە</b><br>هەر بەرهەمێک قەبارەکانی وەک دوگمەی ڕەنگاڕەنگ پیشان دەدات. کرتە بکە لەسەر قەبارەی دەتەوێت بۆ زیادکردنی بە سەبەتە فەوری — بێ هیچ هەنگاوێکی زیادە!',
-      '🛍️ <b>سەبەتە و کڕین</b><br>کرتە بکە لەسەر سەبەتەی 🛒 لە باری خوارەوەدا بۆ پشکنینی داواکاریەکەت.<br>• هەر بەرهەمێک بکێشە بۆ <b>ڕاست</b> بۆ سڕینەوەی<br>• کرتەی "تەواوکردنی کڕین" بکە، زانیاریەکانت بنووسە، و بنێرە بە واتساپ یان تێلێگرام.',
+      '❤️ <b>دڵخوازەکان</b><br>کرتە بکە لەسەر ئایکۆنەی دڵ لەسەر هەر بەرهەمێک بۆ پاراستنی. دڵخوازەکانت لە دوگمەی ❤️ لە باری خوارەوەدا دەدۆزیتەوە.',
+      '🛍️ <b>سەبەتە و کڕین</b><br>کرتە بکە لەسەر سەبەتەی 🛒 لە باری خوارەوەدا بۆ پشکنینی داواکاریەکەت.<br>• هەر بەرهەمێک بکێشە بۆ <b>ڕاست</b> بۆ سڕینەوەی<br>• کرتەی 📤 بکە بۆ هاوبەشکردنی سەبەتە<br>• کرتەی "تەواوکردنی کڕین" بکە، زانیاریەکانت بنووسە، و بنێرە بە واتساپ یان تێلێگرام.',
       '📞 <b>پەیوەندی</b><br>بۆ هەر پرسیارێک، کرتە بکە لەسەر "پەیوەندی" لە باری خوارەوەدا یان دوگمەی ✉️ لە سەرەوەی چەپی ئەکرانەوە بۆ پەیوەندیکردن بە واتساپ یان تێلێگرام یان ئینستاگرام.',
       '🌙 <b>ڕێکخستنەکان</b><br>• زمانەکە بگۆڕە (عربی / English / کوردی) لە دوگمەکانی سەردێڕەوە<br>• دۆخی تاریک 🌙 چالاک بکە لە دوگمەی تەنیشت زمانەکەوە<br>• ئەکرانەکە بکێشە بۆ خوارەوە بۆ نوێکردنەوەی بەرهەمەکان<br>• فرۆشگاکە وەک ئەپ لە مۆبایلەکەت دامەزرێنە!'
-    ]
+    ],
+    copyBtn:'کۆپیکردنی نامەی داواکاری',savingOrder:'داواکارییەکەت تۆمار دەکرێت...',savingSub:'تکایە چاوەڕوانبە، پەڕەکە دامەخە',confirmOrder:'پشتڕاستکردنەوەی داواکاری',orderNoteNew:'داواکارییەکەت تۆمار دەکرێت و پەیوەندیت پێوە دەکەین',orderSuccess:'داواکارییەکەت بە سەرکەوتوویی تۆمارکرا! 🎉',orderSuccessOk:'باشە',orderFail:'تۆمارکردنی داواکاری سەرنەکەوت',tryAgain:'دووبارە هەوڵبدەرەوە'
   }
 };
