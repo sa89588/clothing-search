@@ -130,11 +130,15 @@ document.getElementById('bnSearch').addEventListener('click',()=>{
   window.scrollTo({top:document.querySelector('.srch-wrap').offsetTop-60,behavior:'smooth'});
   setNavActive('bnSearch');
 });
-document.getElementById('stBtn').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-window.addEventListener('scroll',()=>{ document.getElementById('stBtn').classList.toggle('show',window.scrollY>300); },{passive:true});
+const _stBtn = document.getElementById('stBtn');
+if (_stBtn) {
+  _stBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+  window.addEventListener('scroll',()=>{ _stBtn.classList.toggle('show',window.scrollY>300); },{passive:true});
+}
 
 /* ==================== HELP BUTTON (tutorial on demand) ==================== */
-document.getElementById('helpBtn').addEventListener('click',()=>{
+const _helpBtn = document.getElementById('helpBtn');
+if (_helpBtn) _helpBtn.addEventListener('click',()=>{
   localStorage.removeItem('tut');
   showTutorial();
 });
