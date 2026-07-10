@@ -614,7 +614,8 @@ async function submitOrder(){
     address: addr,
     message: msg,
     total:   total,
-    channel: 'website'
+    channel: 'website',
+    items:   JSON.stringify(cart.map(function(i){ return {id:String(i.id), size:String(i.size)}; }))
   });
 
   const timeoutPromise = new Promise(function(resolve){
