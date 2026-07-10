@@ -602,6 +602,15 @@ async function submitOrder(){
   msg+='المجموع النهائي: '+total.toLocaleString()+' دينار\n\n';
   msg+='معلومات الزبون:\nالاسم: '+name+'\nالهاتف: '+phone+'\nالعنوان: '+addr;
 
+  /* ===== منع الضغط المتكرر: تعطيل الزر فوراً ===== */
+  const confirmBtn = document.getElementById('ckConfirm');
+  if (confirmBtn) {
+    if (confirmBtn.dataset.busy === '1') return; // قيد المعالجة — تجاهل
+    confirmBtn.dataset.busy = '1';
+    confirmBtn.disabled = true;
+    confirmBtn.style.opacity = '0.6';
+  }
+
   /* ===== الخطوة 1: إظهار شاشة "جاري التسجيل" ===== */
   showSavingOverlay();
 
@@ -634,15 +643,28 @@ async function submitOrder(){
     }
   } catch(_) {}
 
-  /* ===== الخطوة 5: رسالة نجاح ثم إفراغ السلة ===== */
+  /* ===== إعادة تفعيل الزر (لأي حالة) ===== */
+  function reEnableBtn() {
+    if (confirmBtn) {
+      confirmBtn.dataset.busy = '0';
+      confirmBtn.disabled = false;
+      confirmBtn.style.opacity = '1';
+    }
+  }
+
+  /* ===== الخطوة 5: النجاح — إغلاق فوري + إفراغ السلة ===== */
   if (saveResult && saveResult.success) {
+    // نُفرغ السلة ونُغلق نافذة الطلب فوراً (قبل رسالة النجاح)
+    cart = []; saveCart(); updateCartBadge();
+    closeCheckout();
+    reEnableBtn();
+    // رسالة تأكيد النجاح
     showDlg('✅', t('orderSuccess'), [
-      { lbl: t('orderSuccessOk'), cls: 'dlg-yes', fn: ()=>{
-        cart=[]; saveCart(); updateCartBadge(); closeCheckout();
-      }}
+      { lbl: t('orderSuccessOk'), cls: 'dlg-yes', fn: ()=>closeDlg() }
     ]);
   } else {
-    // فشل التسجيل — نُبقي البيانات ليعيد المحاولة
+    // فشل التسجيل — نُعيد تفعيل الزر ليعيد المحاولة
+    reEnableBtn();
     showDlg('⚠️', t('orderFail'), [
       { lbl: t('tryAgain'), cls: 'dlg-yes', fn: ()=>closeDlg() }
     ]);
