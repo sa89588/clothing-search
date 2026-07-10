@@ -72,6 +72,35 @@ function splitName(fullName) {
   };
 }
 
+
+/* ============================================================
+   تحديد نظام/نوع الجهاز المستخدم
+   يُرجع: 'iOS' أو 'Android' أو 'Desktop'
+   يُرسَل مع الأحداث لتحليل سلوك كل منصة
+   ============================================================ */
+function getDevicePlatform() {
+  try {
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+    const isAndroid = /Android/.test(ua);
+    if (isIOS) return 'iOS';
+    if (isAndroid) return 'Android';
+    return 'Desktop';
+  } catch (e) {
+    return 'Unknown';
+  }
+}
+
+/* هل التطبيق مُثبّت كـ PWA؟ */
+function isPWAStandalone() {
+  try {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           !!window.navigator.standalone;
+  } catch (e) {
+    return false;
+  }
+}
+
 /* ============================================================
    استدعاء fbq بأمان
    الملاحظة التاسعة: debug warn بدل catch فارغ
@@ -197,7 +226,7 @@ function metaInitiateCheckout(cartItems, total) {
   const evId = generateEventId('IC'); // محفوظ في session
   const icValue = safeValue(total);
   if (!icValue) { _warn('InitiateCheckout: invalid total ' + total); return; }
-  px('track', 'InitiateCheckout', {
+  px('track', 'InitiateCheckout', buildParams({
     content_ids:  cartItems.map(function(i) { return String(i.id); }),
     content_type: 'product',
     contents:     cartItems.map(function(i) { return {
@@ -207,8 +236,10 @@ function metaInitiateCheckout(cartItems, total) {
                   }; }),
     num_items:    cartItems.length,
     value:        icValue,
-    currency:     CURRENCY
-  }, evId);
+    currency:     CURRENCY,
+    device_platform: getDevicePlatform(),  // نظام الهاتف
+    is_pwa:          isPWAStandalone()
+  }), evId);
 }
 
 /* ============================================================
@@ -241,10 +272,17 @@ function metaTelegramOpened(orderId) {
    ============================================================ */
 function metaLead(cartItems, total, orderId, phone, name) {
   const evId = orderId || generateEventId('LEAD');
-  // تحديث Advanced Matching بالبيانات الحقيقية للزبون
+  // تحديث Advanced Matching بالبيانات الحقيقية للزبون (الهاتف + الاسم)
   metaUpdateUser(phone, name, evId);
+
+  // القيمة السعرية النهائية — نتأكد من صحتها
   const leadValue = safeValue(total);
   if (!leadValue) { _warn('Lead: invalid total ' + total); }
+
+  // نظام الجهاز المستخدم (iOS / Android / Desktop)
+  const platform = getDevicePlatform();
+  const normPh   = normalizePhone(phone); // للربط والتأكد من عدم التكرار
+
   px('track', 'Lead', buildParams({
     content_ids:  cartItems.map(function(i) { return String(i.id); }),
     content_type: 'product',
@@ -254,13 +292,23 @@ function metaLead(cartItems, total, orderId, phone, name) {
                     item_price: safeValue(i.disc) || 0
                   }; }),
     num_items:    cartItems.length,
+    // ===== القيمة السعرية النهائية (مؤكّدة) =====
     value:        leadValue,
     currency:     leadValue ? CURRENCY : null,
-    external_id:  evId
+    // ===== ربط الطلب بهوية المستخدم (منع التكرار + تفاصيل أكثر) =====
+    external_id:  normPh || evId,        // نربط بالهاتف المطبّع كمعرّف فريد
+    order_id:     orderId,               // رقم الطلب لمنع التكرار
+    // ===== نظام الهاتف المستخدم =====
+    device_platform: platform,           // iOS / Android / Desktop
+    is_pwa:          isPWAStandalone(),  // هل من التطبيق المثبّت؟
+    customer_name:   name || undefined   // اسم الزبون
   }), evId);
+
   // مسح session key بعد الإرسال الناجح لإتاحة طلب جديد
   sessionStorage.removeItem('meta_ev_LEAD');
   sessionStorage.removeItem('meta_ev_IC');
+
+  _log('Lead sent:', { value: leadValue, platform: platform, phone: normPh, name: name });
 }
 
 /* ============================================================
@@ -299,10 +347,11 @@ function metaPurchase(cartItems, total, orderId, phone, name) {
    ============================================================ */
 function metaCompleteRegistration() {
   const evId = newEventId('PWA');
-  px('track', 'CompleteRegistration', {
-    content_name: 'PWA Install',
-    status:       true
+  px('track', 'CompleteRegistration', buildParams({
+    content_name:    'PWA Install',
+    status:          true,
+    device_platform: getDevicePlatform()  // على أي نظام تم التثبيت
     /* لا نرسل value أو currency هنا — ليس لها قيمة مالية حقيقية */
-  }, evId);
-  _log('PWA installed — CompleteRegistration fired');
+  }), evId);
+  _log('PWA installed — CompleteRegistration fired on ' + getDevicePlatform());
 }
