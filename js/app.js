@@ -345,6 +345,7 @@ async function fetchData(){
     localStorage.setItem('pc',JSON.stringify({d:allData,ts:Date.now()}));
     document.getElementById('offlineBar').classList.remove('show');
     addJsonLD(allData); updateFilterCounts(); doFilter(false);
+    cleanCart(false); // حذف ما نفد من السلة وتنبيه الزبون
   }catch(e){
     try{
       const c=localStorage.getItem('pc');
@@ -431,6 +432,36 @@ function saveCart(){ localStorage.setItem('ct',JSON.stringify(cart)); }
 function updateCartBadge(){ const dot=document.getElementById('cdot'); dot.textContent=cart.length; dot.classList.toggle('show',cart.length>0); }
 function bounceCart(){ const w=document.querySelector('#bnCart .cnav-wrap'); if(w){w.classList.remove('cart-bounce');void w.offsetWidth;w.classList.add('cart-bounce');} }
 
+
+/* ==================== VALIDATE CART ====================
+   التحقق أن كل منتج في السلة ما زال متوفراً بقياسه
+   يمنع طلب منتجات نفدت أو حُذفت من قبل زبائن آخرين */
+function isItemAvailable(item){
+  const prod = allData.find(p=>String(p.Id)===String(item.id));
+  if(!prod) return false;                       // المنتج نفسه غير موجود
+  const sizes = parseSizes(prod.sizes);
+  if(sizes.length === 0) return false;          // لا قياسات متبقية
+  return sizes.some(s=>String(s)===String(item.size)); // القياس متوفر؟
+}
+
+/* تنظيف السلة من المنتجات غير المتوفرة — يُرجع عدد المحذوف */
+function cleanCart(silent){
+  if(!allData || allData.length===0) return 0;  // البيانات لم تُحمّل بعد
+  const before = cart.length;
+  const removed = cart.filter(i=>!isItemAvailable(i));
+  if(removed.length === 0) return 0;
+  cart = cart.filter(i=>isItemAvailable(i));
+  saveCart(); updateCartBadge();
+  if(!silent){
+    const ids = removed.map(i=>'#'+i.id+' (Q:'+i.size+')').join('، ');
+    notify(t('itemsRemoved')+': '+ids, 'w');
+  }
+  // إعادة رسم السلة إن كانت مفتوحة
+  const cartSheet = document.getElementById('cartSheet');
+  if(cartSheet && cartSheet.classList.contains('open')) renderCart();
+  return before - cart.length;
+}
+
 function addToCart(id,size,orig,disc){
   if(cart.find(i=>i.id===id&&i.size===size)){notify(t('already'),'w');return;}
   cart.push({id,size,orig,disc}); saveCart(); updateCartBadge(); bounceCart();
@@ -465,7 +496,8 @@ function renderCart(){
   let totO=0,totD=0;
   cart.forEach(item=>{
     const prod=allData.find(p=>String(p.Id)===String(item.id));
-    const div=document.createElement('div'); div.className='ci';
+    const available = isItemAvailable(item);
+    const div=document.createElement('div'); div.className='ci' + (available ? '' : ' ci-unavailable');
     const img=document.createElement('img'); img.className='ci-img'; img.loading='lazy'; img.decoding='async'; img.src=safeImgSrc(prod&&prod.picture?prod.picture:''); img.alt='';
     const info=document.createElement('div'); info.className='ci-info';
     const ciId=document.createElement('div'); ciId.className='ci-id'; ciId.textContent='# '+item.id;
@@ -591,6 +623,34 @@ async function submitOrder(){
   if(!addr){notify(t('addrPh')+' '+t('no'),'w');return;}
   const now=Date.now(), last=parseInt(sessionStorage.getItem('ls')||'0');
   if(now-last<10000){notify('⏳','w');return;}
+
+  /* ===== خط الدفاع الأخير: تحقق من توفر كل منتج قبل التسجيل =====
+     نُحدّث البيانات أولاً ثم نتحقق — يمنع تسجيل منتج نفد للتو */
+  try {
+    const fresh = await fetch(API, {cache:'no-store'});
+    if (fresh.ok) {
+      const freshData = await fresh.json();
+      if (Array.isArray(freshData) && freshData.length > 0) {
+        allData = freshData;
+        localStorage.setItem('pc', JSON.stringify({d:allData, ts:Date.now()}));
+        updateFilterCounts(); doFilter(false);
+      }
+    }
+  } catch(_) { /* فشل التحديث — نكمل بالبيانات الحالية */ }
+
+  const unavailable = cart.filter(i=>!isItemAvailable(i));
+  if (unavailable.length > 0) {
+    const ids = unavailable.map(i=>'#'+i.id+' (Q:'+i.size+')').join('، ');
+    cleanCart(true); // نحذفها بصمت (سنُظهر رسالة مخصّصة)
+    renderCart();
+    showDlg('⚠️', t('itemsSoldOut')+'\n\n'+ids, [
+      { lbl: t('orderSuccessOk'), cls: 'dlg-yes', fn: ()=>closeDlg() }
+    ]);
+    return; // نوقف التسجيل
+  }
+
+  if (cart.length === 0) { notify(t('cartEmpty'),'w'); return; }
+
   sessionStorage.setItem('ls',String(now));
   let totO=0,totD=0;
   let msg='مرحباً، أرغب بشراء المنتجات التالية:\n';
@@ -822,6 +882,7 @@ setInterval(async()=>{
     allData = newData;
 
     updateFilterCounts();
+    cleanCart(false); // حذف ما نفد من السلة تلقائياً
 
   }catch(_){}
 },25000);
