@@ -457,3 +457,19 @@ body.dark .saving-spinner { border-color: #252540; border-top-color: #1976D2; }
 .ck-confirm:active { transform: translateY(0); }
 .ck-confirm i { font-size: 18px; }
 body.dark .ck-confirm { background: linear-gradient(135deg, #1976D2, #2196F3); }
+
+
+/* ===== منتج نفد من السلة ===== */
+.ci-unavailable {
+  opacity: 0.55;
+  border: 2px dashed #ef4444 !important;
+  position: relative;
+}
+.ci-unavailable::after {
+  content: '⚠️';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 18px;
+}
+body.dark .ci-unavailable { border-color: #f87171 !important; }
