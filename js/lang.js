@@ -47,7 +47,7 @@ const L = {
 '📞 التواصل\nللتواصل وعرض شبكات التواصل الاجتماعي اضغط على "تواصل" في الشريط اسفل الشاشة .',
 '🌙 الإعدادات\n• غيّر اللغة (عربي / English / کوردی) من أزرار اللغة في الهيدر\n• فعّل الوضع الداكن 🌙 من الزر بجانب اللغة\n• اسحب الصفحة للأسفل لتحديث المنتجات\n• يمكن تثبيت المتجر كتطبيق على هاتفك!'
     ],
-    copyBtn:'نسخ نص الطلب',savingOrder:'جاري تسجيل طلبك...',savingSub:'لحظة من فضلك، لا تغلق الصفحة',confirmOrder:'تأكيد الطلب',orderNoteNew:'سيتم تسجيل طلبك وسنتواصل معك قريباً',orderSuccess:'تم تسجيل طلبك بنجاح! سنتواصل معك قريباً 🎉',orderSuccessOk:'حسناً',orderFail:'تعذّر تسجيل الطلب، حاول مرة أخرى',tryAgain:'إعادة المحاولة'
+    copyBtn:'نسخ نص الطلب',savingOrder:'جاري تسجيل طلبك...',savingSub:'لحظة من فضلك، لا تغلق الصفحة',confirmOrder:'تأكيد الطلب',orderNoteNew:'سيتم تسجيل طلبك وسنتواصل معك قريباً',orderSuccess:'تم تسجيل طلبك بنجاح! سنتواصل معك قريباً 🎉',orderSuccessOk:'حسناً',orderFail:'تعذّر تسجيل الطلب، حاول مرة أخرى',tryAgain:'إعادة المحاولة',itemsRemoved:'⚠️ نفدت بعض المنتجات وحُذفت من سلتك',itemsSoldOut:'عذراً، نفدت هذه المنتجات ولم تعد متوفرة. حُذفت من سلتك:'
   },
   en:{
     dir:'ltr',
@@ -93,7 +93,7 @@ const L = {
 '📞 Contact\nTo get in touch and view our social networks, tap "Contact" in the bottom bar.',
 '🌙 Settings\n• Change the language (عربي / English / کوردی) from the language buttons in the header\n• Enable dark mode 🌙 from the button next to the language\n• Pull the page down to refresh products\n• You can install the store as an app on your phone!'
     ],
-    copyBtn:'Copy order text',savingOrder:'Saving your order...',savingSub:'Please wait, do not close the page',confirmOrder:'Confirm Order',orderNoteNew:'Your order will be registered and we will contact you soon',orderSuccess:'Your order registered successfully! We will contact you soon 🎉',orderSuccessOk:'OK',orderFail:'Failed to register order, please try again',tryAgain:'Try Again'
+    copyBtn:'Copy order text',savingOrder:'Saving your order...',savingSub:'Please wait, do not close the page',confirmOrder:'Confirm Order',orderNoteNew:'Your order will be registered and we will contact you soon',orderSuccess:'Your order registered successfully! We will contact you soon 🎉',orderSuccessOk:'OK',orderFail:'Failed to register order, please try again',tryAgain:'Try Again',itemsRemoved:'⚠️ Some items sold out and were removed from your cart',itemsSoldOut:'Sorry, these items are sold out and no longer available. Removed from your cart:'
   },
   ku:{
     dir:'rtl',
@@ -139,6 +139,6 @@ const L = {
 '📞 پەیوەندی\nبۆ پەیوەندیکردن و بینینی تۆڕە کۆمەڵایەتییەکان کرتە لە "پەیوەندی" لە شریتی خوارەوەی شاشە بکە.',
 '🌙 ڕێکخستنەکان\n• زمان بگۆڕە (عربي / English / کوردی) لە دوگمەکانی زمان لە سەرەوە\n• دۆخی تاریک چالاک بکە 🌙 لە دوگمەکە تەنیشت زمان\n• پەڕەکە بەرەو خوارەوە بکێشە بۆ نوێکردنەوەی کاڵاکان\n• دەتوانیت فرۆشگا وەک ئەپ لەسەر مۆبایلەکەت دابمەزرێنیت!'
     ],
-    copyBtn:'کۆپیکردنی نامەی داواکاری',savingOrder:'داواکارییەکەت تۆمار دەکرێت...',savingSub:'تکایە چاوەڕوانبە، پەڕەکە دامەخە',confirmOrder:'پشتڕاستکردنەوەی داواکاری',orderNoteNew:'داواکارییەکەت تۆمار دەکرێت و بەم زووانە پەیوەندیت پێوە دەکەین',orderSuccess:'داواکارییەکەت بە سەرکەوتوویی تۆمارکرا! بەم زووانە پەیوەندیت پێوە دەکەین 🎉',orderSuccessOk:'باشە',orderFail:'تۆمارکردنی داواکاری سەرنەکەوت، دووبارە هەوڵبدەرەوە',tryAgain:'دووبارە هەوڵبدەرەوە'
+    copyBtn:'کۆپیکردنی نامەی داواکاری',savingOrder:'داواکارییەکەت تۆمار دەکرێت...',savingSub:'تکایە چاوەڕوانبە، پەڕەکە دامەخە',confirmOrder:'پشتڕاستکردنەوەی داواکاری',orderNoteNew:'داواکارییەکەت تۆمار دەکرێت و بەم زووانە پەیوەندیت پێوە دەکەین',orderSuccess:'داواکارییەکەت بە سەرکەوتوویی تۆمارکرا! بەم زووانە پەیوەندیت پێوە دەکەین 🎉',orderSuccessOk:'باشە',orderFail:'تۆمارکردنی داواکاری سەرنەکەوت، دووبارە هەوڵبدەرەوە',tryAgain:'دووبارە هەوڵبدەرەوە',itemsRemoved:'⚠️ هەندێک کاڵا تەواوبوون و لە سەبەتەکەت لابران',itemsSoldOut:'ببوورە، ئەم کاڵایانە تەواوبوون و بەردەست نین. لە سەبەتەکەت لابران:'
   }
 };
