@@ -174,13 +174,10 @@ function openLB(src,productId,price){
   document.getElementById('LB').classList.add('open');
   document.body.style.overflow='hidden';
   try{
-    if(typeof fbq==='function' && productId){
-      fbq('track','ViewContent',{
-        content_ids:[String(productId)],
-        content_type:'product',
-        value:price||0,
-        currency:'IQD'
-      });
+    // نستخدم meta.js (يمنع القيم الصفرية ويضيف بيانات أدق)
+    if(typeof metaViewContent==='function' && productId){
+      const prod = allData.find(p=>String(p.Id)===String(productId));
+      metaViewContent(productId, price, prod&&prod.season, prod&&prod.type);
     }
   }catch(_){}
 }
@@ -288,7 +285,7 @@ document.getElementById('searchIn').addEventListener('input', function(){
   _fbqSearchTimer=setTimeout(()=>{
     try{
       if(typeof fbq==='function'){
-        fbq('track','Search',{search_string:q});
+        if(typeof metaSearch==='function') metaSearch(q);
       }
     }catch(_){}
   }, 1500); // انتظر 1.5 ثانية بعد توقف الكتابة
@@ -467,13 +464,10 @@ function addToCart(id,size,orig,disc){
   cart.push({id,size,orig,disc}); saveCart(); updateCartBadge(); bounceCart();
   notify(t('cartAdded')+' — '+t('saved')+' '+(Number(orig)-Number(disc)).toLocaleString()+' '+t('dinar')+' 💚','s');
   try{
-    if(typeof fbq==='function'){
-      fbq('track','AddToCart',{
-        content_ids:[String(id)],
-        content_type:'product',
-        value:Number(disc),
-        currency:'IQD'
-      });
+    // نستخدم meta.js (safeValue يمنع القيم الصفرية)
+    if(typeof metaAddToCart==='function'){
+      const prod = allData.find(p=>String(p.Id)===String(id));
+      metaAddToCart(id, disc, size, prod&&prod.season, prod&&prod.type);
     }
   }catch(_){}
 }
@@ -598,13 +592,10 @@ document.getElementById('checkoutBtn').addEventListener('click',async()=>{
   document.getElementById('ckOv').classList.add('open'); document.body.style.overflow='hidden';
   setTimeout(()=>document.getElementById('ckName').focus(),300);
   try{
-    if(typeof fbq==='function'){
-      const cv=cart.reduce((s,i)=>s+Number(i.disc),0);
-      fbq('track','InitiateCheckout',{
-        num_items:cart.length,
-        value:cv+5000,
-        currency:'IQD'
-      });
+    // نستخدم meta.js (يضيف contents وplatform ويمنع القيم الصفرية)
+    if(typeof metaInitiateCheckout==='function' && cart.length>0){
+      const cv=cart.reduce((s,i)=>s+Number(i.disc||0),0);
+      metaInitiateCheckout(cart, cv+5000);
     }
   }catch(_){}
 });
