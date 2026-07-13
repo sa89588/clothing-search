@@ -30,6 +30,7 @@ function applyTrans(){
     fSeaLbl:'seaLbl',fTypLbl:'typLbl',fSortLbl:'sortLbl',
     filterShTitle:'fltBtn',
     rcount:'',navHome:'navHome',navSearch:'navSearch',navCart:'navCart',
+    navTrack:'navTrack',trackShTitle:'trackShTitle',trIntro:'trIntro',
     navWish:'navWish',navContact:'navContact',
     fpTitle:'fpTitle',fpClose:'fpClose',footerEl:'footer',
     cartShTitle:'cartT',checkoutLbl:'checkout',clearCartLbl:'clearCart',shareCartLbl:'shareCart',
@@ -603,6 +604,169 @@ function closeCheckout(){ document.getElementById('ckOv').classList.remove('open
 document.getElementById('ckCancel').addEventListener('click',closeCheckout);
 document.getElementById('ckOv').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCheckout();});
 
+
+
+/* ==================== ORDER TRACKING ==================== */
+/* مراحل الطلب بالترتيب — للعرض التدريجي */
+const TRACK_STAGES = [
+  { key:'قيد المراجعة',    icon:'📋', tKey:'stReview' },
+  { key:'تم التأكيد',      icon:'✅', tKey:'stConfirmed' },
+  { key:'تم التجهيز',      icon:'📦', tKey:'stPrepared' },
+  { key:'في عهدة المندوب', icon:'🚚', tKey:'stCourier' },
+  { key:'تم التسليم',      icon:'🎉', tKey:'stDelivered' }
+];
+
+function openTrack(){
+  document.getElementById('trackSheet').classList.add('open');
+  document.getElementById('shOv').classList.add('open');
+  document.body.style.overflow='hidden';
+  setNavActive('bnTrack');
+  const inp = document.getElementById('trackIn');
+  if(inp) setTimeout(()=>inp.focus(), 300);
+}
+function closeTrack(){
+  document.getElementById('trackSheet').classList.remove('open');
+  document.getElementById('shOv').classList.remove('open');
+  document.body.style.overflow='';
+  setNavActive('bnHome');
+}
+
+async function trackOrder(){
+  const inp = document.getElementById('trackIn');
+  const box = document.getElementById('trackResult');
+  if(!inp || !box) return;
+  const oid = inp.value.trim();
+  if(!oid){ notify(t('enterOrderId'),'w'); return; }
+
+  box.innerHTML = '<div class="tr-loading">🔄 '+t('loading')+'</div>';
+  try{
+    const r = await fetch(API+'?action=trackOrder&orderId='+encodeURIComponent(oid), {cache:'no-store'});
+    const d = await r.json();
+    if(!d.success){
+      box.innerHTML = '<div class="tr-notfound">❌ '+t('orderNotFound')+'</div>';
+      return;
+    }
+    renderTrackResult(d);
+  }catch(e){
+    box.innerHTML = '<div class="tr-notfound">⚠️ '+t('errMsg')+'</div>';
+  }
+}
+
+function renderTrackResult(d){
+  const box = document.getElementById('trackResult');
+  const status = String(d.status||'قيد المراجعة').trim();
+
+  // الطلب ملغي — عرض خاص
+  if(status === 'ملغي'){
+    box.innerHTML =
+      '<div class="tr-card">' +
+        '<div class="tr-oid">🆔 '+sanitize(d.orderId)+'</div>' +
+        '<div class="tr-cancelled">❌ '+t('stCancelled')+'</div>' +
+      '</div>';
+    return;
+  }
+
+  const idx = TRACK_STAGES.findIndex(s=>s.key===status);
+  const cur = idx < 0 ? 0 : idx;
+
+  let steps = '';
+  TRACK_STAGES.forEach((s,i)=>{
+    const done   = i <  cur;
+    const active = i === cur;
+    const cls = done ? 'tr-step done' : active ? 'tr-step active' : 'tr-step';
+    steps +=
+      '<div class="'+cls+'">' +
+        '<div class="tr-dot">'+(done?'✓':s.icon)+'</div>' +
+        '<div class="tr-txt">' +
+          '<div class="tr-name">'+t(s.tKey)+'</div>' +
+          (active ? '<div class="tr-sub">'+t(s.tKey+'Sub')+'</div>' : '') +
+        '</div>' +
+      '</div>';
+    if(i < TRACK_STAGES.length-1) steps += '<div class="tr-line'+(done?' done':'')+'"></div>';
+  });
+
+  box.innerHTML =
+    '<div class="tr-card">' +
+      '<div class="tr-oid">🆔 '+sanitize(d.orderId)+'</div>' +
+      '<div class="tr-date">📅 '+sanitize(d.date)+' '+sanitize(d.time)+'</div>' +
+      '<div class="tr-steps">'+steps+'</div>' +
+    '</div>';
+}
+
+/* ربط الأزرار */
+const _bnTrack = document.getElementById('bnTrack');
+if(_bnTrack) _bnTrack.addEventListener('click', openTrack);
+const _trackClose = document.getElementById('trackShClose');
+if(_trackClose) _trackClose.addEventListener('click', closeTrack);
+const _trackBtn = document.getElementById('trackBtn');
+if(_trackBtn) _trackBtn.addEventListener('click', trackOrder);
+const _trackIn = document.getElementById('trackIn');
+if(_trackIn) _trackIn.addEventListener('keydown', e=>{ if(e.key==='Enter') trackOrder(); });
+
+/* ==================== ORDER SUCCESS + TRACKING ==================== */
+/* نافذة نجاح الطلب — تعرض رقم الطلب وتنسخه تلقائياً */
+function showOrderSuccess(orderId){
+  // محاولة نسخ تلقائي (قد تفشل في بعض المتصفحات — لدينا زر يدوي)
+  copyOrderId(orderId, true);
+
+  const ov = document.getElementById('dlgOv');
+  const box = ov.querySelector('.dlg-box');
+  box.innerHTML =
+    '<div class="dlg-title">🎉 ' + t('orderSuccess') + '</div>' +
+    '<div class="os-label">' + t('yourOrderId') + '</div>' +
+    '<div class="os-id-row">' +
+      '<code class="os-id" id="osOrderId">' + sanitize(orderId) + '</code>' +
+      '<button class="os-copy" id="osCopyBtn">📋 ' + t('copy') + '</button>' +
+    '</div>' +
+    '<div class="os-note">⚠️ ' + t('keepOrderId') + '</div>' +
+    '<div class="dlg-acts">' +
+      '<button class="dlg-btn dlg-yes" id="osOkBtn" style="width:100%;">' + t('orderSuccessOk') + '</button>' +
+    '</div>';
+  ov.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  const copyBtn = document.getElementById('osCopyBtn');
+  if (copyBtn) copyBtn.addEventListener('click', ()=>{
+    copyOrderId(orderId, false);
+    copyBtn.textContent = '✅ ' + t('copied');
+    setTimeout(()=>{ copyBtn.textContent = '📋 ' + t('copy'); }, 1500);
+  });
+  const okBtn = document.getElementById('osOkBtn');
+  if (okBtn) okBtn.addEventListener('click', ()=>{ restoreDlgBox(); closeDlg(); });
+}
+
+/* نسخ رقم الطلب للحافظة */
+function copyOrderId(orderId, silent){
+  try{
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(orderId).then(()=>{
+        if(!silent) notify(t('copied'),'s');
+      }).catch(()=>fallbackCopyText(orderId, silent));
+    } else {
+      fallbackCopyText(orderId, silent);
+    }
+  }catch(_){ fallbackCopyText(orderId, silent); }
+}
+function fallbackCopyText(text, silent){
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    if(!silent) notify(t('copied'),'s');
+  }catch(_){}
+}
+
+/* إعادة بناء dlg-box الأصلي (بعد تخصيصه) */
+function restoreDlgBox(){
+  const box = document.querySelector('#dlgOv .dlg-box');
+  if(box) box.innerHTML =
+    '<div class="dlg-title" id="dlgTitle"></div>' +
+    '<div class="dlg-msg" id="dlgMsg"></div>' +
+    '<div class="dlg-acts" id="dlgActs"></div>';
+}
+
 async function submitOrder(){
   /* توليد Order ID فريد لهذا الطلب */
   const orderId = 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2,6).toUpperCase();
@@ -705,14 +869,12 @@ async function submitOrder(){
 
   /* ===== الخطوة 5: النجاح — إغلاق فوري + إفراغ السلة ===== */
   if (saveResult && saveResult.success) {
-    // نُفرغ السلة ونُغلق نافذة الطلب فوراً (قبل رسالة النجاح)
+    // نُفرغ السلة ونُغلق نافذة الطلب فوراً
     cart = []; saveCart(); updateCartBadge();
     closeCheckout();
     reEnableBtn();
-    // رسالة تأكيد النجاح
-    showDlg('✅', t('orderSuccess'), [
-      { lbl: t('orderSuccessOk'), cls: 'dlg-yes', fn: ()=>closeDlg() }
-    ]);
+    // نافذة النجاح مع رقم الطلب + نسخ تلقائي
+    showOrderSuccess(orderId);
   } else {
     // فشل التسجيل — نُعيد تفعيل الزر ليعيد المحاولة
     reEnableBtn();
