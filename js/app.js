@@ -685,12 +685,25 @@ function renderTrackResult(d){
     if(i < TRACK_STAGES.length-1) steps += '<div class="tr-line'+(done?' done':'')+'"></div>';
   });
 
+  // تنسيق التاريخ والوقت (بتوقيت بغداد من GAS)
+  const dt = fmtOrderDate(d.date, d.time);
+
   box.innerHTML =
     '<div class="tr-card">' +
       '<div class="tr-oid">🆔 '+sanitize(d.orderId)+'</div>' +
-      '<div class="tr-date">📅 '+sanitize(d.date)+' '+sanitize(d.time)+'</div>' +
+      '<div class="tr-date">📅 '+sanitize(dt)+'</div>' +
       '<div class="tr-steps">'+steps+'</div>' +
     '</div>';
+}
+
+/* تنسيق تاريخ ووقت الطلب — بتوقيت بغداد (يأتي جاهزاً من GAS) */
+function fmtOrderDate(dateStr, timeStr){
+  const d = String(dateStr||'').trim();
+  const tm = String(timeStr||'').trim();
+  if(!d && !tm) return '—';
+  // نعرض الوقت بصيغة HH:MM (بدون ثوانٍ)
+  const shortTime = tm.split(':').slice(0,2).join(':');
+  return (d ? d : '') + (shortTime ? ' — ' + shortTime : '');
 }
 
 /* ربط الأزرار */
