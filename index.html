@@ -23,7 +23,7 @@ fbq('init','2514076832364278');fbq('track','PageView');
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/style.css?v=1.0.3">
+  <link rel="stylesheet" href="css/style.css?v=1.0.5">
 </head>
 <body id="bodyRoot">
 
@@ -97,6 +97,7 @@ fbq('init','2514076832364278');fbq('track','PageView');
       <span class="cnav-wrap"><i class="fas fa-shopping-cart"></i><span class="cdot" id="cdot">0</span></span>
       <span id="navCart">سلتي</span>
     </button>
+    <button class="bnavbtn" id="bnTrack"><i class="fas fa-map-marker-alt"></i><span id="navTrack">تتبع طلبي</span></button>
     <button class="bnavbtn" id="bnInstall"><i class="fas fa-download"></i><span id="navInstall">تثبيت</span></button>
     <button class="bnavbtn" id="bnContact"><i class="fas fa-comments"></i><span id="navContact">تواصل</span></button>
   </div>
@@ -182,6 +183,24 @@ fbq('init','2514076832364278');fbq('track','PageView');
   </div>
 </div>
 
+
+<!-- TRACK ORDER SHEET -->
+<div class="sheet" id="trackSheet">
+  <div class="sh-drag" id="trackDrag"><div class="sh-handle"></div></div>
+  <div class="sh-hdr">
+    <div class="sh-title"><i class="fas fa-map-marker-alt"></i><span id="trackShTitle">تتبع طلبي</span></div>
+    <button class="sh-close" id="trackShClose"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="sh-body">
+    <div class="tr-intro" id="trIntro">أدخل رقم الطلب لمعرفة حالته</div>
+    <div class="tr-input-row">
+      <input class="tr-in" type="text" id="trackIn" placeholder="ORD-..." autocomplete="off" dir="ltr">
+      <button class="tr-btn" id="trackBtn"><i class="fas fa-search"></i></button>
+    </div>
+    <div id="trackResult"></div>
+  </div>
+</div>
+
 <!-- CONTACT SHEET -->
 <div class="sheet" id="contactSheet">
   <div class="sh-drag" id="contactDrag"><div class="sh-handle"></div></div>
@@ -261,8 +280,8 @@ fbq('init','2514076832364278');fbq('track','PageView');
   </div>
 </div>
 
-  <script src="js/lang.js?v=1.0.3"></script>
-  <script src="js/app.js?v=1.0.4"></script>
-  <script src="js/meta.js?v=1.0.3"></script>
+  <script src="js/lang.js?v=1.0.5"></script>
+  <script src="js/app.js?v=1.0.5"></script>
+  <script src="js/meta.js?v=1.0.5"></script>
 </body>
 </html>
