@@ -552,3 +552,17 @@ body.dark .os-note { background:#3A3320; color:#FFD966; }
   font-size:15px; font-weight:800;
 }
 body.dark .tr-dot { background:#252540; }
+
+
+/* ===== التوصيل المجاني ===== */
+.ctot-free{
+  color:#16a34a !important;
+  font-weight:800 !important;
+}
+.ctot-hint{
+  font-size:12px; color:#f59e0b; font-weight:700;
+  background:rgba(245,158,11,.1); padding:6px 10px;
+  border-radius:8px; margin:4px 0; text-align:center;
+}
+body.dark .ctot-free{ color:#4ade80 !important; }
+body.dark .ctot-hint{ background:rgba(245,158,11,.15); color:#fbbf24; }
