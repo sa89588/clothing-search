@@ -1,25 +1,21 @@
-/* ===== Jood ALabbas Store — Translations ===== */
-/* Edit here to update Arabic / English / Kurdish text */
-
-/* ==================== TRANSLATIONS ==================== */
 const L = {
   ar:{
     dir:'rtl',
     hTitle:'متجر جود العباس',hSub:'Jood ALabbas Store',
     welcome:'أهلاً بكم في متجر جود العباس! تسوق سعيد 🌟',
-    promo:'خصم 50% — ينتهي العرض خلال:',
+    promo:'خصم 40% — ينتهي العرض خلال:',
     search:'ابحث بالـ ID أو القياس...',rst:'مسح',
     fltBtn:'الفلاتر',applyFlt:'عرض النتائج',resetFlt:'مسح الفلاتر',
     seaLbl:'الموسم',typLbl:'النوع',sortLbl:'ترتيب حسب',
     all:'الكل',sum:'☀️ صيفي',win:'❄️ شتوي',spr:'🌸 بهاري',out:'👗 طلعة',hom:'🏠 منزلي',
     sortDef:'الافتراضي',sortAsc:'السعر ↑',sortDesc:'السعر ↓',
     res:'نتيجة',dinar:'دينار',sizes:'القياسات',
-    discount:'خصم 50%',lastSize:'⚠️ آخر قياس',share:'مشاركة',
+    discount:'خصم 40%',lastSize:'⚠️ آخر قياس',share:'مشاركة',
     saved:'وفّرت',copyId:'تم نسخ الرقم',
     cartT:'السلة',wishT:'المفضلة',contactT:'تواصل معنا',
     checkout:'إتمام الشراء',clearCart:'إفراغ السلة',shareCart:'مشاركة السلة',
     cartEmpty:'السلة فارغة 🛒',
-    sub:'المجموع الأصلي',ship:'تكلفة النقل',tot:'المجموع النهائي',subDisc:'بعد الخصم 50%',
+    sub:'المجموع الأصلي',ship:'تكلفة النقل',tot:'المجموع النهائي',subDisc:'بعد الخصم 40%',
     ckTitle:'معلومات الزبون',namePh:'الاسم الكامل',phonePh:'رقم الهاتف',addrPh:'العنوان...',
     wa:'واتساب',tg:'تليجرام',orderNote:'يجب إرسال الرسالة لتثبيت الطلب',
     cancel:'إلغاء',back:'← رجوع',tapSizeToAdd:'اضغط على القياس للإضافة',addCart:'أضف للسلة',navInstall:'تثبيت',swipeHint:'اسحب يميناً لحذف المنتج',appInstalled:'تم تثبيت التطبيق',alreadyInstalled:'التطبيق مثبت بالفعل!',androidInstallDesc:'اضغط الزر لتثبيت المتجر على شاشتك الرئيسية.',installNow:'تثبيت الآن',iosStep1:'افتح المتجر في Safari',iosStep2:'اضغط زر المشاركة ↑ أسفل الشاشة',iosStep3:'اختر إضافة إلى الشاشة الرئيسية',iosStep4:'اضغط إضافة — تم!',desktopStep1:'افتح قائمة المتصفح ⋮',desktopStep2:'ابحث عن تثبيت التطبيق',desktopStep3:'اضغط تثبيت — تم!',szTitle:'اختر القياس المطلوب',
@@ -47,25 +43,25 @@ const L = {
 '📞 التواصل\nللتواصل وعرض شبكات التواصل الاجتماعي اضغط على "تواصل" في الشريط اسفل الشاشة .',
 '🌙 الإعدادات\n• غيّر اللغة (عربي / English / کوردی) من أزرار اللغة في الهيدر\n• فعّل الوضع الداكن 🌙 من الزر بجانب اللغة\n• اسحب الصفحة للأسفل لتحديث المنتجات\n• يمكن تثبيت المتجر كتطبيق على هاتفك!'
     ],
-    copyBtn:'نسخ نص الطلب',savingOrder:'جاري تسجيل طلبك...',savingSub:'لحظة من فضلك، لا تغلق الصفحة',confirmOrder:'تأكيد الطلب',orderNoteNew:'سيتم تسجيل طلبك وسنتواصل معك قريباً',orderSuccess:'تم تسجيل طلبك بنجاح! سنتواصل معك قريباً 🎉',orderSuccessOk:'حسناً',orderFail:'تعذّر تسجيل الطلب، حاول مرة أخرى',tryAgain:'إعادة المحاولة',itemsRemoved:'⚠️ نفدت بعض المنتجات وحُذفت من سلتك',itemsSoldOut:'عذراً، نفدت هذه المنتجات ولم تعد متوفرة. حُذفت من سلتك:',navTrack:'تتبع طلبي',trackShTitle:'تتبع طلبي',trIntro:'أدخل رقم الطلب لمعرفة حالته',enterOrderId:'أدخل رقم الطلب',orderNotFound:'رقم الطلب غير موجود، تأكد منه',yourOrderId:'رقم طلبك',copy:'نسخ',copied:'تم النسخ',keepOrderId:'احتفظ بهذا الرقم لمتابعة طلبك من تبويب «تتبع طلبي»',stReview:'قيد المراجعة',stReviewSub:'جاري التأكيد...',stConfirmed:'تم التأكيد',stConfirmedSub:'جاري التجهيز...',stPrepared:'تم التجهيز',stPreparedSub:'في طريقه إلى محافظتك...',stCourier:'في عهدة المندوب',stCourierSub:'جاري التسليم...',stDelivered:'تم التسليم',stDeliveredSub:'شكراً لثقتك!',stCancelled:'تم إلغاء هذا الطلب'
+    copyBtn:'نسخ نص الطلب',savingOrder:'جاري تسجيل طلبك...',savingSub:'لحظة من فضلك، لا تغلق الصفحة',confirmOrder:'تأكيد الطلب',orderNoteNew:'سيتم تسجيل طلبك وسنتواصل معك قريباً',orderSuccess:'تم تسجيل طلبك بنجاح! سنتواصل معك قريباً 🎉',orderSuccessOk:'حسناً',orderFail:'تعذّر تسجيل الطلب، حاول مرة أخرى',tryAgain:'إعادة المحاولة',freeShip:'مجاني',freeShipHint:'أضف {n} قطعة للتوصيل المجاني!',freeShipBanner:'🎉 التوصيل مجاني عند شراء 6 قطع أو أكثر',itemsRemoved:'⚠️ نفدت بعض المنتجات وحُذفت من سلتك',itemsSoldOut:'عذراً، نفدت هذه المنتجات ولم تعد متوفرة. حُذفت من سلتك:',navTrack:'تتبع طلبي',trackShTitle:'تتبع طلبي',trIntro:'أدخل رقم الطلب لمعرفة حالته',enterOrderId:'أدخل رقم الطلب',orderNotFound:'رقم الطلب غير موجود، تأكد منه',yourOrderId:'رقم طلبك',copy:'نسخ',copied:'تم النسخ',keepOrderId:'احتفظ بهذا الرقم لمتابعة طلبك من تبويب «تتبع طلبي»',stReview:'قيد المراجعة',stReviewSub:'جاري التأكيد...',stConfirmed:'تم التأكيد',stConfirmedSub:'جاري التجهيز...',stPrepared:'تم التجهيز',stPreparedSub:'في طريقه إلى محافظتك...',stCourier:'في عهدة المندوب',stCourierSub:'جاري التسليم...',stDelivered:'تم التسليم',stDeliveredSub:'شكراً لثقتك!',stCancelled:'تم إلغاء هذا الطلب'
   },
   en:{
     dir:'ltr',
     hTitle:'Jood ALabbas Store',hSub:'متجر جود العباس',
     welcome:'Welcome to Jood ALabbas Store! Happy shopping 🌟',
-    promo:'50% OFF — Offer ends in:',
+    promo:'40% OFF — Offer ends in:',
     search:'Search by ID or size...',rst:'Clear',
     fltBtn:'Filters',applyFlt:'Show Results',resetFlt:'Clear Filters',
     seaLbl:'Season',typLbl:'Type',sortLbl:'Sort by',
     all:'All',sum:'☀️ Summer',win:'❄️ Winter',spr:'🌸 Spring',out:'👗 Outdoor',hom:'🏠 Home',
     sortDef:'Default',sortAsc:'Price ↑',sortDesc:'Price ↓',
     res:'results',dinar:'IQD',sizes:'Sizes',
-    discount:'50% OFF',lastSize:'⚠️ Last size',share:'Share',
+    discount:'40% OFF',lastSize:'⚠️ Last size',share:'Share',
     saved:'Saved',copyId:'ID copied',
     cartT:'Cart',wishT:'Wishlist',contactT:'Contact Us',
     checkout:'Checkout',clearCart:'Clear Cart',shareCart:'Share Cart',
     cartEmpty:'Cart is empty 🛒',
-    sub:'Subtotal',ship:'Shipping',tot:'Total',subDisc:'After 50% OFF',
+    sub:'Subtotal',ship:'Shipping',tot:'Total',subDisc:'After 40% OFF',
     ckTitle:'Customer Info',namePh:'Full name',phonePh:'Phone number',addrPh:'Address...',
     wa:'WhatsApp',tg:'Telegram',orderNote:'You must send the message to confirm the order',
     cancel:'Cancel',back:'Back →',tapSizeToAdd:'Tap a size to add',addCart:'Add to Cart',navInstall:'Install',swipeHint:'Swipe left to remove item',appInstalled:'App installed',alreadyInstalled:'App already installed!',androidInstallDesc:'Tap the button to install the store on your home screen.',installNow:'Install Now',iosStep1:'Open the store in Safari',iosStep2:'Tap the Share button ↑ at the bottom',iosStep3:'Choose Add to Home Screen',iosStep4:'Tap Add — done!',desktopStep1:'Open the browser menu ⋮',desktopStep2:'Find Install App',desktopStep3:'Click Install — done!',szTitle:'Choose the size',
@@ -93,25 +89,25 @@ const L = {
 '📞 Contact\nTo get in touch and view our social networks, tap "Contact" in the bottom bar.',
 '🌙 Settings\n• Change the language (عربي / English / کوردی) from the language buttons in the header\n• Enable dark mode 🌙 from the button next to the language\n• Pull the page down to refresh products\n• You can install the store as an app on your phone!'
     ],
-    copyBtn:'Copy order text',savingOrder:'Saving your order...',savingSub:'Please wait, do not close the page',confirmOrder:'Confirm Order',orderNoteNew:'Your order will be registered and we will contact you soon',orderSuccess:'Your order registered successfully! We will contact you soon 🎉',orderSuccessOk:'OK',orderFail:'Failed to register order, please try again',tryAgain:'Try Again',itemsRemoved:'⚠️ Some items sold out and were removed from your cart',itemsSoldOut:'Sorry, these items are sold out and no longer available. Removed from your cart:',navTrack:'Track Order',trackShTitle:'Track My Order',trIntro:'Enter your order ID to check its status',enterOrderId:'Enter order ID',orderNotFound:'Order ID not found, please check it',yourOrderId:'Your Order ID',copy:'Copy',copied:'Copied',keepOrderId:'Keep this ID to track your order from the «Track Order» tab',stReview:'Under Review',stReviewSub:'Confirming...',stConfirmed:'Confirmed',stConfirmedSub:'Preparing...',stPrepared:'Prepared',stPreparedSub:'On its way to your city...',stCourier:'With Courier',stCourierSub:'Out for delivery...',stDelivered:'Delivered',stDeliveredSub:'Thank you!',stCancelled:'This order was cancelled'
+    copyBtn:'Copy order text',savingOrder:'Saving your order...',savingSub:'Please wait, do not close the page',confirmOrder:'Confirm Order',orderNoteNew:'Your order will be registered and we will contact you soon',orderSuccess:'Your order registered successfully! We will contact you soon 🎉',orderSuccessOk:'OK',orderFail:'Failed to register order, please try again',tryAgain:'Try Again',freeShip:'FREE',freeShipHint:'Add {n} more item(s) for free delivery!',freeShipBanner:'🎉 Free delivery on 6 items or more',itemsRemoved:'⚠️ Some items sold out and were removed from your cart',itemsSoldOut:'Sorry, these items are sold out and no longer available. Removed from your cart:',navTrack:'Track Order',trackShTitle:'Track My Order',trIntro:'Enter your order ID to check its status',enterOrderId:'Enter order ID',orderNotFound:'Order ID not found, please check it',yourOrderId:'Your Order ID',copy:'Copy',copied:'Copied',keepOrderId:'Keep this ID to track your order from the «Track Order» tab',stReview:'Under Review',stReviewSub:'Confirming...',stConfirmed:'Confirmed',stConfirmedSub:'Preparing...',stPrepared:'Prepared',stPreparedSub:'On its way to your city...',stCourier:'With Courier',stCourierSub:'Out for delivery...',stDelivered:'Delivered',stDeliveredSub:'Thank you!',stCancelled:'This order was cancelled'
   },
   ku:{
     dir:'rtl',
     hTitle:'فرۆشگای جود العباس',hSub:'Jood ALabbas Store',
     welcome:'بەخێربێن بۆ فرۆشگای جود العباس! بازاڕکردنێکی خۆش 🌟',
-    promo:'داشکاندنی ٪٥٠ — کۆتایی پێدەهێنێت لە:',
+    promo:'داشکاندنی ٪٤٠ — کۆتایی پێدەهێنێت لە:',
     search:'بگەڕێ بە ID یان قەبارە...',rst:'سڕینەوە',
     fltBtn:'فلتەرەکان',applyFlt:'پیشاندانی ئەنجامەکان',resetFlt:'سڕینەوەی فلتەرەکان',
     seaLbl:'وەرزە',typLbl:'جۆر',sortLbl:'ڕیزکردن بەپێی',
     all:'هەموو',sum:'☀️ هاوینە',win:'❄️ زستانە',spr:'🌸 بەھارە',out:'👗 دەرەوە',hom:'🏠 ماڵەوە',
     sortDef:'بنەڕەتی',sortAsc:'نرخ ↑',sortDesc:'نرخ ↓',
     res:'ئەنجام',dinar:'دینار',sizes:'قەبارەکان',
-    discount:'داشکاندنی ٪٥٠',lastSize:'⚠️ دوا قەبارە',share:'هاوبەشکردن',
+    discount:'داشکاندنی ٪٤٠',lastSize:'⚠️ دوا قەبارە',share:'هاوبەشکردن',
     saved:'پاشەکەوتت کرد',copyId:'ژمارە کۆپیکرا',
     cartT:'سەبەتە',wishT:'دڵخوازەکان',contactT:'پەیوەندیمان پێوە بکە',
     checkout:'تەواوکردنی کڕین',clearCart:'بەتاڵکردنی سەبەتە',shareCart:'هاوبەشی سەبەتە',
     cartEmpty:'سەبەتە بەتاڵە 🛒',
-    sub:'کۆی گشتی سەرەتایی',ship:'کرێی گواستنەوە',tot:'کۆی گشتی کۆتایی',subDisc:'دوای داشکاندنی ٪٥٠',
+    sub:'کۆی گشتی سەرەتایی',ship:'کرێی گواستنەوە',tot:'کۆی گشتی کۆتایی',subDisc:'دوای داشکاندنی ٪٤٠',
     ckTitle:'زانیاری کڕیار',namePh:'ناوی تەواو',phonePh:'ژمارەی مۆبایل',addrPh:'ناونیشان...',
     wa:'واتساپ',tg:'تلیگرام',orderNote:'دەبێت نامەکە بنێریت بۆ پشتڕاستکردنەوەی داواکاری',
     cancel:'هەڵوەشاندنەوە',back:'← گەڕانەوە',tapSizeToAdd:'کرتە لە قەبارە بکە بۆ زیادکردن',addCart:'زیادکردن بۆ سەبەتە',navInstall:'دامەزراندن',swipeHint:'بۆ لابردنی کاڵا بەرەو ڕاست بیکێشە',appInstalled:'ئەپەکە دامەزرا',alreadyInstalled:'ئەپەکە پێشتر دامەزراوە!',androidInstallDesc:'کرتە لە دوگمەکە بکە بۆ دامەزراندنی فرۆشگا لەسەر شاشەی سەرەکیت.',installNow:'ئێستا دامەزرێنە',iosStep1:'فرۆشگا لە Safari بکەرەوە',iosStep2:'کرتە لە دوگمەی هاوبەشکردن ↑ لە خوارەوە بکە',iosStep3:'زیادکردن بۆ شاشەی سەرەکی هەڵبژێرە',iosStep4:'کرتە لە زیادکردن بکە — تەواو!',desktopStep1:'مێنیوی وێبگەڕ بکەرەوە ⋮',desktopStep2:'بگەڕێ بۆ دامەزراندنی ئەپ',desktopStep3:'کرتە لە دامەزراندن بکە — تەواو!',szTitle:'قەبارەی پێویست هەڵبژێرە',
@@ -139,6 +135,6 @@ const L = {
 '📞 پەیوەندی\nبۆ پەیوەندیکردن و بینینی تۆڕە کۆمەڵایەتییەکان کرتە لە "پەیوەندی" لە شریتی خوارەوەی شاشە بکە.',
 '🌙 ڕێکخستنەکان\n• زمان بگۆڕە (عربي / English / کوردی) لە دوگمەکانی زمان لە سەرەوە\n• دۆخی تاریک چالاک بکە 🌙 لە دوگمەکە تەنیشت زمان\n• پەڕەکە بەرەو خوارەوە بکێشە بۆ نوێکردنەوەی کاڵاکان\n• دەتوانیت فرۆشگا وەک ئەپ لەسەر مۆبایلەکەت دابمەزرێنیت!'
     ],
-    copyBtn:'کۆپیکردنی نامەی داواکاری',savingOrder:'داواکارییەکەت تۆمار دەکرێت...',savingSub:'تکایە چاوەڕوانبە، پەڕەکە دامەخە',confirmOrder:'پشتڕاستکردنەوەی داواکاری',orderNoteNew:'داواکارییەکەت تۆمار دەکرێت و بەم زووانە پەیوەندیت پێوە دەکەین',orderSuccess:'داواکارییەکەت بە سەرکەوتوویی تۆمارکرا! بەم زووانە پەیوەندیت پێوە دەکەین 🎉',orderSuccessOk:'باشە',orderFail:'تۆمارکردنی داواکاری سەرنەکەوت، دووبارە هەوڵبدەرەوە',tryAgain:'دووبارە هەوڵبدەرەوە',itemsRemoved:'⚠️ هەندێک کاڵا تەواوبوون و لە سەبەتەکەت لابران',itemsSoldOut:'ببوورە، ئەم کاڵایانە تەواوبوون و بەردەست نین. لە سەبەتەکەت لابران:',navTrack:'شوێنکەوتنی داواکاری',trackShTitle:'شوێنکەوتنی داواکارییەکەم',trIntro:'ژمارەی داواکاری بنووسە بۆ زانینی دۆخەکەی',enterOrderId:'ژمارەی داواکاری بنووسە',orderNotFound:'ژمارەی داواکاری نەدۆزرایەوە، دڵنیابە',yourOrderId:'ژمارەی داواکارییەکەت',copy:'کۆپی',copied:'کۆپیکرا',keepOrderId:'ئەم ژمارەیە بپارێزە بۆ شوێنکەوتنی داواکارییەکەت',stReview:'لە پێداچوونەوەدا',stReviewSub:'پشتڕاست دەکرێتەوە...',stConfirmed:'پشتڕاستکرایەوە',stConfirmedSub:'ئامادە دەکرێت...',stPrepared:'ئامادەکرا',stPreparedSub:'لە ڕێگادایە بۆ پارێزگاکەت...',stCourier:'لای گەیەنەر',stCourierSub:'دەگەیەنرێت...',stDelivered:'گەیەنرا',stDeliveredSub:'سوپاس بۆ متمانەت!',stCancelled:'ئەم داواکارییە هەڵوەشێنرایەوە'
+    copyBtn:'کۆپیکردنی نامەی داواکاری',savingOrder:'داواکارییەکەت تۆمار دەکرێت...',savingSub:'تکایە چاوەڕوانبە، پەڕەکە دامەخە',confirmOrder:'پشتڕاستکردنەوەی داواکاری',orderNoteNew:'داواکارییەکەت تۆمار دەکرێت و بەم زووانە پەیوەندیت پێوە دەکەین',orderSuccess:'داواکارییەکەت بە سەرکەوتوویی تۆمارکرا! بەم زووانە پەیوەندیت پێوە دەکەین 🎉',orderSuccessOk:'باشە',orderFail:'تۆمارکردنی داواکاری سەرنەکەوت، دووبارە هەوڵبدەرەوە',tryAgain:'دووبارە هەوڵبدەرەوە',freeShip:'خۆڕایی',freeShipHint:'{n} دانەی تر زیاد بکە بۆ گەیاندنی خۆڕایی!',freeShipBanner:'🎉 گەیاندن خۆڕاییە بۆ ٦ دانە یان زیاتر',itemsRemoved:'⚠️ هەندێک کاڵا تەواوبوون و لە سەبەتەکەت لابران',itemsSoldOut:'ببوورە، ئەم کاڵایانە تەواوبوون و بەردەست نین. لە سەبەتەکەت لابران:',navTrack:'شوێنکەوتنی داواکاری',trackShTitle:'شوێنکەوتنی داواکارییەکەم',trIntro:'ژمارەی داواکاری بنووسە بۆ زانینی دۆخەکەی',enterOrderId:'ژمارەی داواکاری بنووسە',orderNotFound:'ژمارەی داواکاری نەدۆزرایەوە، دڵنیابە',yourOrderId:'ژمارەی داواکارییەکەت',copy:'کۆپی',copied:'کۆپیکرا',keepOrderId:'ئەم ژمارەیە بپارێزە بۆ شوێنکەوتنی داواکارییەکەت',stReview:'لە پێداچوونەوەدا',stReviewSub:'پشتڕاست دەکرێتەوە...',stConfirmed:'پشتڕاستکرایەوە',stConfirmedSub:'ئامادە دەکرێت...',stPrepared:'ئامادەکرا',stPreparedSub:'لە ڕێگادایە بۆ پارێزگاکەت...',stCourier:'لای گەیەنەر',stCourierSub:'دەگەیەنرێت...',stDelivered:'گەیەنرا',stDeliveredSub:'سوپاس بۆ متمانەت!',stCancelled:'ئەم داواکارییە هەڵوەشێنرایەوە'
   }
 };
