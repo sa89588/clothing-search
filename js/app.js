@@ -4,6 +4,24 @@
 /* ==================== STATE ==================== */
 const API = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
 const PLACEHOLDER = 'https://placehold.co/300x300?text=?';
+
+/* ==================== إعدادات الخصم والتوصيل ====================
+   مكان واحد للتحكم — أي تغيير هنا ينعكس على كل الموقع */
+const DISCOUNT_PCT   = 40;      // نسبة الخصم (%)
+const PAY_RATE       = 0.6;     // ما يدفعه الزبون = 60% (بعد خصم 40%)
+const SHIP_COST      = 5000;    // تكلفة التوصيل (دينار)
+const FREE_SHIP_QTY  = 6;       // عدد القطع للتوصيل المجاني
+
+/* سعر القطعة بعد الخصم */
+function discPrice(orig){ return Math.round(Number(orig) * PAY_RATE); }
+
+/* تكلفة التوصيل حسب عدد القطع — مجاني عند 6 قطع أو أكثر */
+function calcShip(items){
+  const n = Array.isArray(items) ? items.length : Number(items||0);
+  return n >= FREE_SHIP_QTY ? 0 : SHIP_COST;
+}
+/* هل التوصيل مجاني؟ */
+function isFreeShip(items){ return calcShip(items) === 0; }
 let allData = [], cart = [], lang = 'ar';
 let fSea = '', fTyp = '', fSort = '';
 
@@ -152,11 +170,11 @@ if (_ckCopyBtn) _ckCopyBtn.addEventListener('click',()=>{
   const addr=document.getElementById('ckAddr').value.trim();
   let totO=0,totD=0;
   let msg='مرحباً، أرغب بشراء المنتجات التالية:\n';
-  cart.forEach(i=>{ msg+='- ID: '+sanitize(String(i.id))+'، القياس: '+sanitize(String(i.size))+'، السعر الأصلي: '+Number(i.orig).toLocaleString()+' دينار، بعد الخصم 50%: '+Number(i.disc).toLocaleString()+' دينار\n'; totO+=Number(i.orig); totD+=Number(i.disc); });
-  const ship=5000,total=totD+ship;
+  cart.forEach(i=>{ msg+='- ID: '+sanitize(String(i.id))+'، القياس: '+sanitize(String(i.size))+'، السعر الأصلي: '+Number(i.orig).toLocaleString()+' دينار، بعد الخصم '+DISCOUNT_PCT+'%: '+Number(i.disc).toLocaleString()+' دينار\n'; totO+=Number(i.orig); totD+=Number(i.disc); });
+  const ship=calcShip(cart),total=totD+ship;
   msg+='\nالمجموع الأصلي: '+totO.toLocaleString()+' دينار\n';
-  msg+='المجموع بعد الخصم 50%: '+totD.toLocaleString()+' دينار\n';
-  msg+='تكلفة النقل: '+ship.toLocaleString()+' دينار\n';
+  msg+='المجموع بعد الخصم '+DISCOUNT_PCT+'%: '+totD.toLocaleString()+' دينار\n';
+  msg+='تكلفة النقل: '+(ship===0 ? 'مجاني 🎉' : ship.toLocaleString()+' دينار')+'\n';
   msg+='المجموع النهائي: '+total.toLocaleString()+' دينار\n\n';
   msg+='معلومات الزبون:\nالاسم: '+(name||'—')+'\nالهاتف: '+(phone||'—')+'\nالعنوان: '+(addr||'—');
   if(navigator.clipboard){
@@ -358,12 +376,12 @@ function showError(){ const c=document.getElementById('prodCont'); c.innerHTML='
 function addJsonLD(products){
   const old=document.getElementById('jld'); if(old) old.remove();
   const safe=products.filter(p=>parseSizes(p.sizes).length>0).slice(0,20);
-  const schema={'@context':'https://schema.org','@type':'ItemList',name:'متجر جود العباس - ملابس أطفال',itemListElement:safe.map((item,i)=>({'@type':'ListItem',position:i+1,item:{'@type':'Product',name:'منتج # '+item.Id,image:item.picture||'',offers:{'@type':'Offer',price:Math.round(parseFloat(item.price)/2),priceCurrency:'IQD',availability:'https://schema.org/InStock'}}}))};
+  const schema={'@context':'https://schema.org','@type':'ItemList',name:'متجر جود العباس - ملابس أطفال',itemListElement:safe.map((item,i)=>({'@type':'ListItem',position:i+1,item:{'@type':'Product',name:'منتج # '+item.Id,image:item.picture||'',offers:{'@type':'Offer',price:discPrice(item.price),priceCurrency:'IQD',availability:'https://schema.org/InStock'}}}))};
   const sc=document.createElement('script'); sc.id='jld'; sc.type='application/ld+json'; sc.textContent=JSON.stringify(schema); document.head.appendChild(sc);
 }
 
 function createCard(item){
-  const orig=parseFloat(item.price), disc=Math.round(orig/2);
+  const orig=parseFloat(item.price), disc=discPrice(orig);
   const sizes=parseSizes(item.sizes), isLast=sizes.length===1;
   const imgSrc=safeImgSrc(item.picture);
   const card=document.createElement('div'); card.className='pcard';
@@ -416,7 +434,7 @@ function displayProducts(arr){
 
 /* ==================== SHARE ==================== */
 function shareProduct(id,price){ const txt='🛍️ '+t('hTitle')+'\n📌 ID: '+id+'\n💰 '+t('discount')+': '+price.toLocaleString()+' '+t('dinar')+'\n🔗 '+window.location.href; if(navigator.share) navigator.share({title:t('hTitle'),text:txt,url:window.location.href}).catch(()=>{}); else window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank'); }
-function shareCart(){ if(!cart.length){notify(t('cartEmpty'),'w');return;} let msg='🛍️ '+t('hTitle')+'\n\n'; let totD=0; cart.forEach(ci=>{ msg+='• #'+sanitize(String(ci.id))+' (Q:'+sanitize(String(ci.size))+') — '+Number(ci.disc).toLocaleString()+' '+t('dinar')+'\n'; totD+=Number(ci.disc); }); msg+='\n'+t('tot')+': '+(totD+5000).toLocaleString()+' '+t('dinar'); if(navigator.share) navigator.share({title:t('hTitle'),text:msg}).catch(()=>{}); else window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank'); }
+function shareCart(){ if(!cart.length){notify(t('cartEmpty'),'w');return;} let msg='🛍️ '+t('hTitle')+'\n\n'; let totD=0; cart.forEach(ci=>{ msg+='• #'+sanitize(String(ci.id))+' (Q:'+sanitize(String(ci.size))+') — '+Number(ci.disc).toLocaleString()+' '+t('dinar')+'\n'; totD+=Number(ci.disc); }); msg+='\n'+t('tot')+': '+(totD+calcShip(cart)).toLocaleString()+' '+t('dinar'); if(navigator.share) navigator.share({title:t('hTitle'),text:msg}).catch(()=>{}); else window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank'); }
 function shareCart(){ /* removed */ }
 // Translation for copy button
 const _ckCopyLblEl=document.getElementById('ckCopyLbl');
@@ -506,12 +524,22 @@ function renderCart(){
     addSwipe(div,()=>{ cart=cart.filter(i=>!(i.id===item.id&&i.size===item.size)); saveCart(); updateCartBadge(); renderCart(); });
     body.appendChild(div); totO+=Number(item.orig); totD+=Number(item.disc);
   });
-  const ship=5000, total=totD+ship;
+  const ship=calcShip(cart), total=totD+ship;
   const r1=document.createElement('div'); r1.textContent=t('sub')+': '+totO.toLocaleString()+' '+t('dinar');
   const r2=document.createElement('div'); r2.textContent=t('subDisc')+': '+totD.toLocaleString()+' '+t('dinar');
-  const r3=document.createElement('div'); r3.textContent=t('ship')+': '+ship.toLocaleString()+' '+t('dinar');
+  const r3=document.createElement('div');
+  if(ship===0){ r3.className='ctot-free'; r3.textContent=t('ship')+': '+t('freeShip')+' 🎉'; }
+  else { r3.textContent=t('ship')+': '+ship.toLocaleString()+' '+t('dinar'); }
   const r4=document.createElement('div'); r4.className='ctot-final'; r4.textContent=t('tot')+': '+total.toLocaleString()+' '+t('dinar');
-  totEl.innerHTML=''; [r1,r2,r3,r4].forEach(r=>totEl.appendChild(r));
+  const rows=[r1,r2,r3,r4];
+  /* تلميح: كم قطعة باقية للتوصيل المجاني */
+  if(ship>0){
+    const need=FREE_SHIP_QTY-cart.length;
+    const hint=document.createElement('div'); hint.className='ctot-hint';
+    hint.textContent='🚚 '+t('freeShipHint').replace('{n}', need);
+    rows.splice(3,0,hint);
+  }
+  totEl.innerHTML=''; rows.forEach(r=>totEl.appendChild(r));
 }
 function delCartItem(id,size){ showDlg('🗑️',t('delQ'),[{lbl:t('yes'),cls:'dlg-yes',fn:()=>{cart=cart.filter(i=>!(i.id===id&&i.size===size));saveCart();updateCartBadge();renderCart();}},{lbl:t('no'),cls:'dlg-no'}]); }
 document.getElementById('clearCartBtn').addEventListener('click',()=>showDlg('🗑️',t('clrQ'),[{lbl:t('yes'),cls:'dlg-yes',fn:()=>{cart=[];saveCart();updateCartBadge();renderCart();}},{lbl:t('no'),cls:'dlg-no'}]));
@@ -596,7 +624,7 @@ document.getElementById('checkoutBtn').addEventListener('click',async()=>{
     // نستخدم meta.js (يضيف contents وplatform ويمنع القيم الصفرية)
     if(typeof metaInitiateCheckout==='function' && cart.length>0){
       const cv=cart.reduce((s,i)=>s+Number(i.disc||0),0);
-      metaInitiateCheckout(cart, cv+5000);
+      metaInitiateCheckout(cart, cv+calcShip(cart));
     }
   }catch(_){}
 });
@@ -822,11 +850,11 @@ async function submitOrder(){
   sessionStorage.setItem('ls',String(now));
   let totO=0,totD=0;
   let msg='مرحباً، أرغب بشراء المنتجات التالية:\n';
-  cart.forEach(i=>{ msg+='- ID: '+sanitize(String(i.id))+'، القياس: '+sanitize(String(i.size))+'، السعر الأصلي: '+Number(i.orig).toLocaleString()+' دينار، بعد الخصم 50%: '+Number(i.disc).toLocaleString()+' دينار\n'; totO+=Number(i.orig); totD+=Number(i.disc); });
-  const ship=5000, total=totD+ship;
+  cart.forEach(i=>{ msg+='- ID: '+sanitize(String(i.id))+'، القياس: '+sanitize(String(i.size))+'، السعر الأصلي: '+Number(i.orig).toLocaleString()+' دينار، بعد الخصم '+DISCOUNT_PCT+'%: '+Number(i.disc).toLocaleString()+' دينار\n'; totO+=Number(i.orig); totD+=Number(i.disc); });
+  const ship=calcShip(cart), total=totD+ship;
   msg+='\nالمجموع الأصلي: '+totO.toLocaleString()+' دينار\n';
-  msg+='المجموع بعد الخصم 50%: '+totD.toLocaleString()+' دينار\n';
-  msg+='تكلفة النقل: '+ship.toLocaleString()+' دينار\n';
+  msg+='المجموع بعد الخصم '+DISCOUNT_PCT+'%: '+totD.toLocaleString()+' دينار\n';
+  msg+='تكلفة النقل: '+(ship===0 ? 'مجاني 🎉' : ship.toLocaleString()+' دينار')+'\n';
   msg+='المجموع النهائي: '+total.toLocaleString()+' دينار\n\n';
   msg+='معلومات الزبون:\nالاسم: '+name+'\nالهاتف: '+phone+'\nالعنوان: '+addr;
 
@@ -864,10 +892,12 @@ async function submitOrder(){
   /* ===== الخطوة 3: إخفاء الشاشة ===== */
   hideSavingOverlay();
 
-  /* ===== الخطوة 4: Meta Lead — فور تأكيد التسجيل ===== */
+  /* ===== الخطوة 4: أحداث Meta — فور تأكيد التسجيل ===== */
   try {
     if (saveResult && saveResult.success && !saveResult.timeout) {
-      if (typeof metaLead === 'function') metaLead(cart, total, orderId, phone, name);
+      // Lead (تسجيل الاهتمام) + Purchase (قيمة الشراء) — بنفس القيمة الصحيحة
+      if (typeof metaLead === 'function')     metaLead(cart, total, orderId, phone, name);
+      if (typeof metaPurchase === 'function') metaPurchase(cart, total, orderId, phone, name);
     }
   } catch(_) {}
 
