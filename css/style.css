@@ -566,3 +566,16 @@ body.dark .tr-dot { background:#252540; }
 }
 body.dark .ctot-free{ color:#4ade80 !important; }
 body.dark .ctot-hint{ background:rgba(245,158,11,.15); color:#fbbf24; }
+
+
+/* ===== حقل إدخال خاطئ (الهاتف) ===== */
+.ck-err{
+  border-color:#ef4444 !important;
+  background:rgba(239,68,68,.06) !important;
+  animation:ckShake .4s;
+}
+@keyframes ckShake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  75%{transform:translateX(5px)}
+}
