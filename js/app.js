@@ -65,6 +65,7 @@ function applyTrans(){
   document.getElementById('ckName').placeholder=t('namePh');
   document.getElementById('ckPhone').placeholder=t('phonePh');
   document.getElementById('ckAddr').placeholder=t('addrPh');
+  { const _n=document.getElementById('ckNotes'); if(_n) _n.placeholder=t('notesPh'); }
   ['55','60','65','70','75','80','90','100','110','120','130','140','150','160','170'].forEach(s=>{
     const el=document.getElementById('s'+s); if(el) el.textContent=t('s'+s);
   });
@@ -808,14 +809,42 @@ function restoreDlgBox(){
     '<div class="dlg-acts" id="dlgActs"></div>';
 }
 
+
+/* ==================== التحقق من رقم الهاتف ====================
+   الرقم العراقي الصحيح: يبدأ بـ 07 وطوله 11 رقماً
+   يقبل صيغاً شائعة ويحوّلها: +9647xx / 009647xx / 7xx */
+function normalizeIraqiPhone(raw){
+  let d = String(raw||'')
+    .replace(/[٠-٩]/g, x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x))  // أرقام عربية
+    .replace(/[^\d+]/g, '');                          // إزالة الرموز
+  if(d.startsWith('+964'))  d = '0' + d.slice(4);
+  else if(d.startsWith('00964')) d = '0' + d.slice(5);
+  else if(d.startsWith('964'))   d = '0' + d.slice(3);
+  else if(d.startsWith('7') && d.length===10) d = '0' + d;
+  return d;
+}
+/* صحيح؟ يبدأ بـ 07 + 11 رقماً بالضبط */
+function isValidIraqiPhone(p){
+  return /^07\d{9}$/.test(String(p||''));
+}
+
 async function submitOrder(){
   /* توليد Order ID فريد لهذا الطلب */
   const orderId = 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2,6).toUpperCase();
   const name=document.getElementById('ckName').value.trim().slice(0,80);
-  const phone=document.getElementById('ckPhone').value.trim().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[^0-9+]/g,'').slice(0,15);
+  const phone=normalizeIraqiPhone(document.getElementById('ckPhone').value);
   const addr=document.getElementById('ckAddr').value.trim().slice(0,300);
+  const notesEl=document.getElementById('ckNotes');
+  const notes=notesEl ? notesEl.value.trim().slice(0,200) : '';
   if(!name){notify(t('namePh')+' '+t('no'),'w');return;}
-  if(!phone||phone.replace(/\D/g,'').length<7){notify(t('phonePh')+' '+t('no'),'w');return;}
+  /* الهاتف: يجب أن يبدأ بـ07 ويكون 11 رقماً */
+  if(!isValidIraqiPhone(phone)){
+    notify(t('phoneInvalid'),'w');
+    const pe=document.getElementById('ckPhone');
+    if(pe){ pe.value=phone; pe.classList.add('ck-err'); pe.focus();
+            setTimeout(()=>pe.classList.remove('ck-err'),2500); }
+    return;
+  }
   if(!addr){notify(t('addrPh')+' '+t('no'),'w');return;}
   const now=Date.now(), last=parseInt(sessionStorage.getItem('ls')||'0');
   if(now-last<10000){notify('⏳','w');return;}
@@ -857,6 +886,8 @@ async function submitOrder(){
   msg+='تكلفة النقل: '+(ship===0 ? 'مجاني 🎉' : ship.toLocaleString()+' دينار')+'\n';
   msg+='المجموع النهائي: '+total.toLocaleString()+' دينار\n\n';
   msg+='معلومات الزبون:\nالاسم: '+name+'\nالهاتف: '+phone+'\nالعنوان: '+addr;
+  if(notes) msg+='\nملاحظات: '+notes;
+  if(notes) msg+='\nملاحظات: '+notes;
 
   /* ===== منع الضغط المتكرر: تعطيل الزر فوراً ===== */
   const confirmBtn = document.getElementById('ckConfirm');
@@ -877,6 +908,7 @@ async function submitOrder(){
     name:    name,
     phone:   phone,
     address: addr,
+    notes:   notes,
     message: msg,
     total:   total,
     channel: 'website',
@@ -1028,57 +1060,41 @@ function showTutorial(){
 function initTutorial(){ if(!localStorage.getItem('tut')) showTutorial(); }
 
 /* ==================== AUTO REFRESH ==================== */
+/* ==================== التحديث التلقائي ====================
+   كل 25 ثانية: يجلب البيانات، وإن تغيّرت يعيد رسم المنتجات
+   فتختفي البطاقات النافدة (سواء حُذف المنتج أو نفدت كل قياساته) */
+let _lastDataHash = '';
+
 setInterval(async()=>{
   try{
-
-    const r = await fetch(API);
+    const r = await fetch(API, {cache:'no-store'});
     if(!r.ok) return;
-
     const newData = await r.json();
+    if(!Array.isArray(newData) || newData.length===0) return;
 
-    localStorage.setItem(
-      'pc',
-      JSON.stringify({d:newData,ts:Date.now()})
-    );
+    /* بصمة البيانات: المعرّف + القياسات + السعر — تكشف أي تغيير */
+    const hash = newData.map(x =>
+      String(x.Id)+'|'+String(x.sizes||'')+'|'+String(x.price||'')
+    ).join(';');
 
-    document.getElementById('offlineBar')
-      .classList.remove('show');
+    document.getElementById('offlineBar').classList.remove('show');
+    localStorage.setItem('pc', JSON.stringify({d:newData, ts:Date.now()}));
 
-    addJsonLD(newData);
-
-    const oldIds = new Set(
-      allData.map(x=>String(x.Id))
-    );
-
-    const newIds = new Set(
-      newData.map(x=>String(x.Id))
-    );
-
-    oldIds.forEach(id=>{
-      if(!newIds.has(id)){
-
-        const cards =
-          document.querySelectorAll('.pcard');
-
-        cards.forEach(card=>{
-          const cid =
-            card.querySelector('.cid');
-
-          if(
-            cid &&
-            cid.textContent.includes(id)
-          ){
-            card.remove();
-          }
-        });
-
-      }
-    });
+    if(hash === _lastDataHash){ allData = newData; return; }  // لا تغيير
+    _lastDataHash = hash;
 
     allData = newData;
-
+    addJsonLD(newData);
     updateFilterCounts();
-    cleanCart(false); // حذف ما نفد من السلة تلقائياً
+
+    /* إعادة رسم مع الحفاظ على موضع التمرير
+       displayProducts يستبعد تلقائياً كل منتج بلا قياسات */
+    const y = window.scrollY;
+    doFilter(false);
+    window.scrollTo(0, y);
+
+    /* تنظيف السلة مما نفد */
+    cleanCart(false);
 
   }catch(_){}
 },25000);
