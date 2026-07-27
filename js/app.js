@@ -591,14 +591,15 @@ async function saveOrderToGAS(orderData) {
   if (orderData.orderId) _sentOrderIds.add(orderData.orderId);
 
   try {
+    // بلا keepalive: يسمح بقراءة رد GAS بشكل موثوق (keepalive يعيق القراءة)
     const response = await fetch(API, {
-      method:    'POST',
-      body:      JSON.stringify(orderData),
-      keepalive: true
+      method: 'POST',
+      body:   JSON.stringify(orderData)
     });
     const result = await response.json();
     if (result.success) {
       console.log('✅ Order saved:', orderData.orderId, result.duplicate ? '(duplicate)' : '');
+      result.confirmed = true;   // تأكيد حقيقي من GAS
       return result;
     } else {
       console.warn('⚠️ GAS returned:', result);
@@ -606,9 +607,10 @@ async function saveOrderToGAS(orderData) {
     }
   } catch (e) {
     console.warn('❌ saveOrderToGAS failed:', e.message);
-    // لا نحذف الـ id — الطلب غالباً وصل رغم خطأ قراءة الرد
-    // نرجع نجاحاً تفاؤلياً لأن keepalive يضمن الوصول
-    return { success: true, uncertain: true };
+    // فشل قراءة الرد — الطلب *قد* يكون وصل (keepalive) لكن بلا يقين.
+    // نرجع success:true (لأجل تجربة الزبون) لكن مع confirmed:false
+    // حتى لا نُرسل Meta على طلب غير مؤكّد الوصول.
+    return { success: true, uncertain: true, confirmed: false };
   }
 }
 
@@ -849,6 +851,26 @@ async function submitOrder(){
   const now=Date.now(), last=parseInt(sessionStorage.getItem('ls')||'0');
   if(now-last<10000){notify('⏳','w');return;}
 
+  /* ===== نُعطّل الزر ونُظهر واجهة الانتظار فوراً =====
+     قبل أي عملية شبكة — استجابة لحظية عند الضغط */
+  const confirmBtn = document.getElementById('ckConfirm');
+  if (confirmBtn) {
+    if (confirmBtn.dataset.busy === '1') return; // قيد المعالجة — تجاهل
+    confirmBtn.dataset.busy = '1';
+    confirmBtn.disabled = true;
+    confirmBtn.style.opacity = '0.6';
+  }
+  showSavingOverlay();
+
+  /* دالة إعادة تفعيل الزر (نحتاجها في كل حالات الخروج المبكر) */
+  function reEnableBtn() {
+    if (confirmBtn) {
+      confirmBtn.dataset.busy = '0';
+      confirmBtn.disabled = false;
+      confirmBtn.style.opacity = '1';
+    }
+  }
+
   /* ===== خط الدفاع الأخير: تحقق من توفر كل منتج قبل التسجيل =====
      نُحدّث البيانات أولاً ثم نتحقق — يمنع تسجيل منتج نفد للتو */
   try {
@@ -868,13 +890,14 @@ async function submitOrder(){
     const ids = unavailable.map(i=>'#'+i.id+' (Q:'+i.size+')').join('، ');
     cleanCart(true); // نحذفها بصمت (سنُظهر رسالة مخصّصة)
     renderCart();
+    hideSavingOverlay(); reEnableBtn();
     showDlg('⚠️', t('itemsSoldOut')+'\n\n'+ids, [
       { lbl: t('orderSuccessOk'), cls: 'dlg-yes', fn: ()=>closeDlg() }
     ]);
     return; // نوقف التسجيل
   }
 
-  if (cart.length === 0) { notify(t('cartEmpty'),'w'); return; }
+  if (cart.length === 0) { hideSavingOverlay(); reEnableBtn(); notify(t('cartEmpty'),'w'); return; }
 
   sessionStorage.setItem('ls',String(now));
   let totO=0,totD=0;
@@ -887,21 +910,9 @@ async function submitOrder(){
   msg+='المجموع النهائي: '+total.toLocaleString()+' دينار\n\n';
   msg+='معلومات الزبون:\nالاسم: '+name+'\nالهاتف: '+phone+'\nالعنوان: '+addr;
   if(notes) msg+='\nملاحظات: '+notes;
-  if(notes) msg+='\nملاحظات: '+notes;
 
-  /* ===== منع الضغط المتكرر: تعطيل الزر فوراً ===== */
-  const confirmBtn = document.getElementById('ckConfirm');
-  if (confirmBtn) {
-    if (confirmBtn.dataset.busy === '1') return; // قيد المعالجة — تجاهل
-    confirmBtn.dataset.busy = '1';
-    confirmBtn.disabled = true;
-    confirmBtn.style.opacity = '0.6';
-  }
-
-  /* ===== الخطوة 1: إظهار شاشة "جاري التسجيل" ===== */
-  showSavingOverlay();
-
-  /* ===== الخطوة 2: تسجيل الطلب وانتظار تأكيد GAS ===== */
+  /* ===== تسجيل الطلب وانتظار تأكيد GAS =====
+     (الزر مُعطّل والواجهة ظاهرة منذ بداية الدالة) ===== */
   const savePromise = saveOrderToGAS({
     action:  'saveOrder',
     orderId: orderId,
@@ -916,7 +927,7 @@ async function submitOrder(){
   });
 
   const timeoutPromise = new Promise(function(resolve){
-    setTimeout(function(){ resolve({ success: true, timeout: true }); }, 8000);
+    setTimeout(function(){ resolve({ success: true, timeout: true, confirmed: false }); }, 15000);
   });
 
   const saveResult = await Promise.race([savePromise, timeoutPromise]);
@@ -924,34 +935,46 @@ async function submitOrder(){
   /* ===== الخطوة 3: إخفاء الشاشة ===== */
   hideSavingOverlay();
 
-  /* ===== الخطوة 4: أحداث Meta — فور تأكيد التسجيل ===== */
+  /* ===== الخطوة 4: أحداث Meta — فقط عند تأكيد GAS الحقيقي =====
+     شرط صارم: confirmed === true (رد صريح من الخادم)
+     نتجنّب الإرسال عند:
+       - timeout (تجاوز 8 ثوانٍ بلا رد)
+       - uncertain (فشل fetch — قد لا يكون وصل)
+       - duplicate (طلب مكرّر — أُرسلت Meta مسبقاً)
+     هذا يمنع تسجيل طلبات في Meta لم تصل فعلاً */
   try {
-    if (saveResult && saveResult.success && !saveResult.timeout) {
-      // Lead (تسجيل الاهتمام) + Purchase (قيمة الشراء) — بنفس القيمة الصحيحة
-      if (typeof metaLead === 'function')     metaLead(cart, total, orderId, phone, name);
+    if (saveResult && saveResult.confirmed === true && !saveResult.duplicate) {
+      // Purchase فقط — حدث واحد لكل طلب مؤكّد (هو حدث المبيعات الذي يعمل عليه النظام)
       if (typeof metaPurchase === 'function') metaPurchase(cart, total, orderId, phone, name);
+      console.log('📊 Meta Purchase sent for confirmed order:', orderId);
+    } else {
+      console.log('⏭️ Meta skipped — order not confirmed:', {
+        timeout: saveResult && saveResult.timeout,
+        uncertain: saveResult && saveResult.uncertain,
+        duplicate: saveResult && saveResult.duplicate
+      });
     }
   } catch(_) {}
 
-  /* ===== إعادة تفعيل الزر (لأي حالة) ===== */
-  function reEnableBtn() {
-    if (confirmBtn) {
-      confirmBtn.dataset.busy = '0';
-      confirmBtn.disabled = false;
-      confirmBtn.style.opacity = '1';
-    }
-  }
-
-  /* ===== الخطوة 5: النجاح — إغلاق فوري + إفراغ السلة ===== */
-  if (saveResult && saveResult.success) {
-    // نُفرغ السلة ونُغلق نافذة الطلب فوراً
+  /* ===== الخطوة 5: النتيجة ===== */
+  if (saveResult && saveResult.confirmed === true) {
+    // ✅ تأكيد حقيقي من GAS — نجاح مؤكّد
     cart = []; saveCart(); updateCartBadge();
     closeCheckout();
     reEnableBtn();
-    // نافذة النجاح مع رقم الطلب + نسخ تلقائي
     showOrderSuccess(orderId);
+  } else if (saveResult && saveResult.success) {
+    // ⏳ غير مؤكّد (timeout / فشل قراءة الرد)
+    // الطلب *قد* يكون وصل. نُظهر رسالة صادقة ونُبقي السلة احتياطاً
+    // حتى لا يخسر الزبون طلبه لو لم يصل فعلاً.
+    reEnableBtn();
+    closeCheckout();
+    showDlg('⏳', t('orderPending'), [
+      { lbl: t('orderPendingCheck'), cls: 'dlg-yes', fn: ()=>{ closeDlg(); openTrack(); if(document.getElementById('trackIn')) document.getElementById('trackIn').value=orderId; trackOrder(); } },
+      { lbl: t('orderSuccessOk'), cls: 'dlg-no', fn: ()=>{ cart=[]; saveCart(); updateCartBadge(); closeDlg(); } }
+    ]);
   } else {
-    // فشل التسجيل — نُعيد تفعيل الزر ليعيد المحاولة
+    // ❌ فشل صريح — نُبقي السلة ونعرض إعادة المحاولة
     reEnableBtn();
     showDlg('⚠️', t('orderFail'), [
       { lbl: t('tryAgain'), cls: 'dlg-yes', fn: ()=>closeDlg() }
