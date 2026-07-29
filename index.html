@@ -23,9 +23,18 @@ fbq('init','2514076832364278');fbq('track','PageView');
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/style.css?v=1.0.7">
+  <link rel="stylesheet" href="css/style.css?v=1.0.8">
 </head>
 <body id="bodyRoot">
+
+<!-- شريط تنبيه المتصفح المدمج -->
+<div id="inAppBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:12px 16px;font-size:13.5px;font-weight:600;box-shadow:0 2px 12px rgba(0,0,0,.2);text-align:center;line-height:1.6">
+  <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap">
+    <span id="inAppText">💡 لتجربة أفضل وضمان وصول طلبك، افتح الموقع في متصفح خارجي</span>
+    <button id="inAppOpenBtn" style="background:#fff;color:#d97706;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">🌐 فتح في المتصفح</button>
+    <button id="inAppCloseBtn" style="background:rgba(255,255,255,.25);color:#fff;border:none;border-radius:8px;padding:7px 11px;font-size:13px;font-weight:700;cursor:pointer">✕</button>
+  </div>
+</div>
 
 <!-- PTR Indicator -->
 <div class="ptr-bar" id="ptrBar"><i class="fas fa-sync-alt"></i><span id="ptrTxt">اسحب للتحديث</span></div>
@@ -283,6 +292,6 @@ fbq('init','2514076832364278');fbq('track','PageView');
 
   <script src="js/lang.js?v=1.0.8"></script>
   <script src="js/app.js?v=1.0.8"></script>
-  <script src="js/meta.js?v=1.0.7"></script>
+  <script src="js/meta.js?v=1.0.8"></script>
 </body>
 </html>
