@@ -582,6 +582,156 @@ function hideSavingOverlay() {
    الطلب يُسجَّل حتى لو لم يُكمل الزبون الإرسال (مقصود). */
 const _sentOrderIds = new Set();
 
+
+
+/* ==================== شريط تنبيه المتصفح المدمج ==================== */
+function initInAppBanner(){
+  if(!isInAppBrowser()) return;
+  const banner = document.getElementById('inAppBanner');
+  if(!banner) return;
+
+  // نتجاهل لو أغلقه المستخدم في هذه الجلسة
+  if(sessionStorage.getItem('inapp_dismissed') === '1') return;
+
+  const name = getInAppName();
+  const txtEl = document.getElementById('inAppText');
+  if(txtEl) txtEl.textContent = '💡 أنت تتصفّح عبر ' + name + ' — للطلب الآمن افتح الموقع في متصفح خارجي';
+
+  banner.style.display = 'block';
+  // ندفع محتوى الصفحة للأسفل
+  document.body.style.paddingTop = banner.offsetHeight + 'px';
+
+  // زر الفتح في المتصفح
+  const openBtn = document.getElementById('inAppOpenBtn');
+  if(openBtn) openBtn.addEventListener('click', openInExternalBrowser);
+
+  // زر الإغلاق
+  const closeBtn = document.getElementById('inAppCloseBtn');
+  if(closeBtn) closeBtn.addEventListener('click', function(){
+    banner.style.display = 'none';
+    document.body.style.paddingTop = '';
+    sessionStorage.setItem('inapp_dismissed', '1');
+  });
+}
+
+/* فتح الموقع في المتصفح الخارجي */
+function openInExternalBrowser(){
+  const url = window.location.href;
+  const ua = navigator.userAgent || '';
+
+  // أندرويد: intent يفتح Chrome مباشرة
+  if(/Android/i.test(ua)){
+    const intent = 'intent://' + url.replace(/^https?:\/\//,'') +
+                   '#Intent;scheme=https;package=com.android.chrome;end';
+    window.location.href = intent;
+    // احتياط: لو فشل الـintent
+    setTimeout(function(){
+      copyLinkFallback(url);
+    }, 1500);
+    return;
+  }
+
+  // iOS: لا يمكن فتح Safari برمجياً — ننسخ الرابط ونرشد المستخدم
+  if(/iPhone|iPad|iPod/i.test(ua)){
+    copyLinkFallback(url, true);
+    return;
+  }
+
+  // غير ذلك: محاولة فتح نافذة
+  window.open(url, '_blank');
+}
+
+/* نسخ الرابط مع إرشاد */
+function copyLinkFallback(url, isIOS){
+  const doCopy = function(){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(url);
+    }
+    const ta=document.createElement('textarea'); ta.value=url;
+    ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(_){}
+    document.body.removeChild(ta);
+    return Promise.resolve();
+  };
+  doCopy().then(function(){
+    const msg = isIOS
+      ? '✅ نُسخ الرابط! افتح Safari والصقه في شريط العنوان'
+      : '✅ نُسخ الرابط! افتحه في متصفحك (Chrome)';
+    if(typeof notify==='function') notify(msg, 'i');
+    else alert(msg);
+  }).catch(function(){
+    if(typeof notify==='function') notify('انسخ الرابط من الأعلى وافتحه في متصفحك', 'w');
+  });
+}
+
+
+/* ==================== كشف المتصفح المدمج (WebView) ====================
+   متصفحات فيسبوك/إنستقرام المدمجة تكسر fetch/POST أحياناً */
+function isInAppBrowser(){
+  const ua = navigator.userAgent || '';
+  return /FBAN|FBAV|FB_IAB|Instagram|FBIOS|Line|Messenger|Snapchat|TikTok/i.test(ua);
+}
+function getInAppName(){
+  const ua = navigator.userAgent || '';
+  if(/Instagram/i.test(ua)) return 'إنستقرام';
+  if(/FBAN|FBAV|FB_IAB|FBIOS|Messenger/i.test(ua)) return 'فيسبوك';
+  if(/TikTok/i.test(ua)) return 'تيك توك';
+  return 'التطبيق';
+}
+
+/* إرسال عبر GET (صورة/JSONP-like) — أضمن طريقة في WebView المقيّد
+   يبني URL مع كل بيانات الطلب ويحمّله كصورة، فيصل GAS حتى لو فشل fetch */
+function saveOrderViaGET(orderData, timeoutMs){
+  return new Promise(function(resolve){
+    try{
+      // نبني query string من بيانات الطلب
+      const params = new URLSearchParams();
+      params.set('action', 'saveOrder');
+      for(const k in orderData){
+        if(orderData[k] !== undefined && orderData[k] !== null){
+          params.set(k, String(orderData[k]));
+        }
+      }
+      const url = API + '?' + params.toString();
+
+      // نحاول fetch أولاً (GET، بلا قراءة رد معقّدة)
+      let settled = false;
+      const done = function(result){ if(!settled){ settled = true; resolve(result); } };
+
+      // المهلة
+      const timer = setTimeout(function(){
+        done({ success: true, confirmed: false, uncertain: true, via: 'get-timeout' });
+      }, timeoutMs || 15000);
+
+      fetch(url, { method: 'GET', cache: 'no-store' })
+        .then(function(r){ return r.json(); })
+        .then(function(result){
+          clearTimeout(timer);
+          if(result && result.success){
+            result.confirmed = true;
+            result.via = 'get';
+          }
+          done(result || { success: false });
+        })
+        .catch(function(){
+          // فشل قراءة الرد — نجرّب صورة كملاذ أخير (يصل الطلب بلا قراءة رد)
+          clearTimeout(timer);
+          const img = new Image();
+          img.onload = img.onerror = function(){
+            // وصل الطلب لكن لا نستطيع قراءة الرد بيقين
+            done({ success: true, confirmed: false, uncertain: true, via: 'image' });
+          };
+          img.src = url + '&_img=1';
+          // مهلة احتياطية للصورة
+          setTimeout(function(){ done({ success: true, confirmed: false, uncertain: true, via: 'image-timeout' }); }, 8000);
+        });
+    }catch(err){
+      resolve({ success: false, error: err.message });
+    }
+  });
+}
+
 async function saveOrderToGAS(orderData) {
   // منع إرسال نفس الطلب أكثر من مرة
   if (orderData.orderId && _sentOrderIds.has(orderData.orderId)) {
@@ -590,27 +740,35 @@ async function saveOrderToGAS(orderData) {
   }
   if (orderData.orderId) _sentOrderIds.add(orderData.orderId);
 
+  /* في متصفح فيسبوك/إنستقرام المدمج: نستخدم GET مباشرة (أضمن)
+     في المتصفح العادي: نجرّب POST أولاً، وGET احتياطاً */
+  if (isInAppBrowser()) {
+    console.log('📱 In-app browser detected — using GET method');
+    return await saveOrderViaGET(orderData, 15000);
+  }
+
   try {
-    // بلا keepalive: يسمح بقراءة رد GAS بشكل موثوق (keepalive يعيق القراءة)
     const response = await fetch(API, {
       method: 'POST',
       body:   JSON.stringify(orderData)
     });
     const result = await response.json();
     if (result.success) {
-      console.log('✅ Order saved:', orderData.orderId, result.duplicate ? '(duplicate)' : '');
-      result.confirmed = true;   // تأكيد حقيقي من GAS
+      console.log('✅ Order saved (POST):', orderData.orderId, result.duplicate ? '(duplicate)' : '');
+      result.confirmed = true;
       return result;
     } else {
       console.warn('⚠️ GAS returned:', result);
       return result;
     }
   } catch (e) {
-    console.warn('❌ saveOrderToGAS failed:', e.message);
-    // فشل قراءة الرد — الطلب *قد* يكون وصل (keepalive) لكن بلا يقين.
-    // نرجع success:true (لأجل تجربة الزبون) لكن مع confirmed:false
-    // حتى لا نُرسل Meta على طلب غير مؤكّد الوصول.
-    return { success: true, uncertain: true, confirmed: false };
+    console.warn('❌ POST failed, trying GET fallback:', e.message);
+    // POST فشل (قد يكون WebView غير مكتشف) — نجرّب GET كملاذ
+    try {
+      return await saveOrderViaGET(orderData, 12000);
+    } catch (e2) {
+      return { success: true, uncertain: true, confirmed: false };
+    }
   }
 }
 
@@ -1130,6 +1288,7 @@ document.addEventListener('keydown',e=>{
 /* ==================== INIT ==================== */
 document.addEventListener('DOMContentLoaded',()=>{
   setupPWA(); startCountdown(); loadCart(); initPTR();
+  initInAppBanner();
   if(localStorage.getItem('dk')==='1'){ document.body.classList.add('dark'); document.getElementById('darkBtn').innerHTML='<i class="fas fa-sun"></i>'; }
   document.getElementById('promoX').addEventListener('click',()=>document.getElementById('promoBanner').style.display='none');
   fetchData();
