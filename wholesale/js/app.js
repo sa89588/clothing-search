@@ -17,10 +17,34 @@ const MIN_MODELS  = 0;          // أقل عدد موديلات للطلب — 0
 const ORDER_CHANNEL = 'wholesale';  // يميّز طلبات الجملة في الشيت والبوت
 
 /* سعر الجملة للقطعة — من عمود price2 كما هو (بلا خصم) */
-function wsPrice(item){
-  const v = item ? item[PRICE_FIELD] : 0;
-  return Math.round(Number(v) || 0);
+/* يبحث عن قيمة العمود بمرونة: يتجاهل حالة الأحرف والمسافات
+   فيعمل مع price2 / Price2 / PRICE2 / "price 2" */
+function pickField(item, field){
+  if(!item) return undefined;
+  if(item[field] !== undefined) return item[field];          // مطابقة مباشرة
+  const want = String(field).toLowerCase().replace(/[\s_-]/g,'');
+  for(const k in item){
+    if(String(k).toLowerCase().replace(/[\s_-]/g,'') === want) return item[k];
+  }
+  return undefined;
 }
+
+/* يحوّل أي صيغة رقم لعدد: "15,000" · "15٬000" · أرقام عربية · " 15000 " */
+function toNum(v){
+  if(v === null || v === undefined || v === '') return 0;
+  if(typeof v === 'number') return isFinite(v) ? v : 0;
+  let s = String(v)
+    .replace(/[\u0660-\u0669]/g, d => String(d.charCodeAt(0) - 0x0660))  // عربية
+    .replace(/[\u06F0-\u06F9]/g, d => String(d.charCodeAt(0) - 0x06F0))  // فارسية
+    .replace(/[,\u060C\u066C\s]/g, '')                                  // فواصل ومسافات
+    .replace(/[^\d.\-]/g, '');                                          // أي شيء آخر
+  const n = parseFloat(s);
+  return isFinite(n) ? n : 0;
+}
+
+/* سعر الجملة للقطعة */
+function wsPrice(item){ return Math.round(toNum(pickField(item, PRICE_FIELD))); }
+
 /* هل للموديل سعر جملة صالح؟ (بلا سعر = لا يُعرض) */
 function hasWsPrice(item){ return wsPrice(item) > 0; }
 
@@ -63,6 +87,55 @@ function buildWholesaleMsg(name, phone, addr, notes){
   return msg;
 }
 
+
+
+/* تشخيص تلقائي يُطبع في الكونسول عند كل جلب */
+function autoDiag(){
+  if(!Array.isArray(allData) || !allData.length){
+    console.warn('⚠️ [جملة] لم تصل بيانات من السكربت');
+    return;
+  }
+  const cols = Object.keys(allData[0]);
+  const withPrice = allData.filter(hasWsPrice).length;
+  const eligible  = allData.filter(isWholesaleItem).length;
+  const style = eligible ? 'color:#16a34a' : 'color:#dc2626;font-weight:bold';
+  console.log('%c[جملة] الموديلات: '+allData.length+' | لها سعر: '+withPrice+' | مؤهلة للعرض: '+eligible, style);
+  if(!eligible){
+    console.warn('⚠️ لا موديل مؤهل — التفاصيل:');
+    console.log('   الأعمدة في الشيت:', cols);
+    console.log('   العمود المطلوب:', PRICE_FIELD, '→', cols.includes(PRICE_FIELD) ? 'موجود ✅' : 'غير موجود ❌');
+    if(!withPrice){
+      console.log('   عيّنة صف:', allData[0]);
+      console.warn('   👈 أضف عمود «'+PRICE_FIELD+'» في ورقة Data واملأ الأسعار');
+    } else {
+      console.warn('   👈 كل الموديلات ذات السعر أقل من '+MIN_PIECES+' قطع');
+    }
+  }
+}
+
+/* ===== تشخيص سريع — اكتب wsDiag() في الكونسول ===== */
+function wsDiag(){
+  console.log('%c🔍 تشخيص موقع الجملة','font-size:14px;font-weight:bold;color:#1565C0');
+  console.log('الرابط:', API);
+  console.log('عمود السعر المطلوب:', PRICE_FIELD);
+  console.log('عدد الموديلات المستلمة:', allData.length);
+  if(!allData.length){
+    console.warn('⚠️ لا بيانات — إن ظهر "blocked" في الشبكة فالسبب CORS:');
+    console.warn('   افتح الموقع عبر خادم محلي (Live Server) أو انشره — لا تفتحه بـfile://');
+    return;
+  }
+  console.log('الأعمدة الموجودة فعلاً:', Object.keys(allData[0]));
+  const withPrice = allData.filter(hasWsPrice).length;
+  const eligible  = allData.filter(isWholesaleItem).length;
+  console.log('لها سعر جملة صالح:', withPrice, '/', allData.length);
+  console.log('مؤهلة للعرض (سعر + ≥'+MIN_PIECES+' قطع):', eligible);
+  if(!withPrice){
+    console.warn('⚠️ لا موديل له سعر في عمود «'+PRICE_FIELD+'»');
+    console.warn('   تأكد من إضافة العمود في ورقة Data وملء القيم');
+    console.log('   عيّنة من أول صف:', allData[0]);
+  }
+  return { total:allData.length, withPrice:withPrice, eligible:eligible };
+}
 /* ==================== SECURITY UTILS ==================== */
 function sanitize(str){ const d=document.createElement('div'); d.appendChild(document.createTextNode(String(str==null?'':str))); return d.innerHTML; }
 function safeImgSrc(url){ if(!url||typeof url!=='string') return PLACEHOLDER; try{ const u=new URL(url); return (u.protocol==='https:'||u.protocol==='http:') ? url : PLACEHOLDER; } catch(_){ return PLACEHOLDER; } }
@@ -323,8 +396,10 @@ function doFilter(scrollTop=true){
   if(fSea) f=f.filter(i=>i.season===fSea);
   if(fTyp) f=f.filter(i=>i.type===fTyp);
   if(q) f=f.filter(i=>String(i.Id||'').toLowerCase().includes(q)||String(i.sizes||'').toLowerCase().includes(q));
-  if(fSort==='asc') f.sort((a,b)=>parseFloat(a.price)-parseFloat(b.price));
-  else if(fSort==='desc') f.sort((a,b)=>parseFloat(b.price)-parseFloat(a.price));
+  /* الجملة: الفرز بإجمالي الموديل (سعر القطعة × عدد القطع) */
+  const modelTot=x=>wsPrice(x)*parseSizes(x.sizes).length;
+  if(fSort==='asc') f.sort((a,b)=>modelTot(a)-modelTot(b));
+  else if(fSort==='desc') f.sort((a,b)=>modelTot(b)-modelTot(a));
   displayProducts(f);
   if(scrollTop) window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -364,6 +439,8 @@ async function fetchData(){
   try{
     const r=await fetch(API,{mode:'cors'}); if(!r.ok) throw new Error('HTTP '+r.status);
     allData=await r.json();
+    /* تشخيص تلقائي: يوضّح فوراً سبب عدم ظهور البطاقات */
+    try{ autoDiag(); }catch(_){}
     localStorage.setItem('pc',JSON.stringify({d:allData,ts:Date.now()}));
     document.getElementById('offlineBar').classList.remove('show');
     addJsonLD(allData); updateFilterCounts(); doFilter(false);
@@ -445,6 +522,8 @@ function createCard(item){
     ? '<i class="fas fa-check"></i> '+t('inCart')
     : '<i class="fas fa-cart-plus"></i> '+t('addModel')+' ('+qty+')';
   addBtn.disabled = inCart;
+  addBtn.dataset.id  = String(item.Id);
+  addBtn.dataset.qty = String(qty);
   addBtn.addEventListener('click',()=>addModelToCart(item));
 
   body.appendChild(idEl); body.appendChild(pr);
@@ -459,7 +538,27 @@ function displayProducts(arr){
   const filtered=arr.filter(isWholesaleItem);
   document.getElementById('rcount').textContent=filtered.length+' '+t('res');
   cont.innerHTML='';
-  if(!filtered.length){ const n=document.createElement('div'); n.className='nores'; n.innerHTML='<i class="fas fa-search"></i>'; n.appendChild(document.createTextNode(t('noRes'))); cont.appendChild(n); return; }
+  if(!filtered.length){
+    const n=document.createElement('div'); n.className='nores';
+    n.innerHTML='<i class="fas fa-search"></i>';
+    n.appendChild(document.createTextNode(t('noRes')));
+    /* تشخيص: لو كانت هناك بيانات لكن لا شيء مؤهل، نوضّح السبب */
+    if(allData.length>0){
+      const noPrice = allData.filter(i=>!hasWsPrice(i)).length;
+      const fewPcs  = allData.filter(i=>hasWsPrice(i)&&parseSizes(i.sizes).length<MIN_PIECES).length;
+      const hint=document.createElement('div');
+      hint.style.cssText='margin-top:12px;font-size:12.5px;color:#94a3b8;line-height:1.9';
+      let txt='';
+      if(noPrice===allData.length){
+        txt='⚠️ لا يوجد عمود «'+PRICE_FIELD+'» أو أنه فارغ في كل الموديلات ('+allData.length+')';
+      }else{
+        if(noPrice) txt += '• '+noPrice+' موديل بلا سعر جملة<br>';
+        if(fewPcs)  txt += '• '+fewPcs+' موديل أقل من '+MIN_PIECES+' قطع<br>';
+      }
+      if(txt){ hint.innerHTML=txt; n.appendChild(hint); }
+    }
+    cont.appendChild(n); return;
+  }
   const grid=document.createElement('div'); grid.className='pgrid';
   filtered.forEach(item=>grid.appendChild(createCard(item)));
   cont.appendChild(grid);
@@ -518,6 +617,24 @@ function cleanCart(silent){
   return before - cart.length;
 }
 
+
+/* ===== تحديث أزرار البطاقات في مكانها =====
+   يتجنّب إعادة رسم الشبكة كي لا يقفز التمرير للأعلى */
+function syncCardButtons(){
+  document.querySelectorAll('.ws-add').forEach(function(btn){
+    const id  = btn.dataset.id;
+    const qty = btn.dataset.qty;
+    if(!id) return;
+    const inCart = cart.some(c=>String(c.id)===String(id));
+    if(inCart === (btn.classList.contains('in-cart'))) return;  // بلا تغيير
+    btn.classList.toggle('in-cart', inCart);
+    btn.disabled = inCart;
+    btn.innerHTML = inCart
+      ? '<i class="fas fa-check"></i> '+t('inCart')
+      : '<i class="fas fa-cart-plus"></i> '+t('addModel')+' ('+qty+')';
+  });
+}
+
 /* ===== الجملة: إضافة الموديل كاملاً بكل قياساته =====
    عنصر السلة = موديل واحد: {id, sizes[], qty, unit, total} */
 function addModelToCart(item){
@@ -531,7 +648,7 @@ function addModelToCart(item){
   cart.push({ id:id, sizes:sizes, qty:qty, unit:unit, total:unit*qty });
   saveCart(); updateCartBadge(); bounceCart();
   notify(t('cartAdded')+' — '+qty+' '+t('pieces'),'s');
-  doFilter(false);   // نُحدّث البطاقة لتُظهر "في السلة"
+  syncCardButtons();   // نُحدّث الزر في مكانه — بلا قفز التمرير
 }
 
 function renderCart(){
@@ -571,7 +688,7 @@ function renderCart(){
     del.addEventListener('click',()=>delCartItem(item.id));
 
     div.appendChild(img); div.appendChild(info); div.appendChild(del);
-    addSwipe(div,()=>{ cart=cart.filter(i=>String(i.id)!==String(item.id)); saveCart(); updateCartBadge(); renderCart(); doFilter(false); });
+    addSwipe(div,()=>{ cart=cart.filter(i=>String(i.id)!==String(item.id)); saveCart(); updateCartBadge(); renderCart(); syncCardButtons(); });
     body.appendChild(div);
   });
 
@@ -591,7 +708,7 @@ function renderCart(){
   }
   totEl.innerHTML=''; rows.forEach(r=>totEl.appendChild(r));
 }
-function delCartItem(id){ showDlg('🗑️',t('delQ'),[{lbl:t('yes'),cls:'dlg-yes',fn:()=>{cart=cart.filter(i=>String(i.id)!==String(id));saveCart();updateCartBadge();renderCart();doFilter(false);}},{lbl:t('no'),cls:'dlg-no'}]); }
+function delCartItem(id){ showDlg('🗑️',t('delQ'),[{lbl:t('yes'),cls:'dlg-yes',fn:()=>{cart=cart.filter(i=>String(i.id)!==String(id));saveCart();updateCartBadge();renderCart();syncCardButtons();}},{lbl:t('no'),cls:'dlg-no'}]); }
 document.getElementById('clearCartBtn').addEventListener('click',()=>showDlg('🗑️',t('clrQ'),[{lbl:t('yes'),cls:'dlg-yes',fn:()=>{cart=[];saveCart();updateCartBadge();renderCart();}},{lbl:t('no'),cls:'dlg-no'}]));
 
 /* ==================== SIZE DIALOG ==================== */
@@ -1182,7 +1299,7 @@ document.getElementById('ckConfirm').addEventListener('click',()=>submitOrder())
 
 /* ==================== PWA ==================== */
 function setupPWA(){
-  const m={name:'متجر جود العباس — الجملة',short_name:'جود الجملة',start_url:'./',display:'standalone',background_color:'#1565C0',theme_color:'#1565C0',lang:'ar',icons:[{src:'https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png',sizes:'192x192',type:'image/png'},{src:'https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png',sizes:'512x512',type:'image/png'}]};
+  const m={name:'متجر جود العباس — الجملة',short_name:'جود الجملة',start_url:location.origin+location.pathname,scope:location.origin+location.pathname,display:'standalone',background_color:'#1565C0',theme_color:'#1565C0',lang:'ar',icons:[{src:'https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png',sizes:'192x192',type:'image/png'},{src:'https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png',sizes:'512x512',type:'image/png'}]};
   const blob=new Blob([JSON.stringify(m)],{type:'application/json'});
   document.getElementById('pwaManifest').href=URL.createObjectURL(blob);
 }
