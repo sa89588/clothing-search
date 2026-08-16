@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="description" content="متجر جود العباس - وجهتك المثالية لشراء ملابس الأطفال بأحدث التصاميم والجودة العالية، مع خدمة عملاء مميزة وتجربة شراء سلسة">
+<meta name="theme-color" content="#1565C0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="جود العباس">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-XSS-Protection" content="1; mode=block">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>متجر جود العباس — الجملة</title>
+<link rel="icon" href="https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png">
+<link rel="manifest" id="pwaManifest">
+<script>
+
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css?v=1.0.8">
+</head>
+<body id="bodyRoot">
+
+<!-- شريط تنبيه المتصفح المدمج -->
+<div id="inAppBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:12px 16px;font-size:13.5px;font-weight:600;box-shadow:0 2px 12px rgba(0,0,0,.2);text-align:center;line-height:1.6">
+  <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap">
+    <span id="inAppText">💡 لتجربة أفضل وضمان وصول طلبك، افتح الموقع في متصفح خارجي</span>
+    <button id="inAppOpenBtn" style="background:#fff;color:#d97706;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">🌐 فتح في المتصفح</button>
+    <button id="inAppCloseBtn" style="background:rgba(255,255,255,.25);color:#fff;border:none;border-radius:8px;padding:7px 11px;font-size:13px;font-weight:700;cursor:pointer">✕</button>
+  </div>
+</div>
+
+<!-- PTR Indicator -->
+<div class="ptr-bar" id="ptrBar"><i class="fas fa-sync-alt"></i><span id="ptrTxt">اسحب للتحديث</span></div>
+
+<!-- HEADER -->
+<header>
+  <!-- Left: Help/Tutorial button -->
+  <div class="hside">
+    <button class="hbtn" id="helpBtn" title="دليل الاستخدام" style="font-size:18px;font-weight:900;">?</button>
+  </div>
+  <!-- Center: Logo -->
+  <div class="hlogo">
+    <span class="htitle" id="hTitle">متجر جود العباس</span>
+    <span class="hsub" id="hSub">Jood ALabbas Store</span>
+  </div>
+  <!-- Right: Dark + Lang -->
+  <div class="hside">
+    <button class="hbtn" id="darkBtn"><i class="fas fa-moon"></i></button>
+    <div class="lsw">
+      <button class="lopt on" data-lang="ar">ع</button>
+      <button class="lopt" data-lang="en">EN</button>
+      <button class="lopt" data-lang="ku">ک</button>
+    </div>
+  </div>
+</header>
+
+<!-- OFFLINE BANNER -->
+<div class="offline-bar" id="offlineBar"><span id="offlineTxt">بيانات محفوظة</span></div>
+
+<!-- WHOLESALE BANNER -->
+<div class="promo" id="promoBanner">
+  📦 <b id="promoTxt">أسعار الجملة — الموديل يُباع كاملاً بكل قياساته</b>
+  <button class="promo-x" id="promoX">✕</button>
+</div>
+
+<!-- WELCOME -->
+<div class="welcome" id="welcomeEl">أهلاً بكم في قسم الجملة — متجر جود العباس 📦</div>
+
+<!-- SEARCH -->
+<div class="srch-wrap">
+  <div class="srch-row">
+    <input type="search" class="srch-in" id="searchIn" placeholder="ابحث بالـ ID أو القياس...">
+    <button class="srch-rst" id="rstBtn">مسح</button>
+  </div>
+</div>
+
+<!-- FILTER BUTTON ROW -->
+<div class="flt-row">
+  <button class="flt-btn" id="fltOpenBtn">
+    <i class="fas fa-sliders-h"></i>
+    <span id="fltBtnLbl">الفلاتر</span>
+    <span class="flt-badge" id="fltBadge" style="display:none;">0</span>
+  </button>
+  <button class="flt-clear" id="fltClearBtn" title="مسح الفلاتر"><i class="fas fa-times"></i></button>
+</div>
+
+<div class="rcount" id="rcount"></div>
+<div id="prodCont"></div>
+
+<footer id="footerEl">© 2025 متجر جود العباس — جميع الحقوق محفوظة</footer>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <div class="bnav-inner">
+    <button class="bnavbtn on" id="bnHome"><i class="fas fa-home"></i><span id="navHome">رئيسية</span></button>
+    <button class="bnavbtn" id="bnSearch"><i class="fas fa-search"></i><span id="navSearch">بحث</span></button>
+    <button class="bnavbtn" id="bnCart">
+      <span class="cnav-wrap"><i class="fas fa-shopping-cart"></i><span class="cdot" id="cdot">0</span></span>
+      <span id="navCart">سلتي</span>
+    </button>
+    <button class="bnavbtn" id="bnTrack"><i class="fas fa-map-marker-alt"></i><span id="navTrack">تتبع طلبي</span></button>
+    <button class="bnavbtn" id="bnInstall"><i class="fas fa-download"></i><span id="navInstall">تثبيت</span></button>
+    <button class="bnavbtn" id="bnContact"><i class="fas fa-comments"></i><span id="navContact">تواصل</span></button>
+  </div>
+</nav>
+
+<button class="measbtn" id="measBtn"><i class="fas fa-ruler"></i></button>
+<button class="stbtn" id="stBtn"><i class="fas fa-chevron-up"></i></button>
+
+<!-- MEASUREMENTS PANEL -->
+<div class="fpanel" id="fpanel">
+  <div class="fptitle" id="fpTitle">📏 شرح القياسات</div>
+  <ul class="fplist">
+    <li>55 — <span id="s55">0-2 شهر</span></li><li>60 — <span id="s60">2-4 أشهر</span></li>
+    <li>65 — <span id="s65">4-6 أشهر</span></li><li>70 — <span id="s70">6-8 أشهر</span></li>
+    <li>75 — <span id="s75">8-10 أشهر</span></li><li>80 — <span id="s80">1 سنة</span></li>
+    <li>90 — <span id="s90">2 سنة</span></li><li>100 — <span id="s100">3 سنوات</span></li>
+    <li>110 — <span id="s110">4 سنوات</span></li><li>120 — <span id="s120">4-5 سنوات</span></li>
+    <li>130 — <span id="s130">6-7 سنوات</span></li><li>140 — <span id="s140">8-9 سنوات</span></li>
+    <li>150 — <span id="s150">10-11 سنة</span></li><li>160 — <span id="s160">12-13 سنة</span></li>
+    <li>170 — <span id="s170">14-15 سنة</span></li>
+  </ul>
+  <button class="fpclose" id="fpClose">إغلاق</button>
+</div>
+
+<!-- PWA BANNER -->
+<div id="pwaBar">
+  <div id="pwaTxt">📲 ثبّت التطبيق على هاتفك!</div>
+  <div class="pwa-acts">
+    <button class="pwa-inst" id="pwaInstBtn">تثبيت</button>
+    <button class="pwa-skip" id="pwaSkip">لاحقاً</button>
+  </div>
+</div>
+
+<!-- SHEET OVERLAY -->
+<div class="overlay" id="shOv"></div>
+
+<!-- FILTER SHEET -->
+<div class="sheet" id="filterSheet">
+  <div class="sh-drag" id="filterDrag"><div class="sh-handle"></div></div>
+  <div class="sh-hdr">
+    <div class="sh-title"><i class="fas fa-sliders-h"></i><span id="filterShTitle">الفلاتر</span></div>
+    <button class="sh-close" id="filterShClose"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="sh-body">
+    <div class="filt-section-lbl" id="fSeaLbl">الموسم</div>
+    <div class="filt-tabs" id="fSeaTabs">
+      <button class="filt-tab on" data-v="">الكل</button>
+      <button class="filt-tab" data-v="صيفي">☀️ صيفي</button>
+      <button class="filt-tab" data-v="شتوي">❄️ شتوي</button>
+      <button class="filt-tab" data-v="بهاري">🌸 بهاري</button>
+    </div>
+    <div class="filt-section-lbl" id="fTypLbl">النوع</div>
+    <div class="filt-tabs" id="fTypTabs">
+      <button class="filt-tab on" data-v="">الكل</button>
+      <button class="filt-tab" data-v="طلعة">👗 طلعة</button>
+      <button class="filt-tab" data-v="تركات منزلية">🏠 منزلي</button>
+    </div>
+    <div class="filt-section-lbl" id="fSortLbl">ترتيب حسب</div>
+    <div class="filt-tabs" id="fSortTabs">
+      <button class="filt-tab on" data-v="">الافتراضي</button>
+      <button class="filt-tab" data-v="asc">السعر ↑</button>
+      <button class="filt-tab" data-v="desc">السعر ↓</button>
+    </div>
+  </div>
+  <div class="sh-foot">
+    <button class="shbtn shbtn-go" id="applyFltBtn"><i class="fas fa-check"></i><span id="applyFltLbl">عرض النتائج</span></button>
+    <button class="shbtn" style="background:var(--bg);color:var(--txt2);border:1px solid var(--bdr);" id="resetFltBtn"><i class="fas fa-undo"></i><span id="resetFltLbl">مسح الفلاتر</span></button>
+  </div>
+</div>
+
+<!-- CART SHEET -->
+<div class="sheet" id="cartSheet">
+  <div class="sh-drag" id="cartDrag"><div class="sh-handle"></div></div>
+  <div class="sh-hdr">
+    <div class="sh-title"><i class="fas fa-shopping-cart"></i><span id="cartShTitle">السلة</span></div>
+    <button class="sh-close" id="cartShClose"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="sh-body" id="cartBody"></div>
+  <div class="sh-foot">
+    <div class="ctotrow" id="cartTot"></div>
+    <button class="shbtn shbtn-go" id="checkoutBtn"><i class="fab fa-whatsapp"></i><span id="checkoutLbl">إتمام الشراء</span></button>
+    <button class="shbtn shbtn-del" id="clearCartBtn"><i class="fas fa-trash"></i><span id="clearCartLbl">إفراغ السلة</span></button>
+  </div>
+</div>
+
+
+<!-- TRACK ORDER SHEET -->
+<div class="sheet" id="trackSheet">
+  <div class="sh-drag" id="trackDrag"><div class="sh-handle"></div></div>
+  <div class="sh-hdr">
+    <div class="sh-title"><i class="fas fa-map-marker-alt"></i><span id="trackShTitle">تتبع طلبي</span></div>
+    <button class="sh-close" id="trackShClose"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="sh-body">
+    <div class="tr-intro" id="trIntro">أدخل رقم الطلب لمعرفة حالته</div>
+    <div class="tr-input-row">
+      <input class="tr-in" type="text" id="trackIn" placeholder="ORD-..." autocomplete="off" dir="ltr">
+      <button class="tr-btn" id="trackBtn"><i class="fas fa-search"></i></button>
+    </div>
+    <div id="trackResult"></div>
+  </div>
+</div>
+
+<!-- CONTACT SHEET -->
+<div class="sheet" id="contactSheet">
+  <div class="sh-drag" id="contactDrag"><div class="sh-handle"></div></div>
+  <div class="sh-hdr">
+    <div class="sh-title"><i class="fas fa-comments"></i><span id="contactShTitle">تواصل معنا</span></div>
+    <button class="sh-close" id="contactShClose"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="sh-body">
+    <div class="contact-grid">
+      <a href="https://wa.me/9647766142936" class="contact-sheet-link" style="color:#25D366;" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i><span>واتساب</span></a>
+      <a href="https://t.me/jaiq19" class="contact-sheet-link" style="color:#2196F3;" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram"></i><span>تليجرام</span></a>
+      <a href="https://www.instagram.com/jaiq19_/" class="contact-sheet-link" style="color:#E91E63;" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i><span>انستقرام</span></a>
+      <a href="https://www.facebook.com/profile.php?id=61573593535175" class="contact-sheet-link" style="color:#1976D2;" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook"></i><span>فيسبوك</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- DIALOG OVERLAY -->
+<div class="dlg-ov" id="dlgOv">
+  <div class="dlg-box">
+    <div class="dlg-title" id="dlgTitle"></div>
+    <div class="dlg-msg" id="dlgMsg"></div>
+    <div class="dlg-acts" id="dlgActs"></div>
+  </div>
+</div>
+
+<!-- SIZE DIALOG -->
+<div class="dlg-ov" id="szOv">
+  <div class="dlg-box">
+    <div class="dlg-title" id="szTitle">اختر القياس</div>
+    <div class="sz-grid" id="szGrid"></div>
+    <button class="dlg-btn dlg-no" id="szCancel" style="width:100%;">إلغاء</button>
+  </div>
+</div>
+
+<!-- CHECKOUT DIALOG -->
+<div class="dlg-ov" id="ckOv">
+  <div class="dlg-box" style="max-width:420px;text-align:right;">
+    <div class="dlg-title" id="ckTitle">معلومات الزبون</div>
+    <div class="ck-fields">
+      <input class="ck-in" type="text" id="ckName" placeholder="الاسم الكامل" maxlength="80" autocomplete="name">
+      <input class="ck-in" type="tel" id="ckPhone" inputmode="numeric" dir="ltr" placeholder="رقم الهاتف" maxlength="15" autocomplete="off">
+      <textarea class="ck-in" id="ckAddr" placeholder="العنوان..." rows="2" maxlength="300"></textarea>
+      <textarea class="ck-in" id="ckNotes" placeholder="ملاحظات للتوصيل (اختياري)..." rows="2" maxlength="200"></textarea>
+    </div>
+    <button class="ck-confirm" id="ckConfirm"><i class="fas fa-check-circle"></i> <span id="ckConfirmLbl">تأكيد الطلب</span></button>
+    <div class="ck-note" id="ckNote">سيتم تسجيل طلبك وسنتواصل معك قريباً</div>
+    <button class="dlg-btn" id="ckCancel" style="width:100%;background:var(--bg);color:var(--txt2);border:1px solid var(--bdr);">← رجوع</button>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="LB"><button id="LB-x"><i class="fas fa-times"></i></button><img id="LB-img" src="" alt=""></div>
+
+<!-- TUTORIAL -->
+<div id="tutPnl">
+  <div id="tutBox">
+    <div class="tut-step" id="tutStep">1 / 8</div>
+    <div class="tut-dots" id="tutDots"></div>
+    <div id="tutTxt"></div>
+    <div class="tut-acts">
+      <button class="tut-btn tut-next" id="tutNext">التالي</button>
+      <button class="tut-btn tut-skip" id="tutSkip">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- PWA INSTALL MODAL -->
+<div class="dlg-ov" id="pwaInstallModal">
+  <div class="dlg-box" style="max-width:380px;">
+    <div class="dlg-title">📲 <span id="pwaModalTitle">تثبيت التطبيق</span></div>
+    <div id="pwaModalBody" style="text-align:right;font-size:14px;"></div>
+    <button class="dlg-btn dlg-ok" id="pwaModalInstBtn" style="width:100%;margin-top:12px;display:none;"></button>
+    <button class="dlg-btn" id="pwaModalClose" style="width:100%;margin-top:8px;background:var(--bg);color:var(--txt2);border:1px solid var(--bdr);">إغلاق</button>
+  </div>
+</div>
+
+  <script src="js/lang.js?v=1.0.8"></script>
+  <script src="js/app.js?v=1.0.8"></script>
+</body>
+</html>
