@@ -12,7 +12,7 @@ const PLACEHOLDER = 'https://placehold.co/300x300?text=?';
    فالمخزون واحد والحذف التلقائي يعمل كما هو. الفرق الوحيد: عمود السعر. */
 const PRICE_FIELD = 'price2';   // عمود سعر الجملة في ورقة Data
 const MIN_PIECES  = 3;          // أقل عدد قطع لعرض الموديل (نُخفي 1-2)
-const SHIP_COST   = 0;          // تكلفة التوصيل — 0 = مجاني دائماً
+const SHIP_COST   = 5000;          // تكلفة التوصيل — 0 = مجاني دائماً
 const MIN_MODELS  = 0;          // أقل عدد موديلات للطلب — 0 = بلا حد أدنى
 const ORDER_CHANNEL = 'wholesale';  // يميّز طلبات الجملة في الشيت والبوت
 
