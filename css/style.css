@@ -579,3 +579,26 @@ body.dark .ctot-hint{ background:rgba(245,158,11,.15); color:#fbbf24; }
   25%{transform:translateX(-5px)}
   75%{transform:translateX(5px)}
 }
+
+/* ==================== خامة القماش ==================== */
+.cfabric{display:inline-flex;align-items:center;gap:5px;
+         background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#15803d;
+         border-radius:20px;padding:3px 10px;font-size:11.5px;font-weight:700;
+         margin:2px 0 6px;white-space:nowrap}
+.cfabric i{font-size:11px}
+body.dark .cfabric{background:#14532d;color:#bbf7d0}
+
+/* ملاحظة الخامة العامة */
+.fabric-note{display:flex;align-items:center;justify-content:center;gap:8px;
+             background:linear-gradient(135deg,#f0fdf4,#dcfce7);
+             border:1px solid #86efac;border-radius:12px;
+             padding:10px 14px;margin:10px auto;max-width:640px;
+             font-size:13px;font-weight:600;color:#15803d;text-align:center}
+.fabric-note i{font-size:15px}
+body.dark .fabric-note{background:#14532d;border-color:#166534;color:#bbf7d0}
+
+
+/* ==================== خصم التصفية (آخر القطع) ==================== */
+.badge.bclear{background:linear-gradient(135deg,#dc2626,#991b1b) !important;
+              animation:clearPulse 2s ease-in-out infinite}
+@keyframes clearPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
