@@ -7,13 +7,25 @@ const PLACEHOLDER = 'https://placehold.co/300x300?text=?';
 
 /* ==================== إعدادات الخصم والتوصيل ====================
    مكان واحد للتحكم — أي تغيير هنا ينعكس على كل الموقع */
-const DISCOUNT_PCT   = 40;      // نسبة الخصم (%)
-const PAY_RATE       = 0.6;     // ما يدفعه الزبون = 60% (بعد خصم 40%)
-const SHIP_COST      = 5000;    // تكلفة التوصيل (دينار)
-const FREE_SHIP_QTY  = 6;       // عدد القطع للتوصيل المجاني
+const DISCOUNT_PCT      = 40;    // الخصم العادي (%)
+const CLEARANCE_PCT     = 50;    // خصم آخر القطع (%)
+const CLEARANCE_MAX_PCS = 2;     // يُطبّق على الموديل الذي فيه هذا العدد أو أقل
+const SHIP_COST         = 5000;  // تكلفة التوصيل (دينار)
+const FREE_SHIP_QTY     = 6;     // عدد القطع للتوصيل المجاني
 
-/* سعر القطعة بعد الخصم */
-function discPrice(orig){ return Math.round(Number(orig) * PAY_RATE); }
+/* نسبة الخصم لموديل معيّن — 50% لآخر قطعة أو قطعتين، وإلا 40% */
+function itemDiscPct(item){
+  const n = parseSizes(item && item.sizes).length;
+  return (n > 0 && n <= CLEARANCE_MAX_PCS) ? CLEARANCE_PCT : DISCOUNT_PCT;
+}
+/* هل الموديل ضمن عرض التصفية؟ */
+function isClearance(item){ return itemDiscPct(item) === CLEARANCE_PCT; }
+
+/* سعر القطعة بعد الخصم — pct اختيارية (الافتراضي 40%) */
+function discPrice(orig, pct){
+  const p = Number(pct) || DISCOUNT_PCT;
+  return Math.round(Number(orig) * (100 - p) / 100);
+}
 
 /* تكلفة التوصيل حسب عدد القطع — مجاني عند 6 قطع أو أكثر */
 function calcShip(items){
@@ -26,6 +38,35 @@ let allData = [], cart = [], lang = 'ar';
 let fSea = '', fTyp = '', fSort = '';
 
 function t(k){ return (L[lang]&&L[lang][k]) ? L[lang][k] : (L.ar[k]||k); }
+
+
+/* يبحث عن عمود بمرونة: يتجاهل حالة الأحرف والمسافات */
+function pickField(item, field){
+  if(!item) return undefined;
+  if(item[field] !== undefined) return item[field];
+  const want = String(field).toLowerCase().replace(/[\s_-]/g,'');
+  for(const k in item){
+    if(String(k).toLowerCase().replace(/[\s_-]/g,'') === want) return item[k];
+  }
+  return undefined;
+}
+
+/* ==================== خامة القماش ====================
+   • القيمة الافتراضية تظهر على كل بطاقة
+   • لو أضفت عمود «fabric» في ورقة Data، يعرض قيمة كل موديل بدلاً منها
+     (يقبل: fabric / Fabric / خامة / القماش) */
+const DEFAULT_FABRIC = 'قطني 100%';
+const FABRIC_KEYS    = ['fabric','material','خامة','الخامة','القماش','قماش'];
+
+function getFabric(item){
+  if(item){
+    for(const k of FABRIC_KEYS){
+      const v = pickField(item, k);
+      if(v !== undefined && String(v).trim() !== '') return String(v).trim();
+    }
+  }
+  return DEFAULT_FABRIC;
+}
 
 /* ==================== SECURITY UTILS ==================== */
 function sanitize(str){ const d=document.createElement('div'); d.appendChild(document.createTextNode(String(str==null?'':str))); return d.innerHTML; }
@@ -171,10 +212,10 @@ if (_ckCopyBtn) _ckCopyBtn.addEventListener('click',()=>{
   const addr=document.getElementById('ckAddr').value.trim();
   let totO=0,totD=0;
   let msg='مرحباً، أرغب بشراء المنتجات التالية:\n';
-  cart.forEach(i=>{ msg+='- ID: '+sanitize(String(i.id))+'، القياس: '+sanitize(String(i.size))+'، السعر الأصلي: '+Number(i.orig).toLocaleString()+' دينار، بعد الخصم '+DISCOUNT_PCT+'%: '+Number(i.disc).toLocaleString()+' دينار\n'; totO+=Number(i.orig); totD+=Number(i.disc); });
+  cart.forEach(i=>{ const p=Number(i.pct)||DISCOUNT_PCT; msg+='- ID: '+sanitize(String(i.id))+'، القياس: '+sanitize(String(i.size))+'، السعر الأصلي: '+Number(i.orig).toLocaleString()+' دينار، بعد الخصم '+p+'%: '+Number(i.disc).toLocaleString()+' دينار\n'; totO+=Number(i.orig); totD+=Number(i.disc); });
   const ship=calcShip(cart),total=totD+ship;
   msg+='\nالمجموع الأصلي: '+totO.toLocaleString()+' دينار\n';
-  msg+='المجموع بعد الخصم '+DISCOUNT_PCT+'%: '+totD.toLocaleString()+' دينار\n';
+  msg+='المجموع بعد الخصم: '+totD.toLocaleString()+' دينار\n';
   msg+='تكلفة النقل: '+(ship===0 ? 'مجاني 🎉' : ship.toLocaleString()+' دينار')+'\n';
   msg+='المجموع النهائي: '+total.toLocaleString()+' دينار\n\n';
   msg+='معلومات الزبون:\nالاسم: '+(name||'—')+'\nالهاتف: '+(phone||'—')+'\nالعنوان: '+(addr||'—');
@@ -377,18 +418,24 @@ function showError(){ const c=document.getElementById('prodCont'); c.innerHTML='
 function addJsonLD(products){
   const old=document.getElementById('jld'); if(old) old.remove();
   const safe=products.filter(p=>parseSizes(p.sizes).length>0).slice(0,20);
-  const schema={'@context':'https://schema.org','@type':'ItemList',name:'متجر جود العباس - ملابس أطفال',itemListElement:safe.map((item,i)=>({'@type':'ListItem',position:i+1,item:{'@type':'Product',name:'منتج # '+item.Id,image:item.picture||'',offers:{'@type':'Offer',price:discPrice(item.price),priceCurrency:'IQD',availability:'https://schema.org/InStock'}}}))};
+  const schema={'@context':'https://schema.org','@type':'ItemList',name:'متجر جود العباس - ملابس أطفال',itemListElement:safe.map((item,i)=>({'@type':'ListItem',position:i+1,item:{'@type':'Product',name:'منتج # '+item.Id,image:item.picture||'',offers:{'@type':'Offer',price:discPrice(item.price, itemDiscPct(item)),priceCurrency:'IQD',availability:'https://schema.org/InStock'}}}))};
   const sc=document.createElement('script'); sc.id='jld'; sc.type='application/ld+json'; sc.textContent=JSON.stringify(schema); document.head.appendChild(sc);
 }
 
 function createCard(item){
-  const orig=parseFloat(item.price), disc=discPrice(orig);
+  const pct=itemDiscPct(item);                    // 50% لآخر القطع، 40% للباقي
+  const orig=parseFloat(item.price), disc=discPrice(orig, pct);
   const sizes=parseSizes(item.sizes), isLast=sizes.length===1;
+  const clear=isClearance(item);
   const imgSrc=safeImgSrc(item.picture);
   const card=document.createElement('div'); card.className='pcard';
   // Badges
   const badges=document.createElement('div'); badges.className='cbadges';
-  const bdis=document.createElement('span'); bdis.className='badge bdis'; bdis.textContent=t('discount'); badges.appendChild(bdis);
+  const bdis=document.createElement('span');
+  bdis.className='badge bdis'+(clear?' bclear':'');
+  const _lg=(localStorage.getItem('lang')||'ar');
+  bdis.textContent = _lg==='en' ? (pct+'% '+t('discPrefix')) : (t('discPrefix')+' '+pct+'%');
+  badges.appendChild(bdis);
   if(isLast){ const bl=document.createElement('span'); bl.className='badge blast'; bl.textContent=t('lastSize'); badges.appendChild(bl); }
   // Wish
   // Image
@@ -415,10 +462,13 @@ function createCard(item){
   pillsLbl.className='sz-pills-lbl';
   pillsLbl.textContent='👇 ' + t('tapSizeToAdd');
   const pills=document.createElement('div'); pills.className='sz-pills';
-  sizes.forEach(sz=>{ const p=document.createElement('button'); p.className='sz-pill'; p.textContent=getSzLbl(sz); p.addEventListener('click',()=>addToCart(item.Id,sz,orig,disc)); pills.appendChild(p); });
+  sizes.forEach(sz=>{ const p=document.createElement('button'); p.className='sz-pill'; p.textContent=getSzLbl(sz); p.addEventListener('click',()=>addToCart(item.Id,sz,orig,disc,pct)); pills.appendChild(p); });
   // زر إضافة للسلة الواضح - يفتح نافذة اختيار القياس
   // Share button removed - card actions limited to size pills only
-  body.appendChild(idEl); body.appendChild(pr); body.appendChild(sv); body.appendChild(pillsLbl); body.appendChild(pills);
+  /* خامة القماش */
+  const fab=document.createElement('div'); fab.className='cfabric';
+  fab.innerHTML='<i class="fas fa-tshirt"></i> <span>'+sanitize(getFabric(item))+'</span>';
+  body.appendChild(idEl); body.appendChild(fab); body.appendChild(pr); body.appendChild(sv); body.appendChild(pillsLbl); body.appendChild(pills);
   card.appendChild(iw); card.appendChild(body);
   return card;
 }
@@ -479,9 +529,9 @@ function cleanCart(silent){
   return before - cart.length;
 }
 
-function addToCart(id,size,orig,disc){
+function addToCart(id,size,orig,disc,pct){
   if(cart.find(i=>i.id===id&&i.size===size)){notify(t('already'),'w');return;}
-  cart.push({id,size,orig,disc}); saveCart(); updateCartBadge(); bounceCart();
+  cart.push({id,size,orig,disc,pct:Number(pct)||DISCOUNT_PCT}); saveCart(); updateCartBadge(); bounceCart();
   notify(t('cartAdded')+' — '+t('saved')+' '+(Number(orig)-Number(disc)).toLocaleString()+' '+t('dinar')+' 💚','s');
   try{
     // نستخدم meta.js (safeValue يمنع القيم الصفرية)
@@ -546,8 +596,8 @@ function delCartItem(id,size){ showDlg('🗑️',t('delQ'),[{lbl:t('yes'),cls:'d
 document.getElementById('clearCartBtn').addEventListener('click',()=>showDlg('🗑️',t('clrQ'),[{lbl:t('yes'),cls:'dlg-yes',fn:()=>{cart=[];saveCart();updateCartBadge();renderCart();}},{lbl:t('no'),cls:'dlg-no'}]));
 
 /* ==================== SIZE DIALOG ==================== */
-let _cid,_csz,_cor,_cdc;
-function showSizeDlg(id,szRaw,orig,disc){ _cid=id;_csz=parseSizes(szRaw);_cor=orig;_cdc=disc; document.getElementById('szTitle').textContent=t('szTitle'); document.getElementById('szCancel').textContent=t('cancel'); const g=document.getElementById('szGrid'); g.innerHTML=''; _csz.forEach(sz=>{ const b=document.createElement('button'); b.className='sz-btn'; b.textContent=getSzLbl(sz); b.addEventListener('click',()=>{addToCart(_cid,sz,_cor,_cdc);closeSzDlg();}); g.appendChild(b); }); document.getElementById('szOv').classList.add('open'); document.body.style.overflow='hidden'; }
+let _cid,_csz,_cor,_cdc,_cpct;
+function showSizeDlg(id,szRaw,orig,disc,pct){ _cid=id;_csz=parseSizes(szRaw);_cor=orig;_cdc=disc;_cpct=Number(pct)||DISCOUNT_PCT; document.getElementById('szTitle').textContent=t('szTitle'); document.getElementById('szCancel').textContent=t('cancel'); const g=document.getElementById('szGrid'); g.innerHTML=''; _csz.forEach(sz=>{ const b=document.createElement('button'); b.className='sz-btn'; b.textContent=getSzLbl(sz); b.addEventListener('click',()=>{addToCart(_cid,sz,_cor,_cdc,_cpct);closeSzDlg();}); g.appendChild(b); }); document.getElementById('szOv').classList.add('open'); document.body.style.overflow='hidden'; }
 function closeSzDlg(){ document.getElementById('szOv').classList.remove('open'); document.body.style.overflow=''; }
 document.getElementById('szCancel').addEventListener('click',closeSzDlg);
 document.getElementById('szOv').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSzDlg();});
@@ -1060,10 +1110,10 @@ async function submitOrder(){
   sessionStorage.setItem('ls',String(now));
   let totO=0,totD=0;
   let msg='مرحباً، أرغب بشراء المنتجات التالية:\n';
-  cart.forEach(i=>{ msg+='- ID: '+sanitize(String(i.id))+'، القياس: '+sanitize(String(i.size))+'، السعر الأصلي: '+Number(i.orig).toLocaleString()+' دينار، بعد الخصم '+DISCOUNT_PCT+'%: '+Number(i.disc).toLocaleString()+' دينار\n'; totO+=Number(i.orig); totD+=Number(i.disc); });
+  cart.forEach(i=>{ const p=Number(i.pct)||DISCOUNT_PCT; msg+='- ID: '+sanitize(String(i.id))+'، القياس: '+sanitize(String(i.size))+'، السعر الأصلي: '+Number(i.orig).toLocaleString()+' دينار، بعد الخصم '+p+'%: '+Number(i.disc).toLocaleString()+' دينار\n'; totO+=Number(i.orig); totD+=Number(i.disc); });
   const ship=calcShip(cart), total=totD+ship;
   msg+='\nالمجموع الأصلي: '+totO.toLocaleString()+' دينار\n';
-  msg+='المجموع بعد الخصم '+DISCOUNT_PCT+'%: '+totD.toLocaleString()+' دينار\n';
+  msg+='المجموع بعد الخصم: '+totD.toLocaleString()+' دينار\n';
   msg+='تكلفة النقل: '+(ship===0 ? 'مجاني 🎉' : ship.toLocaleString()+' دينار')+'\n';
   msg+='المجموع النهائي: '+total.toLocaleString()+' دينار\n\n';
   msg+='معلومات الزبون:\nالاسم: '+name+'\nالهاتف: '+phone+'\nالعنوان: '+addr;
