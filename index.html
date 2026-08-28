@@ -23,7 +23,12 @@ fbq('init','2514076832364278');fbq('track','PageView');
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/style.css?v=1.0.9">
+  <script>
+  /* إصدار الملفات — يُحدَّث تلقائياً من لوحة الإدارة */
+  window.__V = (function(){ try{ return localStorage.getItem('assetV') || '1.0.9'; }catch(e){ return '1.1.0'; } })();
+  document.write('<link rel="stylesheet" href="css/style.css?v='+window.__V+'">');
+</script>
+<noscript><link rel="stylesheet" href="css/style.css"></noscript>
 </head>
 <body id="bodyRoot">
 
@@ -297,8 +302,13 @@ fbq('init','2514076832364278');fbq('track','PageView');
   </div>
 </div>
 
-  <script src="js/lang.js?v=1.0.9"></script>
-  <script src="js/app.js?v=1.0.9"></script>
-  <script src="js/meta.js?v=1.0.9"></script>
+  <script>
+    (function(){
+      var v = window.__V || '1.1.0';
+      ['js/lang.js','js/app.js','js/meta.js'].forEach(function(src){
+        document.write('<scr'+'ipt src="'+src+'?v='+v+'"></scr'+'ipt>');
+      });
+    })();
+  </script>
 </body>
 </html>
