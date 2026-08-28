@@ -156,9 +156,30 @@
     block('انتهت جلستك.<br>سجّل الدخول مجدداً من لوحة الإدارة.');
   }
 
+  /* ===== تمرير رمز الجلسة تلقائياً لكل نداء للسكربت =====
+     يغني عن تعديل كود كل أداة على حدة */
+  var _origFetch = window.fetch;
+  window.fetch = function(url, cfg){
+    try{
+      var u = String(url);
+      if(u.indexOf(API_URL) === 0){
+        var method = (cfg && cfg.method ? String(cfg.method) : 'GET').toUpperCase();
+        if(method === 'GET'){
+          url = u + (u.indexOf('?') > -1 ? '&' : '?') + 'token=' + encodeURIComponent(tok);
+        }else if(cfg && typeof cfg.body === 'string'){
+          try{
+            var bd = JSON.parse(cfg.body);
+            if(bd && typeof bd === 'object' && !bd.token){ bd.token = tok; cfg.body = JSON.stringify(bd); }
+          }catch(_){ /* ليس JSON — نتركه */ }
+        }
+      }
+    }catch(_){}
+    return _origFetch.call(window, url, cfg);
+  };
+
   /* تحقق خلفي من الخادم — لا يوقف الصفحة، لكن يحجبها لو رُفض */
   try{
-    fetch(API_URL, { method:'POST', body: JSON.stringify({ action:'checkSession', token: tok }) })
+    _origFetch.call(window, API_URL, { method:'POST', body: JSON.stringify({ action:'checkSession', token: tok }) })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(!d || !d.success){
