@@ -140,6 +140,72 @@
     .btn{padding:9px 12px;font-size:12.5px}
     .wrap{padding:12px;gap:12px}
   }
+
+/* ==================== اختيار الطلب ==================== */
+.ord-tools{display:flex;gap:8px;margin-bottom:11px;flex-wrap:wrap}
+.ord-tools input[type=search]{flex:1;min-width:150px;padding:9px 12px;border:1.5px solid #e2e8f0;
+  border-radius:9px;font-size:13.5px;font-family:inherit;outline:none}
+.ord-tools input[type=search]:focus{border-color:#1565C0}
+.ord-tools select{padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;
+  font-family:inherit;font-weight:600;background:#fff;cursor:pointer;outline:none}
+.btn-refresh{border:1.5px solid #e2e8f0;background:#fff;border-radius:9px;padding:9px 12px;
+  cursor:pointer;font-size:15px;transition:all .15s}
+.btn-refresh:hover{border-color:#1565C0}
+.ord-list{max-height:320px;overflow-y:auto;border:1.5px solid #e2e8f0;border-radius:11px;background:#fafbfc}
+.ord-item{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid #eef2f6;
+  cursor:pointer;transition:background .13s}
+.ord-item:last-child{border-bottom:none}
+.ord-item:hover{background:#eff6ff}
+.ord-item.on{background:#dbeafe;box-shadow:inset 3px 0 0 #1565C0}
+.ord-main{flex:1;min-width:0}
+.ord-id{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:#1565C0}
+.ord-sub{font-size:11.5px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ord-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;white-space:nowrap;flex-shrink:0}
+.ob-review{background:#fef3c7;color:#92400e}
+.ob-confirm{background:#dbeafe;color:#1e40af}
+.ob-prep{background:#d1fae5;color:#065f46}
+.ob-courier{background:#ede9fe;color:#5b21b6}
+.ob-done{background:#dcfce7;color:#166534}
+.ob-cancel{background:#fee2e2;color:#991b1b}
+.ord-empty{display:flex;flex-direction:column;align-items:center;gap:9px;padding:30px 16px;
+  color:#94a3b8;font-size:13px}
+.spin{width:22px;height:22px;border:2.5px solid #e2e8f0;border-top-color:#1565C0;border-radius:50%;
+  animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(max-width:600px){ .ord-list{max-height:260px} .ord-tools select{flex:1} }
+
+/* ==================== اختيار الطلب ==================== */
+.ord-tools{display:flex;gap:8px;margin-bottom:11px;flex-wrap:wrap}
+.ord-tools input[type=search]{flex:1;min-width:150px;padding:9px 12px;border:1.5px solid #e2e8f0;
+  border-radius:9px;font-size:13.5px;font-family:inherit;outline:none}
+.ord-tools input[type=search]:focus{border-color:#1565C0}
+.ord-tools select{padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;
+  font-family:inherit;font-weight:600;background:#fff;cursor:pointer;outline:none}
+.btn-refresh{border:1.5px solid #e2e8f0;background:#fff;border-radius:9px;padding:9px 12px;
+  cursor:pointer;font-size:15px;transition:all .15s}
+.btn-refresh:hover{border-color:#1565C0}
+.ord-list{max-height:320px;overflow-y:auto;border:1.5px solid #e2e8f0;border-radius:11px;background:#fafbfc}
+.ord-item{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid #eef2f6;
+  cursor:pointer;transition:background .13s}
+.ord-item:last-child{border-bottom:none}
+.ord-item:hover{background:#eff6ff}
+.ord-item.on{background:#dbeafe;box-shadow:inset 3px 0 0 #1565C0}
+.ord-main{flex:1;min-width:0}
+.ord-id{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:#1565C0}
+.ord-sub{font-size:11.5px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ord-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;white-space:nowrap;flex-shrink:0}
+.ob-review{background:#fef3c7;color:#92400e}
+.ob-confirm{background:#dbeafe;color:#1e40af}
+.ob-prep{background:#d1fae5;color:#065f46}
+.ob-courier{background:#ede9fe;color:#5b21b6}
+.ob-done{background:#dcfce7;color:#166534}
+.ob-cancel{background:#fee2e2;color:#991b1b}
+.ord-empty{display:flex;flex-direction:column;align-items:center;gap:9px;padding:30px 16px;
+  color:#94a3b8;font-size:13px}
+.spin{width:22px;height:22px;border:2.5px solid #e2e8f0;border-top-color:#1565C0;border-radius:50%;
+  animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(max-width:600px){ .ord-list{max-height:260px} .ord-tools select{flex:1} }
 </style>
 </head>
 <body>
@@ -182,9 +248,30 @@
     block('انتهت جلستك.<br>سجّل الدخول مجدداً من لوحة الإدارة.');
   }
 
+  /* ===== تمرير رمز الجلسة تلقائياً لكل نداء للسكربت =====
+     يغني عن تعديل كود كل أداة على حدة */
+  var _origFetch = window.fetch;
+  window.fetch = function(url, cfg){
+    try{
+      var u = String(url);
+      if(u.indexOf(API_URL) === 0){
+        var method = (cfg && cfg.method ? String(cfg.method) : 'GET').toUpperCase();
+        if(method === 'GET'){
+          url = u + (u.indexOf('?') > -1 ? '&' : '?') + 'token=' + encodeURIComponent(tok);
+        }else if(cfg && typeof cfg.body === 'string'){
+          try{
+            var bd = JSON.parse(cfg.body);
+            if(bd && typeof bd === 'object' && !bd.token){ bd.token = tok; cfg.body = JSON.stringify(bd); }
+          }catch(_){ /* ليس JSON — نتركه */ }
+        }
+      }
+    }catch(_){}
+    return _origFetch.call(window, url, cfg);
+  };
+
   /* تحقق خلفي من الخادم — لا يوقف الصفحة، لكن يحجبها لو رُفض */
   try{
-    fetch(API_URL, { method:'POST', body: JSON.stringify({ action:'checkSession', token: tok }) })
+    _origFetch.call(window, API_URL, { method:'POST', body: JSON.stringify({ action:'checkSession', token: tok }) })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(!d || !d.success){
@@ -217,6 +304,20 @@
 
   <!-- ===== لوحة الإدخال ===== -->
   <div>
+    <div class="panel" style="margin-bottom:14px">
+      <div class="panel-h">📋 اختر الطلب</div>
+      <div class="panel-b">
+        <div class="ord-tools">
+          <input type="search" id="ordSearch" placeholder="🔍 بحث بالرقم أو الاسم أو الهاتف...">
+          <select id="ordStatus"><option value="">كل الحالات</option></select>
+          <button class="btn-refresh" id="ordRefresh">🔄</button>
+        </div>
+        <div class="ord-list" id="ordList">
+          <div class="ord-empty"><div class="spin"></div><span>جاري جلب الطلبات...</span></div>
+        </div>
+      </div>
+    </div>
+
     <div class="panel" style="margin-bottom:14px">
       <div class="panel-h">⚡ لصق سريع لنص الطلب</div>
       <div class="panel-b">
@@ -379,6 +480,110 @@ function toNum(s){
   const clean = arDigits(String(s)).replace(/[,،٬\s]/g,'').replace(/[^\d.-]/g,'');
   const n = Number(clean);
   return isFinite(n) ? n : null;
+}
+
+
+/* ==================== جلب الطلبات واختيارها ==================== */
+let ORDERS = [], selOrderId = null;
+
+function ordEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function ordVal(o, keys){ for(const k of keys){ if(o[k]!=null && o[k]!=='') return String(o[k]); } return ''; }
+
+function ordBadge(st){
+  const t=String(st||'');
+  let c='ob-review';
+  if(/تم التأكيد/.test(t)) c='ob-confirm';
+  else if(/تم التجهيز/.test(t)) c='ob-prep';
+  else if(/المندوب/.test(t)) c='ob-courier';
+  else if(/تم التسليم/.test(t)) c='ob-done';
+  else if(/ملغي|راجع/.test(t)) c='ob-cancel';
+  return '<span class="ord-badge '+c+'">'+ordEsc(t||'قيد المراجعة')+'</span>';
+}
+
+/* استخراج سريع للاسم من نص الطلب (للعرض في القائمة) */
+function quickName(msg){
+  const m = String(msg||'').match(/الاسم\s*[:：]\s*(.+)/);
+  return m ? m[1].trim() : '';
+}
+
+async function loadOrders(silent){
+  const box = document.getElementById('ordList');
+  if(!silent) box.innerHTML = '<div class="ord-empty"><div class="spin"></div><span>جاري جلب الطلبات...</span></div>';
+  try{
+    const r = await fetch(API+'?action=getOrders', {cache:'no-store'});
+    const d = await r.json();
+    if(d && d.error) throw new Error(d.error);
+    ORDERS = Array.isArray(d) ? d : [];
+    fillStatusFilter();
+    renderOrders();
+  }catch(e){
+    box.innerHTML = '<div class="ord-empty"><span>⚠️ تعذّر جلب الطلبات</span>'+
+                    '<span style="font-size:11.5px">'+ordEsc(e.message)+'</span></div>';
+  }
+}
+
+function fillStatusFilter(){
+  const sel = document.getElementById('ordStatus');
+  const cur = sel.value;
+  const set = [...new Set(ORDERS.map(o=>ordVal(o,['الحالة','status'])).filter(Boolean))];
+  sel.innerHTML = '<option value="">كل الحالات</option>' +
+    set.map(s=>'<option value="'+ordEsc(s)+'">'+ordEsc(s)+'</option>').join('');
+  if(cur) sel.value = cur;
+}
+
+function filteredOrders(){
+  const q  = (document.getElementById('ordSearch').value||'').trim().toLowerCase();
+  const st = document.getElementById('ordStatus').value;
+  return ORDERS.filter(o=>{
+    const status = ordVal(o,['الحالة','status']);
+    if(st && status !== st) return false;
+    if(q){
+      const msg = ordVal(o,['نص الطلب','نص الرسالة','message']);
+      const hay = (ordVal(o,['Order ID','orderId'])+' '+ordVal(o,['الهاتف','phone'])+' '+quickName(msg)).toLowerCase();
+      if(hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+}
+
+function renderOrders(){
+  const box = document.getElementById('ordList');
+  const list = filteredOrders();
+  if(!list.length){
+    box.innerHTML = '<div class="ord-empty"><span>📭 لا طلبات مطابقة</span></div>';
+    return;
+  }
+  box.innerHTML = '';
+  list.forEach(o=>{
+    const oid = ordVal(o,['Order ID','orderId']);
+    const msg = ordVal(o,['نص الطلب','نص الرسالة','message']);
+    const nm  = quickName(msg);
+    const ph  = ordVal(o,['الهاتف','phone']);
+    const dt  = ordVal(o,['التاريخ','date']);
+    const div = document.createElement('div');
+    div.className = 'ord-item' + (selOrderId===oid ? ' on' : '');
+    div.innerHTML =
+      '<div class="ord-main">'+
+        '<div class="ord-id">'+ordEsc(oid)+'</div>'+
+        '<div class="ord-sub">'+ordEsc([nm, ph, dt].filter(Boolean).join(' · '))+'</div>'+
+      '</div>'+ ordBadge(ordVal(o,['الحالة','status']));
+    div.addEventListener('click', ()=>pickOrder(oid, msg));
+    box.appendChild(div);
+  });
+}
+
+/* اختيار طلب → يملأ حقل النص ويحلّله فوراً */
+function pickOrder(oid, msg){
+  selOrderId = oid;
+  const ta = document.getElementById('pasteIn');
+  ta.value = msg || '';
+  renderOrders();
+  if(!msg){ toast('هذا الطلب بلا نص تفصيلي','err'); return; }
+  parseOrderText();
+  /* نضمن ظهور رقم الطلب حتى لو لم يكن داخل النص */
+  const fo = document.getElementById('fOrder');
+  if(fo && !fo.value.trim()) fo.value = oid;
+  toast('✅ حُمّل الطلب '+oid);
 }
 
 function parseOrderText(){
@@ -707,6 +912,12 @@ document.getElementById('addBtn').addEventListener('click',addItem);
 document.getElementById('addId').addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();document.getElementById('addSize').focus();} });
 document.getElementById('addSize').addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();addItem();} });
 document.getElementById('parseBtn').addEventListener('click',parseOrderText);
+/* اختيار الطلب */
+let _ordT;
+document.getElementById('ordSearch').addEventListener('input',()=>{ clearTimeout(_ordT); _ordT=setTimeout(renderOrders,250); });
+document.getElementById('ordStatus').addEventListener('change', renderOrders);
+document.getElementById('ordRefresh').addEventListener('click',()=>loadOrders());
+loadOrders();
 document.getElementById('pasteBtn').addEventListener('click',async()=>{
   const ta=document.getElementById('pasteIn');
   try{
