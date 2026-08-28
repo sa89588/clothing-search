@@ -207,6 +207,40 @@
     .card-body{padding:8px}
     .se-add input{font-size:11px}
   }
+
+/* ==================== تحسينات الهاتف ==================== */
+@media (max-width:600px){
+  /* شريط الفلاتر: يلتف بدل القطع الأفقي */
+  .chips{
+    flex-wrap:wrap !important;
+    overflow-x:visible !important;
+    justify-content:flex-start;
+    gap:7px !important;
+    padding-bottom:0 !important;
+  }
+  .chip{
+    flex:0 0 auto;
+    padding:7px 13px !important;
+    font-size:12.5px !important;
+  }
+  /* منع أي تجاوز أفقي عام */
+  html,body{overflow-x:hidden;max-width:100%}
+  .wrap,header,main,.hwrap{max-width:100%;box-sizing:border-box}
+
+  /* بطاقة الموديل: مساحة أفضل */
+  .chip-sz{font-size:12px}
+  .sizes-row{flex-wrap:wrap;gap:6px}
+
+  /* حقل الإضافة والزر: صف واحد مرتب */
+  .add-row{display:flex;gap:7px;align-items:center;flex-wrap:nowrap}
+  .add-row input{flex:1;min-width:0}
+  .add-row button{flex:0 0 auto}
+}
+
+@media (max-width:400px){
+  .chip{padding:6px 11px !important; font-size:12px !important}
+  .chips{gap:6px !important}
+}
 </style>
 </head>
 <body>
@@ -249,9 +283,30 @@
     block('انتهت جلستك.<br>سجّل الدخول مجدداً من لوحة الإدارة.');
   }
 
+  /* ===== تمرير رمز الجلسة تلقائياً لكل نداء للسكربت =====
+     يغني عن تعديل كود كل أداة على حدة */
+  var _origFetch = window.fetch;
+  window.fetch = function(url, cfg){
+    try{
+      var u = String(url);
+      if(u.indexOf(API_URL) === 0){
+        var method = (cfg && cfg.method ? String(cfg.method) : 'GET').toUpperCase();
+        if(method === 'GET'){
+          url = u + (u.indexOf('?') > -1 ? '&' : '?') + 'token=' + encodeURIComponent(tok);
+        }else if(cfg && typeof cfg.body === 'string'){
+          try{
+            var bd = JSON.parse(cfg.body);
+            if(bd && typeof bd === 'object' && !bd.token){ bd.token = tok; cfg.body = JSON.stringify(bd); }
+          }catch(_){ /* ليس JSON — نتركه */ }
+        }
+      }
+    }catch(_){}
+    return _origFetch.call(window, url, cfg);
+  };
+
   /* تحقق خلفي من الخادم — لا يوقف الصفحة، لكن يحجبها لو رُفض */
   try{
-    fetch(API_URL, { method:'POST', body: JSON.stringify({ action:'checkSession', token: tok }) })
+    _origFetch.call(window, API_URL, { method:'POST', body: JSON.stringify({ action:'checkSession', token: tok }) })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(!d || !d.success){
