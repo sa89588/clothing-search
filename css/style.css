@@ -602,3 +602,28 @@ body.dark .fabric-note{background:#14532d;border-color:#166534;color:#bbf7d0}
 .badge.bclear{background:linear-gradient(135deg,#dc2626,#991b1b) !important;
               animation:clearPulse 2s ease-in-out infinite}
 @keyframes clearPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+/* ==================== سعر داخل زر القياس ==================== */
+.sz-pill{display:inline-flex;flex-direction:column;align-items:center;gap:1px;line-height:1.3}
+.szp-lbl{font-size:inherit}
+.szp-price{font-size:10.5px;font-weight:800;color:#16a34a;letter-spacing:-.01em}
+.sz-pill.sz-best{border-color:#16a34a;background:#f0fdf4}
+.sz-pill.sz-best .szp-price{color:#15803d}
+.sz-btn{display:inline-flex;flex-direction:column;align-items:center;gap:2px;line-height:1.3}
+body.dark .szp-price{color:#4ade80}
+body.dark .sz-pill.sz-best{background:#14532d;border-color:#16a34a}
+
+/* ==================== القطع المميزة (السعر المشروط) ==================== */
+.badge.bspecial{background:linear-gradient(135deg,#f59e0b,#d97706) !important;color:#fff}
+.ci-star{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:12px;
+         margin-top:3px;background:#fef3c7;color:#92400e}
+.ci-star.ok{background:#dcfce7;color:#15803d}
+.cheap-box{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1.5px solid #fbbf24;
+           border-radius:10px;padding:10px 12px;margin:6px 0;font-size:12.5px;line-height:1.7;color:#92400e}
+.cheap-box b{font-size:13px}
+.cheap-box span{font-size:11.5px;opacity:.9}
+.cheap-box.ok{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#4ade80;color:#15803d}
+body.dark .cheap-box{background:#451a03;border-color:#b45309;color:#fde68a}
+body.dark .cheap-box.ok{background:#14532d;border-color:#16a34a;color:#bbf7d0}
+body.dark .ci-star{background:#451a03;color:#fde68a}
+body.dark .ci-star.ok{background:#14532d;color:#bbf7d0}
