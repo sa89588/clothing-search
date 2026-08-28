@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f172a">
+<title>تصحيح الجرد — جود العباس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0f172a; --ink2:#475569; --line:#e2e8f0;
+    --bg:#f6f7f9; --card:#ffffff; --accent:#0d9488;
+    --accent-soft:#ccfbf1; --danger:#e11d48; --danger-soft:#ffe4e6;
+    --warn:#f59e0b; --ok:#16a34a; --ok-soft:#dcfce7;
+    --radius:14px; --shadow:0 1px 3px rgba(15,23,42,.06),0 8px 24px rgba(15,23,42,.05);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'Space Mono',monospace}
+
+  /* ===== Header ===== */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(255,255,255,.9); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .hwrap{max-width:1200px; margin:0 auto; padding:14px 18px}
+  .htop{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px}
+  .brand{display:flex; align-items:center; gap:10px}
+  .brand-mark{
+    width:38px; height:38px; border-radius:10px;
+    background:linear-gradient(135deg,#0d9488,#0f766e);
+    display:grid; place-items:center; color:#fff; font-size:20px;
+    box-shadow:0 4px 12px rgba(13,148,136,.3);
+  }
+  .brand-txt h1{font-size:16px; font-weight:700; letter-spacing:-.01em}
+  .brand-txt p{font-size:12px; color:var(--ink2); font-weight:500}
+  .count-pill{
+    font-size:13px; font-weight:600; color:var(--accent);
+    background:var(--accent-soft); padding:5px 12px; border-radius:20px; white-space:nowrap;
+  }
+  .searchbar{display:flex; gap:8px}
+  .search-in{
+    flex:1; padding:12px 16px; border:1.5px solid var(--line); border-radius:12px;
+    font-size:15px; font-family:inherit; background:var(--card); color:var(--ink);
+    outline:none; transition:border-color .15s, box-shadow .15s;
+  }
+  .search-in:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .search-in::placeholder{color:#94a3b8}
+  .btn-clear{
+    padding:0 18px; border:1.5px solid var(--line); border-radius:12px;
+    background:var(--card); color:var(--ink2); font-size:14px; font-weight:600;
+    cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap;
+  }
+  .btn-clear:hover{border-color:var(--danger); color:var(--danger)}
+  .chips{display:flex; gap:8px; margin-top:12px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    padding:7px 14px; border:1.5px solid var(--line); border-radius:20px;
+    background:var(--card); color:var(--ink2); font-size:13px; font-weight:600;
+    cursor:pointer; white-space:nowrap; font-family:inherit; transition:all .15s;
+  }
+  .chip.on{background:var(--ink); color:#fff; border-color:var(--ink)}
+
+  /* ===== Grid ===== */
+  main{max-width:1200px; margin:0 auto; padding:20px 18px 80px}
+  .grid{
+    display:grid; gap:16px;
+    grid-template-columns:repeat(auto-fill,minmax(175px,1fr));
+  }
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column;
+    transition:box-shadow .18s;
+  }
+  .card.saving{opacity:.6; pointer-events:none}
+  .card.saved{border-color:var(--ok); box-shadow:0 0 0 2px var(--ok-soft)}
+  .card-img-wrap{position:relative; aspect-ratio:1/1; background:#f1f5f9; overflow:hidden; cursor:pointer}
+  .card-img{width:100%; height:100%; object-fit:cover; display:block}
+  .card-img.loading{opacity:0}
+  .img-skeleton{
+    position:absolute; inset:0; background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
+    background-size:200% 100%; animation:shimmer 1.4s infinite;
+  }
+  @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .badge-sea{
+    position:absolute; top:8px; inset-inline-start:8px; font-size:11px; font-weight:600;
+    padding:3px 9px; border-radius:20px; background:rgba(255,255,255,.92); backdrop-filter:blur(4px);
+  }
+  .badge-empty{
+    position:absolute; top:8px; inset-inline-end:8px; font-size:11px; font-weight:700;
+    padding:3px 9px; border-radius:20px; background:var(--danger); color:#fff;
+  }
+
+  .card-body{padding:10px; display:flex; flex-direction:column; gap:8px}
+  .card-id{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  .id-num{font-family:'Space Mono',monospace; font-size:15px; font-weight:700; letter-spacing:-.02em}
+  .copy-btn{
+    border:none; background:var(--bg); color:var(--ink2); border-radius:7px;
+    width:26px; height:26px; cursor:pointer; font-size:12px; transition:all .15s; display:grid; place-items:center;
+  }
+  .copy-btn:hover{background:var(--accent-soft); color:var(--accent)}
+  .copy-btn.done{background:var(--accent); color:#fff}
+  .card-tags{display:flex; flex-wrap:wrap; gap:5px}
+  .tag{font-size:11px; font-weight:600; padding:3px 8px; border-radius:6px; background:var(--bg); color:var(--ink2)}
+
+  /* ===== Sizes editor ===== */
+  .sizes-editor{border-top:1px dashed var(--line); padding-top:8px}
+  .se-label{font-size:11px; font-weight:600; color:var(--ink2); margin-bottom:7px; display:flex; align-items:center; gap:5px}
+  .se-chips{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; min-height:24px}
+  .se-chip{
+    display:inline-flex; align-items:center; gap:4px;
+    font-family:'Space Mono',monospace; font-size:11px; font-weight:700;
+    padding:3px 5px 3px 8px; border-radius:7px; background:var(--accent-soft); color:#0f766e;
+  }
+  .se-chip button{
+    border:none; background:rgba(15,118,110,.15); color:#0f766e; border-radius:4px;
+    width:16px; height:16px; cursor:pointer; font-size:11px; line-height:1; display:grid; place-items:center;
+    transition:background .15s;
+  }
+  .se-chip button:hover{background:var(--danger); color:#fff}
+  .se-empty{font-size:12px; color:var(--danger); font-weight:600; padding:3px 0}
+
+  .se-add{display:flex; gap:6px}
+  .se-add input{
+    flex:1; padding:7px 9px; border:1.5px solid var(--line); border-radius:8px;
+    font-size:12px; font-family:'Space Mono',monospace; font-weight:700; outline:none;
+    background:var(--card); color:var(--ink); transition:border-color .15s; min-width:0;
+  }
+  .se-add input:focus{border-color:var(--accent)}
+  .se-add-btn{
+    border:none; background:var(--ink); color:#fff; border-radius:8px; padding:0 11px;
+    font-size:15px; cursor:pointer; transition:background .15s; white-space:nowrap;
+  }
+  .se-add-btn:hover{background:#000}
+
+  .se-actions{display:flex; gap:7px; margin-top:2px}
+  .se-save{
+    flex:1; border:none; background:var(--accent); color:#fff; border-radius:8px;
+    padding:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit;
+    transition:background .15s; display:flex; align-items:center; justify-content:center; gap:4px;
+  }
+  .se-save:hover{background:#0f766e}
+  .se-save:disabled{background:#cbd5e1; cursor:not-allowed}
+  .se-reset{
+    border:1.5px solid var(--line); background:var(--card); color:var(--ink2); border-radius:8px;
+    padding:8px 11px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s;
+  }
+  .se-reset:hover{border-color:var(--warn); color:var(--warn)}
+  .se-dirty-dot{width:7px; height:7px; border-radius:50%; background:var(--warn); display:inline-block}
+
+  /* ===== States ===== */
+  .state{text-align:center; padding:70px 20px; color:var(--ink2)}
+  .state-icon{font-size:44px; margin-bottom:14px; opacity:.5}
+  .state h3{font-size:17px; font-weight:600; color:var(--ink); margin-bottom:6px}
+  .spinner{
+    width:38px; height:38px; border:3px solid var(--line); border-top-color:var(--accent);
+    border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 16px;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ===== Lightbox ===== */
+  .lb{position:fixed; inset:0; background:rgba(15,23,42,.92); z-index:100; display:none;
+    align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(8px)}
+  .lb.open{display:flex}
+  .lb img{max-width:90vw; max-height:80vh; border-radius:16px; object-fit:contain; box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .lb-x{position:absolute; top:20px; inset-inline-end:20px; width:44px; height:44px; border:none;
+    border-radius:50%; background:rgba(255,255,255,.15); color:#fff; font-size:22px; cursor:pointer}
+  .lb-x:hover{background:rgba(255,255,255,.28)}
+
+  /* ===== Toast ===== */
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+    color:#fff; padding:12px 22px; border-radius:12px; font-size:14px; font-weight:600;
+    z-index:200; opacity:0; transition:all .3s; box-shadow:0 8px 24px rgba(0,0,0,.25);
+    background:var(--ink);
+  }
+  .toast.show{transform:translateX(-50%) translateY(0); opacity:1}
+  .toast.ok{background:var(--ok)}
+  .toast.err{background:var(--danger)}
+
+  /* ===== الهاتف: عمودان ===== */
+  @media (max-width:600px){
+    .hwrap{padding:12px 12px}
+    .grid{grid-template-columns:repeat(2,1fr); gap:10px}
+    .card-body{padding:9px; gap:7px}
+    .id-num{font-size:14px}
+    .se-label{font-size:10px}
+    .se-chip{font-size:11px; padding:3px 4px 3px 7px}
+    .se-add input{padding:7px 8px; font-size:12px}
+    .se-add-btn{padding:0 10px}
+    .se-save{font-size:11px; padding:8px 4px}
+    .tag{font-size:10px; padding:2px 6px}
+    .badge-sea, .badge-empty{font-size:10px; padding:2px 7px}
+    .chips{gap:6px}
+    .chip{padding:6px 12px; font-size:12px}
+  }
+  /* شاشات صغيرة جداً — نبقيها عمودين لكن أنحف */
+  @media (max-width:360px){
+    .grid{gap:8px}
+    .card-body{padding:8px}
+    .se-add input{font-size:11px}
+  }
+</style>
+</head>
+<body>
+<!-- ═══════════ حارس الجلسة — يُلصَق بعد <body> مباشرة ═══════════ -->
+<script>
+(function(){
+  /* يمنع فتح الأداة مباشرة بلا تسجيل دخول من لوحة الإدارة */
+  var ADMIN_URL = 'لوحة_الادارة.html';   // عدّله لو غيّرت مكان اللوحة
+  var API_URL   = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
+
+  var tok = null, exp = 0;
+  try{
+    tok = localStorage.getItem('adm_tok');
+    exp = Number(localStorage.getItem('adm_exp') || 0);
+  }catch(e){}
+
+  function block(msg){
+    document.documentElement.innerHTML =
+      '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
+      '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">'+
+      '</head><body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;'+
+      'background:linear-gradient(135deg,#1e293b,#0f172a);font-family:\'IBM Plex Sans Arabic\',sans-serif;padding:20px" dir="rtl">'+
+      '<div style="background:#fff;border-radius:20px;padding:38px 30px;max-width:380px;width:100%;text-align:center;'+
+      'box-shadow:0 24px 60px rgba(0,0,0,.45)">'+
+        '<div style="font-size:52px;margin-bottom:14px">🔒</div>'+
+        '<h1 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 8px">الوصول محمي</h1>'+
+        '<p style="font-size:13.5px;color:#475569;line-height:1.8;margin:0 0 22px">'+msg+'</p>'+
+        '<a href="'+ADMIN_URL+'" style="display:block;background:#1565C0;color:#fff;text-decoration:none;'+
+        'padding:13px;border-radius:11px;font-weight:700;font-size:14.5px">🔐 الذهاب للوحة الإدارة</a>'+
+      '</div></body>';
+    throw new Error('unauthorized');   // يوقف تنفيذ باقي سكربتات الصفحة
+  }
+
+  /* لا رمز أصلاً */
+  if(!tok){ block('هذه الأداة تُفتح من لوحة الإدارة فقط.<br>سجّل دخولك أولاً.'); }
+
+  /* الرمز منتهي محلياً */
+  if(exp && Date.now() > exp){
+    try{ localStorage.removeItem('adm_tok'); localStorage.removeItem('adm_exp'); }catch(e){}
+    block('انتهت جلستك.<br>سجّل الدخول مجدداً من لوحة الإدارة.');
+  }
+
+  /* تحقق خلفي من الخادم — لا يوقف الصفحة، لكن يحجبها لو رُفض */
+  try{
+    fetch(API_URL, { method:'POST', body: JSON.stringify({ action:'checkSession', token: tok }) })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d || !d.success){
+          try{ localStorage.removeItem('adm_tok'); localStorage.removeItem('adm_exp'); }catch(e){}
+          block('انتهت صلاحية الجلسة على الخادم.<br>سجّل الدخول مجدداً.');
+        }
+      })
+      .catch(function(){ /* انقطاع شبكة — نكتفي بالتحقق المحلي */ });
+  }catch(e){}
+})();
+</script>
+<!-- ═══════════ نهاية حارس الجلسة ═══════════ -->
+
+
+<header>
+  <div class="hwrap">
+    <div class="htop">
+      <div class="brand">
+        <div class="brand-mark">🧮</div>
+        <div class="brand-txt">
+          <h1>تصحيح الجرد</h1>
+          <p>متجر جود العباس</p>
+        </div>
+      </div>
+      <span class="count-pill" id="countPill">—</span>
+    </div>
+    <div class="searchbar">
+      <input class="search-in" id="searchIn" type="search" inputmode="numeric"
+             placeholder="ابحث برقم الموديل أو القياس..." autocomplete="off">
+      <button class="btn-clear" id="clearBtn">مسح</button>
+    </div>
+    <div class="chips" id="chips">
+      <button class="chip on" data-f="all">الكل</button>
+      <button class="chip" data-f="empty">⚠️ بلا قياس</button>
+      <button class="chip" data-f="صيفي">☀️ صيفي</button>
+      <button class="chip" data-f="شتوي">❄️ شتوي</button>
+      <button class="chip" data-f="بهاري">🌸 بهاري</button>
+      <button class="chip" data-f="طلعة">👗 طلعة</button>
+      <button class="chip" data-f="تركات منزلية">🏠 منزلي</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="stateBox" class="state">
+    <div class="spinner"></div>
+    <h3>جاري تحميل الموديلات...</h3>
+  </div>
+  <div class="grid" id="grid" style="display:none"></div>
+</main>
+
+<div class="lb" id="lb">
+  <button class="lb-x" id="lbX">✕</button>
+  <img id="lbImg" src="" alt="">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
+const PLACEHOLDER = 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="150"><rect width="200" height="150" fill="#f1f5f9"/><text x="100" y="82" font-size="40" text-anchor="middle" fill="#cbd5e1">📷</text></svg>'
+);
+
+let allModels = [];
+let currentFilter = 'all';
+// حالة التعديل لكل موديل: { id: {original:[...], current:[...]} }
+const editState = {};
+
+/* ===== أدوات ===== */
+function safeImg(url){
+  if(!url || typeof url!=='string') return PLACEHOLDER;
+  try{ const u=new URL(url); return (u.protocol==='https:'||u.protocol==='http:')?url:PLACEHOLDER; }
+  catch(_){ return PLACEHOLDER; }
+}
+function parseSizes(raw){
+  if(!raw) return [];
+  return String(raw).split(/[-,،]/).map(s=>s.trim()).filter(Boolean);
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function arrEq(a,b){ return a.length===b.length && a.every((v,i)=>v===b[i]); }
+
+let toastTimer;
+function toast(msg, kind){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show'+(kind?' '+kind:'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),1900);
+}
+async function copyText(text){
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(text); }
+    else{ const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+    return true;
+  }catch(_){ return false; }
+}
+
+/* ===== تحميل ===== */
+async function loadModels(){
+  try{
+    const r = await fetch(API, {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    allModels = Array.isArray(data) ? data.filter(m=>m && m.Id!=null && String(m.Id).trim()!=='') : [];
+    // تهيئة حالة التعديل
+    allModels.forEach(m=>{
+      const id=String(m.Id);
+      const sizes=parseSizes(m.sizes);
+      editState[id]={ original:sizes.slice(), current:sizes.slice() };
+    });
+    render();
+  }catch(e){
+    document.getElementById('stateBox').innerHTML =
+      '<div class="state-icon">⚠️</div><h3>تعذّر تحميل الموديلات</h3>'+
+      '<p>تحقّق من الاتصال</p>'+
+      '<button class="se-save" style="max-width:200px;margin:16px auto 0" onclick="location.reload()">🔄 إعادة المحاولة</button>';
+  }
+}
+
+/* ===== فلترة ===== */
+function getFiltered(){
+  const q=document.getElementById('searchIn').value.trim().toLowerCase();
+  return allModels.filter(m=>{
+    const id=String(m.Id);
+    const cur=editState[id]?editState[id].current:parseSizes(m.sizes);
+    if(currentFilter==='empty'){ if(cur.length!==0) return false; }
+    else if(currentFilter!=='all'){
+      const season=String(m.season||''); const type=String(m.type||'');
+      if(season!==currentFilter && type!==currentFilter) return false;
+    }
+    if(q){
+      const sizes=cur.join('-').toLowerCase();
+      if(!id.toLowerCase().includes(q) && !sizes.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+/* ===== عرض ===== */
+function render(){
+  const grid=document.getElementById('grid');
+  const stateBox=document.getElementById('stateBox');
+  const list=getFiltered();
+
+  const emptyCount=allModels.filter(m=>{
+    const id=String(m.Id); const cur=editState[id]?editState[id].current:[];
+    return cur.length===0;
+  }).length;
+  document.getElementById('countPill').textContent =
+    list.length+' موديل'+(emptyCount?' · '+emptyCount+' بلا قياس':'');
+
+  if(allModels.length===0){
+    stateBox.style.display='block'; grid.style.display='none';
+    stateBox.innerHTML='<div class="state-icon">📭</div><h3>لا توجد موديلات</h3>';
+    return;
+  }
+  if(list.length===0){
+    stateBox.style.display='block'; grid.style.display='none';
+    stateBox.innerHTML='<div class="state-icon">🔍</div><h3>لا نتائج</h3>';
+    return;
+  }
+  stateBox.style.display='none'; grid.style.display='grid';
+  grid.innerHTML='';
+  list.forEach(m=>grid.appendChild(buildCard(m)));
+}
+
+function buildCard(m){
+  const id=String(m.Id);
+  const st=editState[id];
+  const cur=st.current;
+  const season=esc(m.season||'');
+  const type=esc(m.type||'');
+  const imgUrl=safeImg(m.picture);
+  const dirty=!arrEq(st.original, cur);
+
+  const card=document.createElement('div');
+  card.className='card'+(dirty?'':'');
+  card.dataset.id=id;
+
+  card.innerHTML=
+    '<div class="card-img-wrap" data-img="'+imgUrl+'">'+
+      '<div class="img-skeleton"></div>'+
+      '<img class="card-img loading" loading="lazy" decoding="async" src="'+imgUrl+'" alt="موديل '+esc(id)+'">'+
+      (season?'<span class="badge-sea">'+season+'</span>':'')+
+      (cur.length===0?'<span class="badge-empty">بلا قياس</span>':'')+
+    '</div>'+
+    '<div class="card-body">'+
+      '<div class="card-id">'+
+        '<span class="id-num mono">#'+esc(id)+'</span>'+
+        '<button class="copy-btn" title="نسخ الرقم">📋</button>'+
+      '</div>'+
+      (type?'<div class="card-tags"><span class="tag">'+type+'</span></div>':'')+
+      '<div class="sizes-editor">'+
+        '<div class="se-label">📏 القياسات المتوفرة '+(dirty?'<span class="se-dirty-dot"></span>':'')+'</div>'+
+        '<div class="se-chips">'+renderChips(cur)+'</div>'+
+        '<div class="se-add">'+
+          '<input type="text" class="se-input" inputmode="numeric" placeholder="أضف قياس..." maxlength="6">'+
+          '<button class="se-add-btn" title="إضافة">＋</button>'+
+        '</div>'+
+        '<div class="se-actions">'+
+          '<button class="se-save" '+(dirty?'':'disabled')+'>💾 حفظ التعديل</button>'+
+          (dirty?'<button class="se-reset" title="تراجع">↺</button>':'')+
+        '</div>'+
+      '</div>'+
+    '</div>';
+
+  wireCard(card, m);
+  return card;
+}
+
+function renderChips(sizes){
+  if(sizes.length===0) return '<span class="se-empty">⚠️ لا قياسات — أضف قياساً</span>';
+  return sizes.map(s=>
+    '<span class="se-chip">'+esc(s)+'<button data-del="'+esc(s)+'" title="حذف">✕</button></span>'
+  ).join('');
+}
+
+function wireCard(card, m){
+  const id=String(m.Id);
+  const st=editState[id];
+
+  // صورة
+  const img=card.querySelector('.card-img');
+  const skel=card.querySelector('.img-skeleton');
+  img.addEventListener('load',()=>{ img.classList.remove('loading'); if(skel)skel.remove(); });
+  img.addEventListener('error',()=>{ img.src=PLACEHOLDER; img.classList.remove('loading'); if(skel)skel.remove(); });
+  card.querySelector('.card-img-wrap').addEventListener('click',()=>openLightbox(img.src));
+
+  // نسخ الرقم
+  card.querySelector('.copy-btn').addEventListener('click',async(e)=>{
+    e.stopPropagation();
+    const btn=e.currentTarget;
+    if(await copyText(id)){ btn.textContent='✓'; btn.classList.add('done'); toast('نُسخ #'+id);
+      setTimeout(()=>{btn.textContent='📋'; btn.classList.remove('done');},1000); }
+  });
+
+  // حذف قياس
+  card.querySelector('.se-chips').addEventListener('click',e=>{
+    const b=e.target.closest('[data-del]');
+    if(!b) return;
+    const sz=b.getAttribute('data-del');
+    st.current=st.current.filter(s=>s!==sz);
+    refreshCard(id);
+  });
+
+  // إضافة قياس
+  const input=card.querySelector('.se-input');
+  const addBtn=card.querySelector('.se-add-btn');
+  const doAdd=()=>{
+    const val=input.value.trim();
+    if(!val) return;
+    if(st.current.includes(val)){ toast('القياس '+val+' موجود','err'); input.value=''; return; }
+    st.current.push(val);
+    input.value='';
+    refreshCard(id, true);
+  };
+  addBtn.addEventListener('click',doAdd);
+  input.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); doAdd(); } });
+
+  // حفظ
+  card.querySelector('.se-save').addEventListener('click',()=>saveSizes(id, card));
+
+  // تراجع
+  const resetBtn=card.querySelector('.se-reset');
+  if(resetBtn) resetBtn.addEventListener('click',()=>{
+    st.current=st.original.slice();
+    refreshCard(id);
+  });
+}
+
+/* إعادة بناء بطاقة واحدة في مكانها (يحافظ على التركيز للإضافة المتتالية) */
+function refreshCard(id, focusInput){
+  const old=document.querySelector('.card[data-id="'+CSS.escape(id)+'"]');
+  if(!old) return;
+  const m=allModels.find(x=>String(x.Id)===id);
+  if(!m) return;
+  const fresh=buildCard(m);
+  old.replaceWith(fresh);
+  if(focusInput){ const inp=fresh.querySelector('.se-input'); if(inp) inp.focus(); }
+}
+
+/* حفظ القياسات عبر updateSizes */
+async function saveSizes(id, card){
+  const st=editState[id];
+  const saveBtn=card.querySelector('.se-save');
+  card.classList.add('saving');
+  saveBtn.textContent='⏳ جاري الحفظ...';
+  try{
+    const res=await fetch(API,{
+      method:'POST',
+      body:JSON.stringify({ action:'updateSizes', id:id, sizes:st.current.join('-') })
+    });
+    const d=await res.json();
+    if(d.success){
+      // نجح — نحدّث الأصل
+      st.original=st.current.slice();
+      // نحدّث النموذج المحلي
+      const m=allModels.find(x=>String(x.Id)===id);
+      if(m) m.sizes=st.current.join('-');
+      card.classList.remove('saving');
+      card.classList.add('saved');
+      toast('✅ حُفظ الموديل #'+id+' ('+st.current.length+' قياس)','ok');
+      setTimeout(()=>refreshCard(id),700);
+    }else{
+      throw new Error(d.message||d.error||'فشل الحفظ');
+    }
+  }catch(e){
+    card.classList.remove('saving');
+    saveBtn.textContent='💾 حفظ التعديل';
+    toast('❌ '+(e.message||'تعذّر الحفظ'),'err');
+  }
+}
+
+/* ===== Lightbox ===== */
+function openLightbox(src){
+  document.getElementById('lbImg').src=src;
+  document.getElementById('lb').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLightbox(){
+  document.getElementById('lb').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+/* ===== أحداث عامة ===== */
+document.getElementById('searchIn').addEventListener('input',render);
+document.getElementById('clearBtn').addEventListener('click',()=>{ document.getElementById('searchIn').value=''; render(); });
+document.getElementById('chips').addEventListener('click',e=>{
+  const chip=e.target.closest('.chip'); if(!chip) return;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  chip.classList.add('on'); currentFilter=chip.dataset.f; render();
+});
+document.getElementById('lbX').addEventListener('click',closeLightbox);
+document.getElementById('lb').addEventListener('click',e=>{ if(e.target.id==='lb') closeLightbox(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeLightbox(); });
+
+loadModels();
+</script>
+</body>
+</html>

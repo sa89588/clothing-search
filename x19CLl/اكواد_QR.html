@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f172a">
+<title>أكواد QR للطلبات — جود العباس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root{
+    --ink:#0f172a; --ink2:#475569; --line:#e2e8f0; --bg:#f6f7f9; --card:#fff;
+    --accent:#0d9488; --accent-soft:#ccfbf1; --danger:#e11d48; --ok:#16a34a;
+    --warn:#f59e0b; --purple:#7c3aed; --radius:14px;
+    --shadow:0 1px 3px rgba(15,23,42,.06),0 8px 24px rgba(15,23,42,.05);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .mono{font-family:'Space Mono',monospace}
+
+  header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .hwrap{max-width:1200px;margin:0 auto;padding:12px 16px}
+  .htop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#6d28d9);display:grid;place-items:center;color:#fff;font-size:19px;box-shadow:0 4px 12px rgba(124,58,237,.3)}
+  .brand-txt h1{font-size:15px;font-weight:700}
+  .brand-txt p{font-size:11.5px;color:var(--ink2)}
+  .hactions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:none;border-radius:10px;padding:10px 15px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+  .btn-pdf{background:var(--accent);color:#fff} .btn-pdf:hover{background:#0f766e}
+  .btn-pdf:disabled{background:#cbd5e1;cursor:not-allowed}
+  .btn-sel{background:var(--card);color:var(--ink2);border:1.5px solid var(--line)}
+  .btn-sel:hover{border-color:var(--ink);color:var(--ink)}
+  .btn-refresh{background:#1565C0;color:#fff} .btn-refresh:hover{background:#0D47A1}
+
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .search-in{flex:1;min-width:180px;padding:10px 14px;border:1.5px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit;background:var(--card);color:var(--ink);outline:none;transition:border-color .15s}
+  .search-in:focus{border-color:var(--purple)}
+  .chips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{padding:7px 13px;border:1.5px solid var(--line);border-radius:20px;background:var(--card);color:var(--ink2);font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .15s}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .perpage-wrap{display:flex;align-items:center;gap:7px;white-space:nowrap}
+  .pp-label{font-size:12.5px;font-weight:600;color:var(--ink2)}
+  .pp-select{padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;
+             font-size:13px;font-family:inherit;font-weight:600;background:var(--card);
+             color:var(--ink);cursor:pointer;outline:none;transition:border-color .15s}
+  .pp-select:focus{border-color:var(--purple)}
+
+  .selbar{display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:1200px;margin:0 auto;padding:0 16px 12px;flex-wrap:wrap}
+  .sel-count{font-size:13.5px;font-weight:700;color:var(--purple)}
+  .sel-actions{display:flex;gap:8px}
+  .mini-btn{border:none;background:var(--accent-soft);color:#0f766e;border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+  .mini-btn:hover{background:#99f6e4}
+
+  main{max-width:1200px;margin:0 auto;padding:14px 16px 70px}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+  .ocard{background:var(--card);border:2px solid var(--line);border-radius:var(--radius);padding:13px;box-shadow:var(--shadow);cursor:pointer;transition:all .15s;position:relative}
+  .ocard:hover{border-color:#c7d2fe}
+  .ocard.selected{border-color:var(--purple);background:#faf5ff}
+  .ocard-check{position:absolute;top:11px;inset-inline-end:11px;width:24px;height:24px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;font-size:14px;transition:all .15s}
+  .ocard.selected .ocard-check{background:var(--purple);border-color:var(--purple);color:#fff}
+  .ocard-id{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--purple);margin-bottom:6px;padding-inline-end:32px;word-break:break-all}
+  .ocard-row{font-size:12.5px;color:var(--ink2);margin-bottom:2px;display:flex;gap:6px}
+  .ocard-row b{color:var(--ink);font-weight:600}
+  .ocard-status{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;margin-top:6px}
+  .st-review{background:#fef3c7;color:#92400e}
+  .st-confirm{background:#dbeafe;color:#1e40af}
+  .st-prep{background:#d1fae5;color:#065f46}
+  .st-courier{background:#ede9fe;color:#5b21b6}
+  .st-deliver{background:#dcfce7;color:#166534}
+  .st-cancel{background:#fee2e2;color:#991b1b}
+
+  .state{text-align:center;padding:70px 20px;color:var(--ink2)}
+  .state-icon{font-size:44px;margin-bottom:14px;opacity:.5}
+  .state h3{font-size:17px;font-weight:600;color:var(--ink);margin-bottom:6px}
+  .spinner{width:38px;height:38px;border:3px solid var(--line);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* منطقة PDF المخفية */
+  .pdf-stage{position:fixed;left:-9999px;top:0}
+  #qrSheet{width:794px;background:#fff;padding:20px;font-family:'IBM Plex Sans Arabic',sans-serif;box-sizing:border-box}
+  .sheet-head{text-align:center;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--purple)}
+  .sheet-head h2{font-size:19px;font-weight:700}
+  .sheet-head p{font-size:12px;color:#666}
+  /* شبكة بطاقات الشكر — عمودان، كل بطاقة = صورة الشكر + QR مدمج */
+  .qr-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .qr-card{border-radius:12px;overflow:hidden;background:#fff;
+           border:1px solid #f0d9e3;
+           page-break-inside:avoid;break-inside:avoid;
+           display:flex;flex-direction:column}
+  /* صورة الشكر أعلى البطاقة */
+  .tc-img{width:100%;display:block}
+  .tc-img img{width:100%;height:auto;display:block}
+  /* شريط QR أسفل الصورة — امتداد للتصميم */
+  .qr-strip{display:flex;align-items:center;gap:14px;padding:14px 18px;
+            background:#fff;border-top:2px dashed #f4a9c5}
+  .qr-strip .qr-box{width:130px;height:130px;flex-shrink:0}
+  .qr-strip .qr-box img{width:100% !important;height:100% !important;display:block;image-rendering:pixelated}
+  .qr-strip .qr-meta{flex:1;min-width:0;text-align:center}
+  .qr-strip .qr-meta .qlabel{font-size:13px;color:#d6336c;font-weight:700;margin-bottom:5px}
+  .qr-strip .qr-meta .qid{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:#0f172a;word-break:break-all;line-height:1.3}
+  .qr-strip .qr-meta .qhint{font-size:10.5px;color:#94a3b8;margin-top:6px}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);color:#fff;padding:11px 20px;border-radius:11px;font-size:13.5px;font-weight:600;z-index:200;opacity:0;transition:all .3s;background:var(--ink);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .toast.ok{background:var(--ok)} .toast.err{background:var(--danger)}
+
+  @media (max-width:600px){
+    .grid{grid-template-columns:1fr}
+    .hactions{width:100%}.hactions .btn{flex:1}
+  }
+</style>
+</head>
+<body>
+<!-- ═══════════ حارس الجلسة — يُلصَق بعد <body> مباشرة ═══════════ -->
+<script>
+(function(){
+  /* يمنع فتح الأداة مباشرة بلا تسجيل دخول من لوحة الإدارة */
+  var ADMIN_URL = 'لوحة_الادارة.html';   // عدّله لو غيّرت مكان اللوحة
+  var API_URL   = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
+
+  var tok = null, exp = 0;
+  try{
+    tok = localStorage.getItem('adm_tok');
+    exp = Number(localStorage.getItem('adm_exp') || 0);
+  }catch(e){}
+
+  function block(msg){
+    document.documentElement.innerHTML =
+      '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
+      '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">'+
+      '</head><body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;'+
+      'background:linear-gradient(135deg,#1e293b,#0f172a);font-family:\'IBM Plex Sans Arabic\',sans-serif;padding:20px" dir="rtl">'+
+      '<div style="background:#fff;border-radius:20px;padding:38px 30px;max-width:380px;width:100%;text-align:center;'+
+      'box-shadow:0 24px 60px rgba(0,0,0,.45)">'+
+        '<div style="font-size:52px;margin-bottom:14px">🔒</div>'+
+        '<h1 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 8px">الوصول محمي</h1>'+
+        '<p style="font-size:13.5px;color:#475569;line-height:1.8;margin:0 0 22px">'+msg+'</p>'+
+        '<a href="'+ADMIN_URL+'" style="display:block;background:#1565C0;color:#fff;text-decoration:none;'+
+        'padding:13px;border-radius:11px;font-weight:700;font-size:14.5px">🔐 الذهاب للوحة الإدارة</a>'+
+      '</div></body>';
+    throw new Error('unauthorized');   // يوقف تنفيذ باقي سكربتات الصفحة
+  }
+
+  /* لا رمز أصلاً */
+  if(!tok){ block('هذه الأداة تُفتح من لوحة الإدارة فقط.<br>سجّل دخولك أولاً.'); }
+
+  /* الرمز منتهي محلياً */
+  if(exp && Date.now() > exp){
+    try{ localStorage.removeItem('adm_tok'); localStorage.removeItem('adm_exp'); }catch(e){}
+    block('انتهت جلستك.<br>سجّل الدخول مجدداً من لوحة الإدارة.');
+  }
+
+  /* تحقق خلفي من الخادم — لا يوقف الصفحة، لكن يحجبها لو رُفض */
+  try{
+    fetch(API_URL, { method:'POST', body: JSON.stringify({ action:'checkSession', token: tok }) })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d || !d.success){
+          try{ localStorage.removeItem('adm_tok'); localStorage.removeItem('adm_exp'); }catch(e){}
+          block('انتهت صلاحية الجلسة على الخادم.<br>سجّل الدخول مجدداً.');
+        }
+      })
+      .catch(function(){ /* انقطاع شبكة — نكتفي بالتحقق المحلي */ });
+  }catch(e){}
+})();
+</script>
+<!-- ═══════════ نهاية حارس الجلسة ═══════════ -->
+
+
+<header>
+  <div class="hwrap">
+    <div class="htop">
+      <div class="brand">
+        <div class="brand-mark">🔳</div>
+        <div class="brand-txt"><h1>أكواد QR للطلبات</h1><p>متجر جود العباس</p></div>
+      </div>
+      <div class="hactions">
+        <button class="btn btn-refresh" id="refreshBtn">🔄 تحديث</button>
+        <button class="btn btn-sel" id="printBtn">🖨️ طباعة</button>
+        <button class="btn btn-pdf" id="pdfBtn">📄 تصدير PDF</button>
+      </div>
+    </div>
+    <div class="toolbar">
+      <input class="search-in" id="searchIn" placeholder="ابحث برقم الطلب أو الهاتف..." autocomplete="off">
+      <div class="chips" id="chips">
+        <button class="chip on" data-f="all">الكل</button>
+        <button class="chip" data-f="قيد المراجعة">📋 مراجعة</button>
+        <button class="chip" data-f="تم التأكيد">✅ مؤكّد</button>
+        <button class="chip" data-f="تم التجهيز">📦 مجهّز</button>
+        <button class="chip" data-f="في عهدة المندوب">🚚 مندوب</button>
+      </div>
+      <div class="perpage-wrap">
+        <label class="pp-label">🖨️ بالصفحة:</label>
+        <select id="perPage" class="pp-select">
+          <option value="1">1 بطاقة (كبيرة)</option>
+          <option value="2" selected>2 بطاقة</option>
+          <option value="4">4 بطاقات</option>
+          <option value="6">6 بطاقات (صغيرة)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="selbar">
+  <span class="sel-count" id="selCount">لم تُحدَّد طلبات</span>
+  <div class="sel-actions">
+    <button class="mini-btn" id="selAllBtn">✓ تحديد الظاهر</button>
+    <button class="mini-btn" id="selNoneBtn">✕ إلغاء التحديد</button>
+  </div>
+</div>
+
+<main>
+  <div id="stateBox" class="state">
+    <div class="spinner"></div>
+    <h3>جاري تحميل الطلبات...</h3>
+  </div>
+  <div class="grid" id="grid" style="display:none"></div>
+</main>
+
+<!-- منطقة PDF المخفية -->
+<div class="pdf-stage">
+  <div id="qrSheet"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API  = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
+const LOGO = 'https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png';
+const THANK_CARD = 'https://raw.githubusercontent.com/sa89588/Jood-ALabbas-Store-STOCK/refs/heads/main/112233.png';
+
+let allOrders = [];
+let selected  = new Set();
+let currentFilter = 'all';
+
+/* ===== أدوات ===== */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function getVal(o, keys){ for(const k of keys){ if(o[k]!=null && o[k]!=='') return String(o[k]); } return ''; }
+
+let tTimer;
+function toast(msg,kind){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show'+(kind?' '+kind:'');
+  clearTimeout(tTimer); tTimer=setTimeout(()=>el.classList.remove('show'),1900);
+}
+
+/* استخراج تفاصيل من نص الطلب */
+function extractFromMsg(msg){
+  const t = String(msg||'');
+  const name  = (t.match(/الاسم\s*[:：]\s*(.+)/)||[])[1];
+  const phone = (t.match(/الهاتف\s*[:：]\s*([\d+\s-]+)/)||[])[1];
+  const addr  = (t.match(/العنوان\s*[:：]\s*(.+)/)||[])[1];
+  const notes = (t.match(/ملاحظات\s*[:：]\s*(.+)/)||[])[1];
+  const final = (t.match(/المجموع النهائي\s*[:：]\s*([\d,،٬\s]+)/)||[])[1];
+  // المنتجات
+  const prods = [];
+  const re = /ID\s*[:：]\s*(\S+?)\s*[،,]\s*القياس\s*[:：]\s*(\S+)/g;
+  let m; while((m=re.exec(t))!==null){ prods.push({id:m[1].trim(), size:m[2].trim()}); }
+  return {
+    name:  name  ? name.trim()  : '',
+    phone: phone ? phone.replace(/[^\d+]/g,'').trim() : '',
+    addr:  addr  ? addr.trim()  : '',
+    notes: notes ? notes.trim() : '',
+    final: final ? final.trim() : '',
+    prods: prods
+  };
+}
+
+/* بناء نص QR (مضغوط لكن كامل) */
+function buildQRText(order){
+  const oid = getVal(order,['Order ID','orderId','رقم الطلب']);
+  const d = extractFromMsg(getVal(order,['نص الطلب','نص الرسالة','message']));
+  const phone = d.phone || getVal(order,['الهاتف','phone']);
+  const status = getVal(order,['الحالة','status']) || 'قيد المراجعة';
+
+  let s = '🧾 متجر جود العباس\n';
+  s += 'الطلب: ' + oid + '\n';
+  s += 'الحالة: ' + status + '\n';
+  if(d.name)  s += 'الزبون: ' + d.name + '\n';
+  if(phone)   s += 'الهاتف: ' + phone + '\n';
+  if(d.addr)  s += 'العنوان: ' + d.addr + '\n';
+  if(d.prods.length){
+    s += 'المنتجات:\n';
+    d.prods.forEach(p=>{ s += '  • ' + p.id + ' (قياس ' + p.size + ')\n'; });
+  }
+  if(d.final) s += 'المجموع: ' + d.final + ' د.ع\n';
+  if(d.notes) s += 'ملاحظات: ' + d.notes + '\n';
+  return s.trim();
+}
+
+/* ===== تحميل الطلبات ===== */
+async function loadOrders(silent){
+  if(!silent){
+    document.getElementById('stateBox').style.display='block';
+    document.getElementById('stateBox').innerHTML='<div class="spinner"></div><h3>جاري تحميل الطلبات...</h3>';
+    document.getElementById('grid').style.display='none';
+  }
+  try{
+    const r = await fetch(API+'?action=getOrders', {cache:'no-store'});
+    const d = await r.json();
+    if(d.error) throw new Error(d.error);
+    allOrders = Array.isArray(d) ? d : [];
+    render();
+  }catch(e){
+    document.getElementById('stateBox').innerHTML =
+      '<div class="state-icon">⚠️</div><h3>تعذّر تحميل الطلبات</h3><p>'+esc(e.message)+'</p>'+
+      '<button class="mini-btn" style="margin-top:14px" onclick="loadOrders()">🔄 إعادة المحاولة</button>';
+  }
+}
+
+/* ===== الفلترة ===== */
+function getFiltered(){
+  const q = document.getElementById('searchIn').value.trim().toLowerCase();
+  return allOrders.filter(o=>{
+    const status = getVal(o,['الحالة','status']) || 'قيد المراجعة';
+    if(currentFilter!=='all' && status!==currentFilter) return false;
+    if(q){
+      const oid = getVal(o,['Order ID','orderId']).toLowerCase();
+      const ph  = getVal(o,['الهاتف','phone']).toLowerCase();
+      if(!oid.includes(q) && !ph.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function statusClass(s){
+  if(s==='تم التأكيد') return 'st-confirm';
+  if(s==='تم التجهيز') return 'st-prep';
+  if(s==='في عهدة المندوب') return 'st-courier';
+  if(s==='تم التسليم') return 'st-deliver';
+  if(s==='ملغي') return 'st-cancel';
+  return 'st-review';
+}
+
+/* ===== العرض ===== */
+function render(){
+  const grid=document.getElementById('grid');
+  const stateBox=document.getElementById('stateBox');
+  const list=getFiltered();
+  updateSelCount();
+
+  if(allOrders.length===0){
+    stateBox.style.display='block'; grid.style.display='none';
+    stateBox.innerHTML='<div class="state-icon">📭</div><h3>لا توجد طلبات</h3>';
+    return;
+  }
+  if(list.length===0){
+    stateBox.style.display='block'; grid.style.display='none';
+    stateBox.innerHTML='<div class="state-icon">🔍</div><h3>لا نتائج</h3>';
+    return;
+  }
+  stateBox.style.display='none'; grid.style.display='grid';
+  grid.innerHTML='';
+
+  list.forEach(o=>{
+    const oid = getVal(o,['Order ID','orderId']);
+    const d = extractFromMsg(getVal(o,['نص الطلب','نص الرسالة','message']));
+    const phone = d.phone || getVal(o,['الهاتف','phone']);
+    const status = getVal(o,['الحالة','status']) || 'قيد المراجعة';
+    const isSel = selected.has(oid);
+
+    const card=document.createElement('div');
+    card.className='ocard'+(isSel?' selected':'');
+    card.innerHTML=
+      '<div class="ocard-check">'+(isSel?'✓':'')+'</div>'+
+      '<div class="ocard-id">'+esc(oid)+'</div>'+
+      (d.name  ? '<div class="ocard-row">👤 <b>'+esc(d.name)+'</b></div>' : '')+
+      (phone   ? '<div class="ocard-row">📞 '+esc(phone)+'</div>' : '')+
+      (d.addr  ? '<div class="ocard-row">📍 '+esc(d.addr.slice(0,40))+(d.addr.length>40?'…':'')+'</div>' : '')+
+      (d.prods.length ? '<div class="ocard-row">🛍️ '+d.prods.length+' منتج</div>' : '')+
+      '<span class="ocard-status '+statusClass(status)+'">'+esc(status)+'</span>';
+
+    card.addEventListener('click',()=>{
+      if(selected.has(oid)) selected.delete(oid); else selected.add(oid);
+      render();
+    });
+    grid.appendChild(card);
+  });
+}
+
+function updateSelCount(){
+  const n=selected.size;
+  document.getElementById('selCount').textContent =
+    n===0 ? 'لم تُحدَّد طلبات' : '✓ '+n+' طلب محدّد';
+  document.getElementById('pdfBtn').disabled = n===0;
+}
+
+
+/* طباعة مباشرة — بديل موثوق لا يعتمد على html2pdf */
+function printQR(){
+  if(selected.size===0){ toast('حدّد طلبات أولاً','err'); return; }
+  const chosen = allOrders.filter(o=>selected.has(getVal(o,['Order ID','orderId'])));
+  const sheet=document.getElementById('qrSheet');
+  const L = getLayout();
+
+  let html='<style>'+buildLayoutCSS(L)+'</style>';
+  let idx=0;
+  chosen.forEach(o=>{
+    if(idx % L.perPage === 0){
+      if(idx>0) html+='</div>';
+      html+='<div class="qr-grid">';
+    }
+    idx++;
+    const oid = getVal(o,['Order ID','orderId']);
+    const qrUrl = makeQRDataURL(buildQRText(o));
+    html+='<div class="qr-card">'+
+      '<div class="tc-img"><img src="'+THANK_CARD+'" alt=""></div>'+
+      '<div class="qr-strip">'+
+        '<div class="qr-box">'+(qrUrl?'<img src="'+qrUrl+'">':'')+'</div>'+
+        '<div class="qr-meta">'+
+          '<div class="qlabel">🔳 امسح لتفاصيل طلبك</div>'+
+          '<div class="qid">'+esc(oid)+'</div>'+
+          '<div class="qhint">متجر جود العباس</div>'+
+        '</div>'+
+      '</div>'+
+      '</div>';
+  });
+  html+='</div>';
+
+  const w=window.open('','_blank');
+  w.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">'+
+    '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">'+
+    '<style>'+document.querySelector('style').innerHTML+
+    ' body{background:#fff;padding:20px} #qrSheet{width:100%}</style></head><body>'+
+    '<div id="qrSheet">'+html+'</div></body></html>');
+  w.document.close();
+  setTimeout(()=>{ w.focus(); w.print(); }, 800);
+  toast('✅ فُتحت نافذة الطباعة');
+}
+
+/* ===== توليد QR وبناء صفحة PDF ===== */
+/* ترميز UTF-8 صحيح للنص العربي قبل توليد QR */
+function utf8Encode(str){
+  return unescape(encodeURIComponent(str));
+}
+
+/* توليد QR كصورة dataURL — مكتبة qrcode-generator (موثوقة، تدعم العربي) */
+function makeQRDataURL(text){
+  if(typeof qrcode !== 'function'){ console.warn('QR lib not loaded'); return ''; }
+  try{
+    // النوع 0 = تلقائي، مستوى M
+    const qr = qrcode(0, 'M');
+    qr.addData(utf8Encode(text));   // ترميز UTF-8 للعربي
+    qr.make();
+    // نطلب صورة عالية الدقة (cell=8 بكسل، هامش=2)
+    return qr.createDataURL(8, 2);
+  }catch(err){
+    console.warn('QR gen failed:', err);
+    // احتياط: نجرّب بحجم أصغر لو النص طويل
+    try{
+      const qr2 = qrcode(0, 'L');   // مستوى L يسع نصاً أطول
+      qr2.addData(utf8Encode(text));
+      qr2.make();
+      return qr2.createDataURL(8, 2);
+    }catch(e2){ console.error('QR failed completely:', e2); return ''; }
+  }
+}
+
+
+
+/* بناء CSS للتخطيط — ارتفاع صورة ثابت (يمنع تجاوز الصفحة) */
+function buildLayoutCSS(L){
+  return '.qr-grid{display:grid;grid-template-columns:repeat('+L.cols+',1fr);'+
+           'gap:'+L.gap+'px;align-content:start;'+
+           'page-break-after:always;break-after:page}'+
+         '.qr-grid:last-child{page-break-after:auto;break-after:auto}'+
+         '.qr-card{max-width:100%;page-break-inside:avoid;break-inside:avoid}'+
+         // الصورة بارتفاع ثابت محسوب (لا تملأ الخلية) — هذا يمنع التجاوز
+         '.tc-img{display:flex;justify-content:center;background:#fff}'+'.tc-img img{max-width:100%;max-height:'+L.img+'px;height:auto;width:auto;display:block}'+
+         '.qr-strip{padding:'+L.pad+'px;gap:'+Math.round(L.pad*0.9)+'px}'+
+         '.qr-strip .qr-box{width:'+L.qr+'px;height:'+L.qr+'px}'+
+         '.qr-strip .qr-meta .qlabel{font-size:'+L.label+'px;margin-bottom:3px}'+
+         '.qr-strip .qr-meta .qid{font-size:'+L.id+'px}'+
+         '.qr-strip .qr-meta .qhint{font-size:'+(L.label-2)+'px;margin-top:3px}';
+}
+
+/* تخطيط الصفحة حسب عدد البطاقات — أبعاد دقيقة تضمن التوزيع الصحيح
+   صفحة A4 المفيدة ≈ 754 × 1075px (بعد الهوامش) */
+function getLayout(){
+  const pp = parseInt(document.getElementById('perPage').value) || 2;
+  const configs = {
+    1: { cols:1, rows:1, img:720, qr:180, label:16, id:20, pad:18 },
+    2: { cols:1, rows:2, img:340, qr:120, label:13, id:16, pad:12 },
+    4: { cols:2, rows:2, img:300, qr:95,  label:11, id:13, pad:10 },
+    6: { cols:2, rows:3, img:210, qr:72,  label:10, id:12, pad:8  }
+  };
+  const c = configs[pp] || configs[2];
+  return Object.assign({ perPage:pp, gap:10 }, c);
+}
+
+async function exportPDF(){
+  if(selected.size===0){ toast('حدّد طلبات أولاً','err'); return; }
+  const btn=document.getElementById('pdfBtn');
+  const orig=btn.textContent;
+  btn.disabled=true; btn.textContent='⏳ جاري الإنشاء...';
+
+  try{
+    const chosen = allOrders.filter(o=>selected.has(getVal(o,['Order ID','orderId'])));
+    const sheet=document.getElementById('qrSheet');
+    const L = getLayout();
+
+    let html='<style>'+buildLayoutCSS(L)+'</style>';
+    let idx=0;
+    chosen.forEach(o=>{
+      if(idx % L.perPage === 0){
+        if(idx>0) html+='</div>';
+        html+='<div class="qr-grid">';
+      }
+      idx++;
+      const oid = getVal(o,['Order ID','orderId']);
+      const qrUrl = makeQRDataURL(buildQRText(o));
+
+      html+='<div class="qr-card">'+
+        '<div class="tc-img"><img src="'+THANK_CARD+'" crossorigin="anonymous" alt=""></div>'+
+        '<div class="qr-strip">'+
+          '<div class="qr-box">'+(qrUrl?'<img src="'+qrUrl+'">':'')+'</div>'+
+          '<div class="qr-meta">'+
+            '<div class="qlabel">🔳 امسح لتفاصيل طلبك</div>'+
+            '<div class="qid">'+esc(oid)+'</div>'+
+            '<div class="qhint">متجر جود العباس</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    });
+    html+='</div>';
+    sheet.innerHTML=html;
+
+    // التحقق من توفر المكتبة
+    if(typeof html2pdf !== 'function'){
+      throw new Error('مكتبة PDF لم تُحمّل — تحقق من الإنترنت');
+    }
+
+    // نجعل الحاوية مرئية أثناء التوليد (html2canvas لا يرسم المخفي بـ-9999px)
+    const stage = document.querySelector('.pdf-stage');
+    const prevCss = stage.style.cssText;
+    stage.style.cssText = 'position:fixed;left:0;top:0;z-index:-1;opacity:0;pointer-events:none';
+
+    // ننتظر تحميل كل الصور (QR + صور الشكر من الشبكة — قد تكون أبطأ)
+    const imgs = sheet.querySelectorAll('img');
+    await Promise.all(Array.from(imgs).map(img=>{
+      if(img.complete && img.naturalWidth>0) return Promise.resolve();
+      return new Promise(res=>{ img.onload=res; img.onerror=res; setTimeout(res,5000); });
+    }));
+    await new Promise(r=>setTimeout(r,300));
+
+    const today=new Date().toLocaleDateString('en-CA');
+    try{
+      // نثبّت عرض الورقة على A4 بالضبط (794px @96dpi) لتطابق format
+      sheet.style.width = '794px';
+      await html2pdf().set({
+        margin:[8,8,8,8],
+        filename:'اكواد-QR-'+chosen.length+'طلب-'+today+'.pdf',
+        image:{type:'jpeg',quality:.95},
+        html2canvas:{scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false,
+                     width:794, windowWidth:794},
+        jsPDF:{unit:'mm', format:'a4', orientation:'portrait'},
+        pagebreak:{mode:['css','legacy']}
+      }).from(sheet).save();
+      toast('✅ تم إنشاء PDF بـ'+chosen.length+' كود','ok');
+    } finally {
+      stage.style.cssText = prevCss;  // نعيد الإخفاء
+    }
+  }catch(e){
+    console.error('PDF error:', e);
+    toast('❌ '+(e.message||'تعذّر إنشاء PDF'),'err');
+  }finally{
+    btn.disabled=false; btn.textContent=orig;
+  }
+}
+
+/* ===== الأحداث ===== */
+document.getElementById('searchIn').addEventListener('input',render);
+document.getElementById('chips').addEventListener('click',e=>{
+  const chip=e.target.closest('.chip'); if(!chip) return;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  chip.classList.add('on'); currentFilter=chip.dataset.f; render();
+});
+document.getElementById('selAllBtn').addEventListener('click',()=>{
+  getFiltered().forEach(o=>selected.add(getVal(o,['Order ID','orderId'])));
+  render(); toast('حُدّد '+selected.size+' طلب');
+});
+document.getElementById('selNoneBtn').addEventListener('click',()=>{
+  selected.clear(); render();
+});
+document.getElementById('refreshBtn').addEventListener('click',()=>loadOrders());
+document.getElementById('pdfBtn').addEventListener('click',exportPDF);
+document.getElementById('printBtn').addEventListener('click',printQR);
+
+/* بدء */
+loadOrders();
+</script>
+</body>
+</html>
