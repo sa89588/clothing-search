@@ -117,6 +117,12 @@
   .path-row label{font-size:12.5px;font-weight:600;min-width:120px;color:var(--ink2)}
   .path-row input{flex:1;min-width:180px;padding:9px 12px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;outline:none;direction:ltr;text-align:left}
   .path-row input:focus{border-color:var(--brand)}
+  .add-tool{margin-top:20px;padding:16px;border:1.5px dashed var(--brand);border-radius:13px;
+            background:linear-gradient(135deg,#f8fafc,#eff6ff)}
+  .add-tool-head{font-size:14px;font-weight:700;color:var(--brand);margin-bottom:13px}
+  .add-tool-grid{display:grid;grid-template-columns:90px 1fr;gap:11px}
+  body.dark .add-tool{background:#1e293b}
+  @media(max-width:520px){ .add-tool-grid{grid-template-columns:80px 1fr} }
   @media(max-width:620px){ .grid2{grid-template-columns:1fr} }
 </style>
 </head>
@@ -186,6 +192,33 @@
       <div class="panel-body">
         <div id="toolPaths"></div>
         <button class="btn btn-ghost btn-sm" id="saveToolsBtn" style="margin-top:10px">💾 حفظ الروابط</button>
+
+        <!-- ===== إضافة موقع جديد ===== -->
+        <div class="add-tool">
+          <div class="add-tool-head">➕ إضافة موقع جديد</div>
+          <div class="add-tool-grid">
+            <div class="fld" style="margin:0">
+              <label>الأيقونة</label>
+              <input type="text" id="ntIco" placeholder="🏭" maxlength="4" style="text-align:center;font-size:18px">
+            </div>
+            <div class="fld" style="margin:0">
+              <label>اسم الموقع <span class="req">*</span></label>
+              <input type="text" id="ntName" placeholder="موقع التجهيز">
+            </div>
+            <div class="fld" style="margin:0;grid-column:1/-1">
+              <label>الرابط أو اسم الملف <span class="req">*</span></label>
+              <input type="text" id="ntUrl" placeholder="موقع_التجهيز.html" dir="ltr" style="text-align:left">
+            </div>
+            <div class="fld" style="margin:0;grid-column:1/-1">
+              <label>وصف مختصر</label>
+              <input type="text" id="ntDesc" placeholder="تجهيز الطلبات وحذف القطع المباعة">
+            </div>
+          </div>
+          <button class="btn btn-ok btn-block" id="addToolBtn" style="margin-top:12px">➕ إضافة الموقع</button>
+          <div class="hint" style="margin-top:9px">
+            💡 تظهر البطاقة فوراً في «أدوات الإدارة» أعلاه. الأيقونة أي رمز إيموجي.
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -647,42 +680,70 @@ function updatePreview(){
 
 
 /* ==================== بوابة الأدوات ==================== */
-const TOOLS = [
-  { key:'invoices',  ico:'🧾', color:'#7c3aed', bg:'#ede9fe', name:'الفواتير',
+/* الأدوات الأساسية — مضمّنة دائماً (يمكن تعديل رابطها فقط) */
+const DEFAULT_TOOLS = [
+  { key:'invoices', ico:'🧾', color:'#7c3aed', bg:'#ede9fe', name:'الفواتير',
     desc:'إنشاء فواتير PDF وPNG من نص الطلب', file:'الفواتير.html' },
-  { key:'qr',        ico:'🔳', color:'#0d9488', bg:'#ccfbf1', name:'أكواد QR',
+  { key:'qr',       ico:'🔳', color:'#0d9488', bg:'#ccfbf1', name:'أكواد QR',
     desc:'بطاقات شكر مع QR جاهزة للطباعة', file:'اكواد_QR.html' },
-  { key:'stock',     ico:'📦', color:'#f59e0b', bg:'#fef3c7', name:'تصحيح الجرد',
+  { key:'stock',    ico:'📦', color:'#f59e0b', bg:'#fef3c7', name:'تصحيح الجرد',
     desc:'تعديل قياسات الموديلات مباشرة', file:'تصحيح_الجرد.html' },
-  { key:'waseet',    ico:'🚚', color:'#1565C0', bg:'#dbeafe', name:'لوحة الوسيط',
+  { key:'waseet',   ico:'🚚', color:'#1565C0', bg:'#dbeafe', name:'لوحة الوسيط',
     desc:'إنشاء طلبات الشحن ومتابعتها', file:'الوسيط.html' }
+];
+
+/* ألوان تُوزَّع تلقائياً على المواقع المضافة */
+const TOOL_COLORS = [
+  {color:'#e11d48', bg:'#ffe4e6'}, {color:'#059669', bg:'#d1fae5'},
+  {color:'#d97706', bg:'#fef3c7'}, {color:'#7c3aed', bg:'#ede9fe'},
+  {color:'#0284c7', bg:'#e0f2fe'}, {color:'#be185d', bg:'#fce7f3'}
 ];
 
 function toolPaths(){
   try{ return JSON.parse(S.toolPaths || localStorage.getItem('adm_paths') || '{}'); }
   catch(e){ return {}; }
 }
+/* المواقع المضافة يدوياً */
+function customTools(){
+  try{
+    const raw = S.customTools || localStorage.getItem('adm_custom') || '[]';
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+/* كل الأدوات = الأساسية + المضافة */
+function allTools(){
+  const custom = customTools().map(function(c,i){
+    const pal = TOOL_COLORS[i % TOOL_COLORS.length];
+    return {
+      key: c.key, ico: c.ico||'🔗', name: c.name||'موقع',
+      desc: c.desc||'', file: c.url||'#',
+      color: pal.color, bg: pal.bg, custom: true
+    };
+  });
+  return DEFAULT_TOOLS.concat(custom);
+}
 function toolURL(t){
+  if(t.custom) return t.file;
   const p = toolPaths();
   return (p[t.key] && String(p[t.key]).trim()) || t.file;
 }
 
+/* ===== بطاقات المواقع ===== */
 function renderTools(){
   const g = $('toolsGrid'); if(!g) return;
   g.innerHTML = '';
-  TOOLS.forEach(t=>{
+  allTools().forEach(function(t){
     const a = document.createElement('a');
     a.className = 'tool';
     a.href = toolURL(t);
-    a.target = '_blank';
-    a.rel = 'noopener';
+    a.target = '_blank'; a.rel = 'noopener';
     a.innerHTML =
-      '<div class="t-ico" style="background:'+t.bg+';color:'+t.color+'">'+t.ico+'</div>'+
+      '<div class="t-ico" style="background:'+t.bg+';color:'+t.color+'">'+esc(t.ico)+'</div>'+
       '<h3>'+esc(t.name)+'</h3>'+
       '<p>'+esc(t.desc)+'</p>'+
       '<span class="t-go">فتح ←</span>';
-    /* نمرّر الجلسة للأداة قبل فتحها */
-    a.addEventListener('click', ()=>{
+    a.addEventListener('click', function(){
       try{
         localStorage.setItem('adm_tok', TOKEN);
         localStorage.setItem('adm_exp', localStorage.getItem('adm_exp')||String(Date.now()+12*3600*1000));
@@ -692,27 +753,93 @@ function renderTools(){
   });
 }
 
+/* ===== محرّر الروابط ===== */
 function renderToolPaths(){
   const box = $('toolPaths'); if(!box) return;
   const p = toolPaths();
   box.innerHTML = '';
-  TOOLS.forEach(t=>{
+
+  /* الأساسية — الرابط فقط */
+  DEFAULT_TOOLS.forEach(function(t){
     const d = document.createElement('div'); d.className='path-row';
     d.innerHTML = '<label>'+t.ico+' '+esc(t.name)+'</label>'+
                   '<input type="text" data-k="'+t.key+'" value="'+esc(p[t.key]||t.file)+'" placeholder="'+esc(t.file)+'">';
     box.appendChild(d);
   });
+
+  /* المضافة — قابلة للتعديل والحذف */
+  const cs = customTools();
+  if(cs.length){
+    const sep = document.createElement('div');
+    sep.style.cssText='margin:14px 0 8px;font-size:12px;font-weight:700;color:var(--ink2);border-top:1px dashed var(--line);padding-top:12px';
+    sep.textContent='المواقع المضافة ('+cs.length+')';
+    box.appendChild(sep);
+  }
+  cs.forEach(function(c){
+    const d = document.createElement('div'); d.className='path-row';
+    d.innerHTML =
+      '<input type="text" class="c-ico" data-ck="'+esc(c.key)+'" value="'+esc(c.ico||'🔗')+'" style="min-width:52px;max-width:52px;text-align:center;font-size:17px">'+
+      '<input type="text" class="c-name" data-ck="'+esc(c.key)+'" value="'+esc(c.name||'')+'" placeholder="الاسم" style="min-width:110px;max-width:140px;direction:rtl;text-align:right">'+
+      '<input type="text" class="c-url" data-ck="'+esc(c.key)+'" value="'+esc(c.url||'')+'" placeholder="الرابط أو اسم الملف">'+
+      '<button class="r-del" data-del="'+esc(c.key)+'" title="حذف">🗑</button>';
+    d.querySelector('[data-del]').addEventListener('click', function(){ deleteCustomTool(c.key); });
+    box.appendChild(d);
+  });
+}
+
+/* ===== إضافة موقع جديد ===== */
+function addCustomTool(){
+  const name = $('ntName').value.trim();
+  const url  = $('ntUrl').value.trim();
+  const ico  = ($('ntIco').value.trim() || '🔗');
+  const desc = $('ntDesc').value.trim();
+  if(!name){ toast('أدخل اسم الموقع','warn'); $('ntName').focus(); return; }
+  if(!url){  toast('أدخل رابط الموقع','warn'); $('ntUrl').focus();  return; }
+
+  const cs = customTools();
+  cs.push({ key:'t'+Date.now().toString(36), ico:ico, name:name, url:url, desc:desc });
+  persistTools(toolPaths(), cs, '✅ أُضيف «'+name+'»');
+  ['ntName','ntUrl','ntIco','ntDesc'].forEach(function(id){ $(id).value=''; });
+}
+
+function deleteCustomTool(key){
+  const cs = customTools().filter(function(c){ return c.key!==key; });
+  persistTools(toolPaths(), cs, '🗑 حُذف الموقع');
+}
+
+/* حفظ موحّد للروابط والمواقع المضافة */
+async function persistTools(paths, custom, okMsg){
+  localStorage.setItem('adm_paths',  JSON.stringify(paths));
+  localStorage.setItem('adm_custom', JSON.stringify(custom));
+  if(S){ S.toolPaths = JSON.stringify(paths); S.customTools = JSON.stringify(custom); }
+  renderTools(); renderToolPaths();
+  try{
+    const d = await apiPost({ action:'saveSettings', data: JSON.stringify({
+      toolPaths:   JSON.stringify(paths),
+      customTools: JSON.stringify(custom)
+    })});
+    if(d.success){ S = d.settings; toast(okMsg||'✅ حُفظ','ok'); renderTools(); renderToolPaths(); }
+    else throw new Error(d.error||'فشل');
+  }catch(e){ toast('حُفظ محلياً — '+e.message,'warn'); }
 }
 
 async function saveToolPaths(){
-  const p = {};
-  document.querySelectorAll('#toolPaths input').forEach(i=>{ p[i.dataset.k] = i.value.trim(); });
-  localStorage.setItem('adm_paths', JSON.stringify(p));
-  try{
-    const d = await apiPost({ action:'saveSettings', data: JSON.stringify({ toolPaths: JSON.stringify(p) }) });
-    if(d.success){ S = d.settings; toast('✅ حُفظت الروابط','ok'); renderTools(); }
-    else throw new Error(d.error||'فشل');
-  }catch(e){ toast('حُفظت محلياً — '+e.message,'warn'); renderTools(); }
+  const paths = {};
+  document.querySelectorAll('#toolPaths input[data-k]').forEach(function(i){ paths[i.dataset.k] = i.value.trim(); });
+  /* نجمع تعديلات المواقع المضافة */
+  const cs = customTools().map(function(c){
+    const ico  = document.querySelector('.c-ico[data-ck="'+c.key+'"]');
+    const name = document.querySelector('.c-name[data-ck="'+c.key+'"]');
+    const url  = document.querySelector('.c-url[data-ck="'+c.key+'"]');
+    return {
+      key:c.key,
+      ico:  ico  ? ico.value.trim()  : c.ico,
+      name: name ? name.value.trim() : c.name,
+      url:  url  ? url.value.trim()  : c.url,
+      desc: c.desc||''
+    };
+  });
+  await persistTools(paths, cs, '✅ حُفظت الروابط');
 }
 
 /* ===== القطع المميزة ===== */
@@ -873,6 +1000,8 @@ $('discardBtn').addEventListener('click',()=>{ fillForm(); toast('تراجعت �
 document.querySelectorAll('[data-bump]').forEach(b=>b.addEventListener('click',()=>bumpVersion(b.dataset.bump)));
 $('changePassBtn').addEventListener('click', changePass);
 const _stb=$('saveToolsBtn'); if(_stb) _stb.addEventListener('click', saveToolPaths);
+const _atb=$('addToolBtn');   if(_atb) _atb.addEventListener('click', addCustomTool);
+['ntName','ntUrl'].forEach(function(id){ const el=$(id); if(el) el.addEventListener('keydown',function(e){ if(e.key==='Enter') addCustomTool(); }); });
 
 window.addEventListener('beforeunload', e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
 
