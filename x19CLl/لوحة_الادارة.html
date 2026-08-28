@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>لوحة إدارة متجر جود العباس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0f172a; --ink2:#475569; --ink3:#94a3b8; --line:#e2e8f0;
+    --bg:#f1f5f9; --card:#fff; --brand:#1565C0; --brand-dark:#0D47A1;
+    --ok:#16a34a; --ok-soft:#dcfce7; --warn:#f59e0b; --warn-soft:#fef3c7;
+    --danger:#e11d48; --danger-soft:#ffe4e6; --purple:#7c3aed;
+    --radius:14px; --shadow:0 1px 3px rgba(15,23,42,.07),0 8px 24px rgba(15,23,42,.05);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased}
+  input,select,textarea,button{font-family:inherit}
+  .mono{font-family:'Space Mono',monospace}
+
+  /* ===== تسجيل الدخول ===== */
+  .login{position:fixed;inset:0;background:linear-gradient(135deg,#1e293b,#0f172a);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-card{background:var(--card);border-radius:20px;padding:38px 32px;max-width:390px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+  .login-logo{width:66px;height:66px;border-radius:18px;background:linear-gradient(135deg,var(--brand),var(--brand-dark));display:grid;place-items:center;font-size:32px;margin:0 auto 18px}
+  .login-card h1{text-align:center;font-size:21px;font-weight:700;margin-bottom:5px}
+  .login-card .sub{text-align:center;font-size:13px;color:var(--ink2);margin-bottom:26px}
+
+  /* ===== الهيكل ===== */
+  .app{display:none;max-width:940px;margin:0 auto;padding:0 16px 80px}
+  header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50;margin:0 -16px 18px;padding:13px 16px}
+  .hwrap{max-width:940px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--brand-dark));display:grid;place-items:center;font-size:19px}
+  .brand h1{font-size:15px;font-weight:700}
+  .brand p{font-size:11.5px;color:var(--ink2)}
+
+  .tabs{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{padding:8px 15px;border:1.5px solid var(--line);border-radius:20px;background:var(--card);color:var(--ink2);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s}
+  .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+  .panel-head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .panel-head h2{font-size:15.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .panel-head .desc{font-size:12px;color:var(--ink2);font-weight:400}
+  .panel-body{padding:18px}
+  .page{display:none}.page.on{display:block}
+
+  .fld{margin-bottom:15px}
+  .fld label{display:block;font-size:12.5px;font-weight:600;color:var(--ink2);margin-bottom:6px}
+  .fld input,.fld select,.fld textarea{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink);outline:none;transition:border-color .15s}
+  .fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--brand)}
+  .fld .hint{font-size:11.5px;color:var(--ink3);margin-top:5px;line-height:1.7}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+  .btn{border:none;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .btn-primary{background:var(--brand);color:#fff}.btn-primary:hover:not(:disabled){background:var(--brand-dark)}
+  .btn-ok{background:var(--ok);color:#fff}.btn-ok:hover:not(:disabled){background:#15803d}
+  .btn-ghost{background:var(--card);color:var(--ink2);border:1.5px solid var(--line)}
+  .btn-ghost:hover:not(:disabled){border-color:var(--ink);color:var(--ink)}
+  .btn-danger{background:var(--danger-soft);color:var(--danger)}
+  .btn-sm{padding:7px 12px;font-size:12.5px}
+  .btn-block{width:100%}
+
+  /* ===== قواعد الخصم ===== */
+  .rule{display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid var(--line);border-radius:11px;margin-bottom:9px;background:#fafbfc;flex-wrap:wrap}
+  .rule .r-num{width:26px;height:26px;border-radius:8px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0}
+  .rule input[type=number]{width:78px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font-size:13.5px;text-align:center;outline:none}
+  .rule .r-txt{font-size:13px;color:var(--ink2);font-weight:600}
+  .rule .r-del{margin-inline-start:auto;border:none;background:var(--danger-soft);color:var(--danger);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:14px;flex-shrink:0}
+
+  .size-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px;margin-top:8px}
+  .size-chk{display:flex;align-items:center;gap:6px;padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;cursor:pointer;font-size:12px;font-weight:600;background:var(--card);transition:all .15s}
+  .size-chk:hover{border-color:var(--brand)}
+  .size-chk.on{background:var(--ok-soft);border-color:var(--ok);color:#15803d}
+  .size-chk input{cursor:pointer;accent-color:var(--ok)}
+
+  /* ===== المعاينة ===== */
+  .preview{background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:1.5px dashed #cbd5e1;border-radius:12px;padding:14px;margin-top:14px}
+  .preview h3{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--ink2)}
+  table.pv{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.pv th{background:#e2e8f0;padding:8px;text-align:start;font-weight:700;font-size:11.5px}
+  table.pv td{padding:8px;border-bottom:1px solid #e2e8f0}
+  table.pv .hi{color:var(--ok);font-weight:700}
+
+  .ver-box{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid #93c5fd;border-radius:12px}
+  .ver-cur{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--brand)}
+
+  .toast{position:fixed;bottom:22px;inset-inline-start:50%;transform:translateX(50%) translateY(80px);background:var(--ink);color:#fff;padding:12px 22px;border-radius:11px;font-size:14px;font-weight:600;z-index:500;opacity:0;transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90vw;text-align:center}
+  .toast.show{transform:translateX(50%) translateY(0);opacity:1}
+  .toast.ok{background:var(--ok)}.toast.err{background:var(--danger)}.toast.warn{background:var(--warn)}
+
+  .savebar{position:fixed;bottom:0;inset-inline-start:0;inset-inline-end:0;background:var(--card);border-top:1px solid var(--line);padding:12px 16px;z-index:100;box-shadow:0 -4px 20px rgba(15,23,42,.08);display:none}
+  .savebar.show{display:block}
+  .savebar-in{max-width:940px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .savebar .txt{font-size:13px;font-weight:600;color:var(--warn)}
+
+  .spinner{width:16px;height:16px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media(max-width:620px){ .grid2{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<!-- ===== تسجيل الدخول ===== -->
+<div class="login" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">🔐</div>
+    <h1>لوحة الإدارة</h1>
+    <p class="sub">متجر جود العباس</p>
+    <div class="fld">
+      <label>كلمة المرور</label>
+      <input type="password" id="passIn" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <label style="display:flex;align-items:center;gap:7px;font-size:13px;margin-bottom:18px;cursor:pointer">
+      <input type="checkbox" id="rememberMe" checked> تذكّرني على هذا الجهاز
+    </label>
+    <button class="btn btn-primary btn-block" id="loginBtn">دخول</button>
+    <div id="loginErr" style="color:var(--danger);font-size:13px;margin-top:12px;text-align:center;font-weight:600"></div>
+  </div>
+</div>
+
+<!-- ===== التطبيق ===== -->
+<div class="app" id="app">
+  <header>
+    <div class="hwrap">
+      <div class="brand">
+        <div class="logo">⚙️</div>
+        <div><h1>لوحة الإدارة</h1><p>متجر جود العباس</p></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" id="reloadBtn">🔄 إعادة تحميل</button>
+        <button class="btn btn-ghost btn-sm" id="logoutBtn">🚪 خروج</button>
+      </div>
+    </div>
+    <div class="tabs" id="tabs" style="max-width:940px;margin:12px auto 0">
+      <button class="tab on" data-p="disc">💰 الخصومات</button>
+      <button class="tab" data-p="cheap">⭐ القطع المميزة</button>
+      <button class="tab" data-p="ship">🚚 التوصيل</button>
+      <button class="tab" data-p="disp">🎨 العرض والنصوص</button>
+      <button class="tab" data-p="ver">📦 إصدار الملفات</button>
+      <button class="tab" data-p="sec">🔑 الأمان</button>
+    </div>
+  </header>
+
+  <!-- ===== الخصومات ===== -->
+  <div class="page on" id="page-disc">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>💰 قواعد الخصم حسب عدد القطع</h2>
+        <span class="desc">تُطبَّق أول قاعدة يتحقق شرطها</span>
+      </div>
+      <div class="panel-body">
+        <div id="pieceRules"></div>
+        <button class="btn btn-ghost btn-sm" id="addRuleBtn">➕ إضافة قاعدة</button>
+        <div class="fld" style="margin-top:18px">
+          <label>الخصم الأساسي (لكل ما لا تشمله القواعد أعلاه)</label>
+          <input type="number" id="baseDisc" min="0" max="90" step="1">
+          <div class="hint">مثال: القطعة الأخيرة 50% · من 2 إلى 4 قطع 40% · الباقي 35%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>📏 مكافأة القياسات</h2>
+        <span class="desc">ترفع الخصم ولا تخفضه أبداً</span>
+      </div>
+      <div class="panel-body">
+        <div class="fld">
+          <label>نسبة الخصم لهذه القياسات</label>
+          <input type="number" id="bonusPct" min="0" max="90" step="1">
+          <div class="hint">لو كان خصم الموديل أعلى من هذه النسبة، يبقى الأعلى — لا تُخفَّض أبداً</div>
+        </div>
+        <label style="font-size:12.5px;font-weight:600;color:var(--ink2)">القياسات المشمولة</label>
+        <div class="size-grid" id="sizeGrid"></div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" id="selSmall">تحديد الصغيرة (سنة–5)</button>
+          <button class="btn btn-ghost btn-sm" id="selNone">مسح التحديد</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>🔍 معاينة مباشرة</h2></div>
+      <div class="panel-body">
+        <div class="fld" style="max-width:220px">
+          <label>سعر تجريبي (دينار)</label>
+          <input type="number" id="pvPrice" value="25000" step="1000">
+        </div>
+        <div class="preview">
+          <h3>الخصم الناتج حسب عدد القطع والقياس</h3>
+          <table class="pv"><thead><tr>
+            <th>عدد القطع</th><th>قياس عادي</th><th>قياس مشمول بالمكافأة</th>
+          </tr></thead><tbody id="pvBody"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===== القطع المميزة ===== -->
+  <div class="page" id="page-cheap">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>⭐ القطع المميزة — السعر المشروط</h2>
+        <span class="desc">خصم القطع الرخيصة مشروط بشراء قطع أخرى</span>
+      </div>
+      <div class="panel-body">
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:18px;cursor:pointer">
+          <input type="checkbox" id="chEnabled"> تفعيل القاعدة
+        </label>
+
+        <div class="fld">
+          <label>القطعة تُعتبر «مميزة» إذا كان سعرها الأصلي ≤</label>
+          <input type="number" id="chMaxPrice" min="0" step="500" placeholder="7000">
+          <div class="hint">كل موديل سعره الأصلي أقل من أو يساوي هذا الرقم يدخل ضمن القاعدة</div>
+        </div>
+
+        <div class="rule" style="background:#fffbeb;border-color:#fbbf24">
+          <span class="r-txt">كل</span>
+          <input type="number" id="chPerCheap" min="1" step="1" value="2">
+          <span class="r-txt">قطعة مميزة → تتطلب</span>
+          <input type="number" id="chNeedReg" min="1" step="1" value="1">
+          <span class="r-txt">قطعة من الموديلات الأخرى</span>
+        </div>
+
+        <div class="fld" style="margin-top:18px">
+          <label>السعر عند عدم الالتزام</label>
+          <select id="chMode">
+            <option value="noDiscount">إلغاء الخصم — تُباع بالسعر الأصلي</option>
+            <option value="lowPct">خصم مخفّض — نسبة أقل</option>
+            <option value="addAmount">إضافة مبلغ ثابت لكل قطعة</option>
+          </select>
+        </div>
+        <div class="grid2">
+          <div class="fld" id="chPctWrap" style="display:none">
+            <label>نسبة الخصم المخفّض (%)</label>
+            <input type="number" id="chPct" min="0" max="90" step="1" value="0">
+          </div>
+          <div class="fld" id="chAmtWrap" style="display:none">
+            <label>المبلغ المضاف (دينار)</label>
+            <input type="number" id="chAmt" min="0" step="500" value="0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>🔍 معاينة القاعدة</h2></div>
+      <div class="panel-body">
+        <div class="preview">
+          <h3>ماذا يحدث في السلة؟</h3>
+          <table class="pv"><thead><tr>
+            <th>قطع مميزة</th><th>المطلوب من الأخرى</th><th>سعر القطعة المميزة</th>
+          </tr></thead><tbody id="chPvBody"></tbody></table>
+        </div>
+        <div class="hint" style="margin-top:12px;line-height:1.9">
+          💡 <b>ما يراه الزبون:</b> صندوق أصفر في السلة يقول «أضف قطعة من الموديلات الأخرى لتوفير X دينار»،
+          ويتحوّل أخضر عند الالتزام. الأسعار تتغيّر أمامه لحظياً.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== التوصيل ===== -->
+  <div class="page" id="page-ship">
+    <div class="panel">
+      <div class="panel-head"><h2>🚚 إعدادات التوصيل</h2></div>
+      <div class="panel-body">
+        <div class="grid2">
+          <div class="fld">
+            <label>تكلفة التوصيل (دينار)</label>
+            <input type="number" id="shipCost" min="0" step="500">
+            <div class="hint">اكتب 0 ليكون التوصيل مجانياً دائماً</div>
+          </div>
+          <div class="fld">
+            <label>عدد القطع للتوصيل المجاني</label>
+            <input type="number" id="freeShipQty" min="0" step="1">
+            <div class="hint">عند بلوغ هذا العدد يصبح التوصيل مجانياً</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== العرض والنصوص ===== -->
+  <div class="page" id="page-disp">
+    <div class="panel">
+      <div class="panel-head"><h2>🎨 ترتيب المنتجات</h2></div>
+      <div class="panel-body">
+        <div class="fld">
+          <label>الترتيب الافتراضي</label>
+          <select id="sortDefault">
+            <option value="pieces_asc">الأقل قطعاً أولاً (تصريف آخر القطع)</option>
+            <option value="pieces_desc">الأكثر قطعاً أولاً</option>
+            <option value="asc">السعر: من الأقل للأعلى</option>
+            <option value="desc">السعر: من الأعلى للأقل</option>
+            <option value="default">ترتيب الجدول كما هو</option>
+          </select>
+          <div class="hint">يبقى بإمكان الزبون تغيير الترتيب من الفلاتر</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>✏️ النصوص</h2></div>
+      <div class="panel-body">
+        <div class="fld">
+          <label>نص شريط العرض</label>
+          <input type="text" id="promoText" placeholder="خصم يصل إلى 50% — ينتهي العرض خلال:">
+        </div>
+        <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;margin-bottom:16px;cursor:pointer">
+          <input type="checkbox" id="promoEnabled"> إظهار شريط العرض
+        </label>
+        <div class="fld">
+          <label>ملاحظة الخامة (أعلى الصفحة)</label>
+          <input type="text" id="fabricNote" placeholder="جميع ملابسنا قطنية 100%...">
+          <div class="hint">اتركه فارغاً لإخفاء الملاحظة</div>
+        </div>
+        <div class="fld">
+          <label>نص الخامة على البطاقة</label>
+          <input type="text" id="fabricText" placeholder="قطني 100%">
+          <div class="hint">يظهر على كل بطاقة — إلا الموديلات التي لها عمود fabric خاص</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== إصدار الملفات ===== -->
+  <div class="page" id="page-ver">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>📦 إصدار الملفات</h2>
+        <span class="desc">يُجبر المتصفحات على تحميل النسخة الجديدة</span>
+      </div>
+      <div class="panel-body">
+        <div class="ver-box">
+          <div>
+            <div style="font-size:12px;color:var(--ink2);font-weight:600">الإصدار الحالي</div>
+            <div class="ver-cur" id="verCur">—</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-inline-start:auto">
+            <button class="btn btn-primary btn-sm" data-bump="patch">+ إصلاح (1.0.<b>9</b>)</button>
+            <button class="btn btn-primary btn-sm" data-bump="minor">+ تحديث (1.<b>1</b>.0)</button>
+            <button class="btn btn-primary btn-sm" data-bump="major">+ إصدار (<b>2</b>.0.0)</button>
+          </div>
+        </div>
+        <div class="hint" style="margin-top:14px;line-height:1.9">
+          <b>متى تستخدمه؟</b> بعد رفع نسخة جديدة من <code>app.js</code> أو <code>style.css</code> إلى الموقع.<br>
+          ارفع الملفات أولاً، ثم اضغط الزر — سيُحمّل كل زبون النسخة الجديدة تلقائياً بدل المخزّنة في متصفحه.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== الأمان ===== -->
+  <div class="page" id="page-sec">
+    <div class="panel">
+      <div class="panel-head"><h2>🔑 كلمة المرور</h2></div>
+      <div class="panel-body">
+        <div class="grid2">
+          <div class="fld">
+            <label>كلمة المرور الجديدة</label>
+            <input type="password" id="newPass" placeholder="4 أحرف على الأقل" autocomplete="new-password">
+          </div>
+          <div class="fld">
+            <label>تأكيد كلمة المرور</label>
+            <input type="password" id="newPass2" placeholder="أعد كتابتها" autocomplete="new-password">
+          </div>
+        </div>
+        <button class="btn btn-ok" id="changePassBtn">💾 تغيير كلمة المرور</button>
+        <div class="hint" style="margin-top:14px">
+          كلمة المرور محفوظة في ورقة <b>Settings</b> داخل جدولك — لا يصل إليها أحد غيرك.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- شريط الحفظ -->
+<div class="savebar" id="saveBar">
+  <div class="savebar-in">
+    <span class="txt">⚠️ لديك تغييرات غير محفوظة</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" id="discardBtn">تراجع</button>
+      <button class="btn btn-ok" id="saveBtn">💾 حفظ التغييرات</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   لوحة إدارة متجر جود العباس
+   ============================================================ */
+const API = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
+
+/* خريطة القياس → العمر (مطابقة للمتجر) */
+const SIZE_MAP = {
+  55:'0-2 شهر', 60:'2-4 أشهر', 65:'4-6 أشهر', 70:'6-8 أشهر', 75:'8-10 أشهر',
+  80:'1 سنة', 90:'2 سنة', 100:'3 سنوات', 110:'4 سنوات', 120:'4-5 سنوات',
+  130:'6-7 سنوات', 140:'8-9 سنوات', 150:'10-11 سنة', 160:'12-13 سنة', 170:'14-15 سنة'
+};
+const SMALL_SIZES = [80,90,100,110,120];
+
+let PASS = '';
+let S = null;        // الإعدادات الحالية (من الخادم)
+let dirty = false;
+
+const $ = id => document.getElementById(id);
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+let tT;
+function toast(msg,kind){
+  const el=$('toast'); el.textContent=msg; el.className='toast show'+(kind?' '+kind:'');
+  clearTimeout(tT); tT=setTimeout(()=>el.classList.remove('show'),2600);
+}
+function markDirty(){ dirty=true; $('saveBar').classList.add('show'); }
+function clearDirty(){ dirty=false; $('saveBar').classList.remove('show'); }
+
+/* ===== الاتصال بالسكربت ===== */
+async function apiPost(payload){
+  const r = await fetch(API, { method:'POST', body: JSON.stringify(payload) });
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return await r.json();
+}
+
+/* ===== تسجيل الدخول ===== */
+async function doLogin(){
+  const pass = $('passIn').value;
+  if(!pass){ $('loginErr').textContent='أدخل كلمة المرور'; return; }
+  const btn=$('loginBtn'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span> جاري الدخول...';
+  $('loginErr').textContent='';
+  try{
+    const d = await apiPost({ action:'adminLogin', pass:pass });
+    if(!d.success) throw new Error(d.error||'فشل الدخول');
+    PASS = pass;
+    if($('rememberMe').checked) localStorage.setItem('adm_p', pass);
+    S = d.settings;
+    enterApp();
+  }catch(e){
+    let m = e.message;
+    if(/failed to fetch|networkerror/i.test(m)) m='تعذّر الاتصال بالسكربت — تحقق من الرابط والنشر';
+    $('loginErr').textContent = '❌ '+m;
+  }finally{
+    btn.disabled=false; btn.textContent='دخول';
+  }
+}
+
+function enterApp(){
+  $('loginScreen').style.display='none';
+  $('app').style.display='block';
+  fillForm();
+}
+
+function doLogout(){
+  PASS=''; S=null; localStorage.removeItem('adm_p');
+  $('app').style.display='none';
+  $('loginScreen').style.display='flex';
+  $('passIn').value=''; clearDirty();
+}
+
+/* ===== تعبئة النموذج من الإعدادات ===== */
+function parseRules(){
+  try{
+    const dr = typeof S.discountRules==='string' ? JSON.parse(S.discountRules) : (S.discountRules||{});
+    return {
+      base: Number(dr.base)||40,
+      pieceRules: Array.isArray(dr.pieceRules)?dr.pieceRules:[],
+      sizeBonus: Array.isArray(dr.sizeBonus)?dr.sizeBonus:[]
+    };
+  }catch(e){ return {base:40, pieceRules:[], sizeBonus:[]}; }
+}
+
+function fillForm(){
+  const dr = parseRules();
+  $('baseDisc').value = dr.base;
+  renderPieceRules(dr.pieceRules);
+  const bonus = dr.sizeBonus[0] || {sizes:[], pct:40};
+  $('bonusPct').value = Number(bonus.pct)||40;
+  renderSizeGrid((bonus.sizes||[]).map(String));
+
+  $('shipCost').value    = S.shipCost || 0;
+  $('freeShipQty').value = S.freeShipQty || 0;
+  $('sortDefault').value = S.sortDefault || 'pieces_asc';
+  $('promoText').value   = S.promoText || '';
+  $('promoEnabled').checked = String(S.promoEnabled)==='1';
+  $('fabricNote').value  = S.fabricNote || '';
+  $('fabricText').value  = S.fabricText || '';
+  $('verCur').textContent = S.assetVersion || '—';
+  fillCheap();
+  updatePreview();
+  clearDirty();
+}
+
+/* ===== قواعد عدد القطع ===== */
+function renderPieceRules(rules){
+  const box=$('pieceRules'); box.innerHTML='';
+  rules.slice().sort((a,b)=>Number(a.maxPieces)-Number(b.maxPieces)).forEach((r,i)=>{
+    const d=document.createElement('div'); d.className='rule';
+    d.innerHTML =
+      '<span class="r-num">'+(i+1)+'</span>'+
+      '<span class="r-txt">إذا بقي</span>'+
+      '<input type="number" class="r-max" min="1" step="1" value="'+Number(r.maxPieces)+'">'+
+      '<span class="r-txt">قطعة أو أقل → خصم</span>'+
+      '<input type="number" class="r-pct" min="0" max="90" step="1" value="'+Number(r.pct)+'">'+
+      '<span class="r-txt">%</span>'+
+      '<button class="r-del" title="حذف">🗑</button>';
+    d.querySelector('.r-del').addEventListener('click',()=>{ d.remove(); renumber(); markDirty(); updatePreview(); });
+    d.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',()=>{ markDirty(); updatePreview(); }));
+    box.appendChild(d);
+  });
+  renumber();
+}
+function renumber(){
+  document.querySelectorAll('#pieceRules .rule .r-num').forEach((el,i)=>el.textContent=i+1);
+}
+function collectPieceRules(){
+  return [...document.querySelectorAll('#pieceRules .rule')].map(d=>({
+    maxPieces: Number(d.querySelector('.r-max').value)||1,
+    pct:       Number(d.querySelector('.r-pct').value)||0
+  })).filter(r=>r.maxPieces>0);
+}
+
+/* ===== شبكة القياسات ===== */
+function renderSizeGrid(selected){
+  const g=$('sizeGrid'); g.innerHTML='';
+  Object.keys(SIZE_MAP).forEach(sz=>{
+    const on = selected.indexOf(String(sz))!==-1;
+    const l=document.createElement('label'); l.className='size-chk'+(on?' on':'');
+    l.innerHTML='<input type="checkbox" value="'+sz+'"'+(on?' checked':'')+'><span>'+sz+' <small>('+SIZE_MAP[sz]+')</small></span>';
+    const cb=l.querySelector('input');
+    cb.addEventListener('change',()=>{ l.classList.toggle('on',cb.checked); markDirty(); updatePreview(); });
+    g.appendChild(l);
+  });
+}
+function collectSizes(){
+  return [...document.querySelectorAll('#sizeGrid input:checked')].map(c=>Number(c.value));
+}
+
+/* ===== محرّك الخصم (نسخة مطابقة للمتجر — للمعاينة) ===== */
+function calcBase(pieces, rules, base){
+  const sorted = rules.slice().sort((a,b)=>a.maxPieces-b.maxPieces);
+  for(const r of sorted){ if(pieces>0 && pieces<=r.maxPieces) return r.pct; }
+  return base;
+}
+function updatePreview(){
+  const rules=collectPieceRules(), base=Number($('baseDisc').value)||0;
+  const bPct=Number($('bonusPct').value)||0, bSizes=collectSizes();
+  const price=Number($('pvPrice').value)||0;
+  const rows=[1,2,3,4,5,8];
+  $('pvBody').innerHTML = rows.map(n=>{
+    const b=calcBase(n,rules,base);
+    const withBonus=bSizes.length?Math.max(b,bPct):b;
+    const p1=Math.round(price*(100-b)/100), p2=Math.round(price*(100-withBonus)/100);
+    return '<tr><td><b>'+n+'</b> قطعة</td>'+
+           '<td>خصم '+b+'% → <span class="hi">'+p1.toLocaleString()+'</span></td>'+
+           '<td>خصم '+withBonus+'% → <span class="hi">'+p2.toLocaleString()+'</span></td></tr>';
+  }).join('');
+}
+
+
+/* ===== القطع المميزة ===== */
+function parseCheap(){
+  try{
+    const c = typeof S.cheapRule==='string' ? JSON.parse(S.cheapRule) : (S.cheapRule||{});
+    return {
+      enabled: c.enabled===true || String(c.enabled)==='true',
+      maxPrice: Number(c.maxPrice)||0,
+      perCheap: Number(c.perCheap)||2,
+      needRegular: Number(c.needRegular)||1,
+      penaltyMode: c.penaltyMode||'noDiscount',
+      penaltyPct: Number(c.penaltyPct)||0,
+      penaltyAmount: Number(c.penaltyAmount)||0
+    };
+  }catch(e){ return {enabled:false,maxPrice:7000,perCheap:2,needRegular:1,penaltyMode:'noDiscount',penaltyPct:0,penaltyAmount:0}; }
+}
+function fillCheap(){
+  const c = parseCheap();
+  $('chEnabled').checked = c.enabled;
+  $('chMaxPrice').value  = c.maxPrice;
+  $('chPerCheap').value  = c.perCheap;
+  $('chNeedReg').value   = c.needRegular;
+  $('chMode').value      = c.penaltyMode;
+  $('chPct').value       = c.penaltyPct;
+  $('chAmt').value       = c.penaltyAmount;
+  toggleCheapMode();
+  updateCheapPreview();
+}
+function toggleCheapMode(){
+  const m = $('chMode').value;
+  $('chPctWrap').style.display = m==='lowPct'   ? '' : 'none';
+  $('chAmtWrap').style.display = m==='addAmount'? '' : 'none';
+}
+function collectCheap(){
+  return {
+    enabled:       $('chEnabled').checked,
+    maxPrice:      Number($('chMaxPrice').value)||0,
+    perCheap:      Number($('chPerCheap').value)||1,
+    needRegular:   Number($('chNeedReg').value)||1,
+    penaltyMode:   $('chMode').value,
+    penaltyPct:    Number($('chPct').value)||0,
+    penaltyAmount: Number($('chAmt').value)||0
+  };
+}
+function updateCheapPreview(){
+  const c = collectCheap();
+  const dr = { base:Number($('baseDisc').value)||40, rules:collectPieceRules() };
+  const orig = c.maxPrice || 7000;
+  const reward = Math.round(orig*(100-dr.base)/100);
+  let penalty;
+  if(c.penaltyMode==='lowPct')         penalty = Math.round(orig*(100-c.penaltyPct)/100);
+  else if(c.penaltyMode==='addAmount') penalty = reward + c.penaltyAmount;
+  else                                 penalty = orig;
+
+  $('chPvBody').innerHTML = [1,2,3,4,6].map(n=>{
+    const req = Math.ceil(n/c.perCheap)*c.needRegular;
+    return '<tr><td><b>'+n+'</b> قطعة</td>'+
+      '<td>'+req+' قطعة</td>'+
+      '<td>ملتزم: <span class="hi">'+reward.toLocaleString()+'</span>'+
+      ' · غير ملتزم: <b style="color:var(--danger)">'+penalty.toLocaleString()+'</b></td></tr>';
+  }).join('');
+}
+
+/* ===== الحفظ ===== */
+async function saveAll(){
+  const btn=$('saveBtn'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span> جاري الحفظ...';
+  try{
+    const sizes=collectSizes();
+    const data = {
+      discountRules: JSON.stringify({
+        base: Number($('baseDisc').value)||40,
+        pieceRules: collectPieceRules(),
+        sizeBonus: sizes.length ? [{ sizes:sizes, pct:Number($('bonusPct').value)||0 }] : []
+      }),
+      shipCost:     String(Number($('shipCost').value)||0),
+      freeShipQty:  String(Number($('freeShipQty').value)||0),
+      sortDefault:  $('sortDefault').value,
+      promoText:    $('promoText').value.trim(),
+      promoEnabled: $('promoEnabled').checked ? '1' : '0',
+      fabricNote:   $('fabricNote').value.trim(),
+      fabricText:   $('fabricText').value.trim(),
+      cheapRule:    JSON.stringify(collectCheap())
+    };
+    const d = await apiPost({ action:'saveSettings', pass:PASS, data:JSON.stringify(data) });
+    if(!d.success) throw new Error(d.error||'فشل الحفظ');
+    S = d.settings;
+    clearDirty();
+    toast('✅ حُفظت التغييرات — ستظهر للزبائن فوراً','ok');
+  }catch(e){
+    toast('❌ '+e.message,'err');
+  }finally{
+    btn.disabled=false; btn.innerHTML='💾 حفظ التغييرات';
+  }
+}
+
+/* ===== رفع الإصدار ===== */
+async function bumpVersion(part){
+  if(!confirm('رفع الإصدار سيجبر كل الزبائن على تحميل نسخة الملفات الجديدة.\n\nهل رفعت الملفات للموقع أولاً؟')) return;
+  try{
+    const d = await apiPost({ action:'bumpVersion', pass:PASS, part:part });
+    if(!d.success) throw new Error(d.error||'فشل');
+    $('verCur').textContent = d.assetVersion;
+    if(S) S.assetVersion = d.assetVersion;
+    toast('✅ '+d.previous+' → '+d.assetVersion,'ok');
+  }catch(e){ toast('❌ '+e.message,'err'); }
+}
+
+/* ===== تغيير كلمة المرور ===== */
+async function changePass(){
+  const p1=$('newPass').value, p2=$('newPass2').value;
+  if(p1.length<4){ toast('كلمة المرور 4 أحرف على الأقل','warn'); return; }
+  if(p1!==p2){ toast('الكلمتان غير متطابقتين','warn'); return; }
+  try{
+    const d = await apiPost({ action:'saveSettings', pass:PASS, data:'{}', newPass:p1 });
+    if(!d.success) throw new Error(d.error||'فشل');
+    PASS = p1;
+    if(localStorage.getItem('adm_p')) localStorage.setItem('adm_p', p1);
+    $('newPass').value=''; $('newPass2').value='';
+    toast('✅ تغيّرت كلمة المرور','ok');
+  }catch(e){ toast('❌ '+e.message,'err'); }
+}
+
+/* ===== الأحداث ===== */
+$('loginBtn').addEventListener('click', doLogin);
+$('passIn').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+$('logoutBtn').addEventListener('click', doLogout);
+$('reloadBtn').addEventListener('click', async ()=>{
+  try{
+    const d = await apiPost({ action:'adminLogin', pass:PASS });
+    if(d.success){ S=d.settings; fillForm(); toast('🔄 حُدّثت البيانات','ok'); }
+  }catch(e){ toast('❌ '+e.message,'err'); }
+});
+
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); $('page-'+b.dataset.p).classList.add('on');
+}));
+
+$('addRuleBtn').addEventListener('click',()=>{
+  const cur=collectPieceRules();
+  cur.push({maxPieces:(cur.length?Math.max(...cur.map(r=>r.maxPieces))+1:1), pct:40});
+  renderPieceRules(cur); markDirty(); updatePreview();
+});
+$('selSmall').addEventListener('click',()=>{ renderSizeGrid(SMALL_SIZES.map(String)); markDirty(); updatePreview(); });
+$('selNone').addEventListener('click',()=>{ renderSizeGrid([]); markDirty(); updatePreview(); });
+
+['baseDisc','bonusPct','pvPrice','shipCost','freeShipQty','sortDefault','promoText','fabricNote','fabricText']
+  .forEach(id=>$(id).addEventListener('input',()=>{ if(id!=='pvPrice') markDirty(); updatePreview(); }));
+$('promoEnabled').addEventListener('change', markDirty);
+['chMaxPrice','chPerCheap','chNeedReg','chPct','chAmt'].forEach(id=>
+  $(id).addEventListener('input',()=>{ markDirty(); updateCheapPreview(); }));
+$('chEnabled').addEventListener('change',()=>{ markDirty(); updateCheapPreview(); });
+$('chMode').addEventListener('change',()=>{ markDirty(); toggleCheapMode(); updateCheapPreview(); });
+
+$('saveBtn').addEventListener('click', saveAll);
+$('discardBtn').addEventListener('click',()=>{ fillForm(); toast('تراجعت عن التغييرات'); });
+document.querySelectorAll('[data-bump]').forEach(b=>b.addEventListener('click',()=>bumpVersion(b.dataset.bump)));
+$('changePassBtn').addEventListener('click', changePass);
+
+window.addEventListener('beforeunload', e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
+
+/* ===== بدء ===== */
+(function init(){
+  const saved = localStorage.getItem('adm_p');
+  if(saved){
+    $('passIn').value = saved;
+    doLogin();
+  }
+})();
+</script>
+</body>
+</html>
