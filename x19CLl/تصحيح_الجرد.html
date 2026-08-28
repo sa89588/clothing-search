@@ -241,6 +241,10 @@
   .chip{padding:6px 11px !important; font-size:12px !important}
   .chips{gap:6px !important}
 }
+
+.lm-spin{width:26px;height:26px;border:3px solid #e2e8f0;border-top-color:#1565C0;
+         border-radius:50%;animation:lmsp .8s linear infinite}
+@keyframes lmsp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -470,8 +474,53 @@ function render(){
     return;
   }
   stateBox.style.display='none'; grid.style.display='grid';
+
+  /* ===== تحميل تدريجي: نرسم دفعة ونكمل عند التمرير ===== */
   grid.innerHTML='';
-  list.forEach(m=>grid.appendChild(buildCard(m)));
+  LAST_LIST = list;
+  const first = list.slice(0, PAGE_SIZE);
+  const frag  = document.createDocumentFragment();
+  first.forEach(m=>frag.appendChild(buildCard(m)));
+  grid.appendChild(frag);
+  setupLoadMore(list);
+}
+
+/* ===== إعدادات التحميل التدريجي ===== */
+const PAGE_SIZE = 24;
+let PAGE = 1, LAST_LIST = [], _io = null;
+
+function setupLoadMore(list){
+  const old = document.getElementById('loadMore');
+  if(old) old.remove();
+  if(_io){ _io.disconnect(); _io = null; }
+  if(list.length <= PAGE_SIZE) return;
+
+  const grid = document.getElementById('grid');
+  const sentinel = document.createElement('div');
+  sentinel.id = 'loadMore';
+  sentinel.style.cssText = 'grid-column:1/-1;display:flex;justify-content:center;padding:18px';
+  sentinel.innerHTML = '<div class="lm-spin"></div>';
+  grid.parentNode.insertBefore(sentinel, grid.nextSibling);
+
+  _io = new IntersectionObserver(function(entries){
+    if(!entries[0].isIntersecting) return;
+    const shown = grid.querySelectorAll('.card').length;
+    const next  = LAST_LIST.slice(shown, shown + PAGE_SIZE);
+    if(!next.length){
+      sentinel.remove();
+      if(_io){ _io.disconnect(); _io = null; }
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    next.forEach(m=>frag.appendChild(buildCard(m)));
+    grid.appendChild(frag);
+    if(grid.querySelectorAll('.card').length >= LAST_LIST.length){
+      sentinel.remove();
+      if(_io){ _io.disconnect(); _io = null; }
+    }
+  }, { rootMargin: '600px 0px' });   // نبدأ التحميل قبل الوصول
+
+  _io.observe(sentinel);
 }
 
 function buildCard(m){
@@ -633,12 +682,18 @@ function closeLightbox(){
 }
 
 /* ===== أحداث عامة ===== */
-document.getElementById('searchIn').addEventListener('input',render);
-document.getElementById('clearBtn').addEventListener('click',()=>{ document.getElementById('searchIn').value=''; render(); });
+/* تأخير البحث — لا نُعيد الرسم مع كل حرف */
+let _searchT;
+document.getElementById('searchIn').addEventListener('input',function(){
+  clearTimeout(_searchT);
+  _searchT = setTimeout(function(){ PAGE = 1; render(); }, 280);
+});
+document.getElementById('clearBtn').addEventListener('click',()=>{ document.getElementById('searchIn').value=''; PAGE=1; render(); });
 document.getElementById('chips').addEventListener('click',e=>{
   const chip=e.target.closest('.chip'); if(!chip) return;
   document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
-  chip.classList.add('on'); currentFilter=chip.dataset.f; render();
+  chip.classList.add('on'); currentFilter=chip.dataset.f; PAGE=1; render();
+  window.scrollTo({top:0,behavior:'smooth'});
 });
 document.getElementById('lbX').addEventListener('click',closeLightbox);
 document.getElementById('lb').addEventListener('click',e=>{ if(e.target.id==='lb') closeLightbox(); });
