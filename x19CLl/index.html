@@ -101,6 +101,22 @@
 
   .spinner{width:16px;height:16px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
   @keyframes spin{to{transform:rotate(360deg)}}
+  /* بطاقات الأدوات */
+  .tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:13px}
+  .tool{display:flex;flex-direction:column;gap:8px;padding:18px;border:1.5px solid var(--line);
+        border-radius:14px;background:var(--card);cursor:pointer;transition:all .18s;text-align:start;
+        text-decoration:none;color:inherit;position:relative;overflow:hidden}
+  .tool:hover{border-color:var(--brand);transform:translateY(-2px);box-shadow:0 8px 22px rgba(21,101,192,.14)}
+  .tool .t-ico{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:23px}
+  .tool h3{font-size:15px;font-weight:700}
+  .tool p{font-size:12px;color:var(--ink2);line-height:1.6}
+  .tool .t-go{font-size:11.5px;color:var(--brand);font-weight:700;margin-top:auto}
+  .tool.off{opacity:.5;cursor:not-allowed}
+  .tool.off:hover{transform:none;border-color:var(--line);box-shadow:none}
+  .path-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;flex-wrap:wrap}
+  .path-row label{font-size:12.5px;font-weight:600;min-width:120px;color:var(--ink2)}
+  .path-row input{flex:1;min-width:180px;padding:9px 12px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;outline:none;direction:ltr;text-align:left}
+  .path-row input:focus{border-color:var(--brand)}
   @media(max-width:620px){ .grid2{grid-template-columns:1fr} }
 </style>
 </head>
@@ -138,7 +154,8 @@
       </div>
     </div>
     <div class="tabs" id="tabs" style="max-width:940px;margin:12px auto 0">
-      <button class="tab on" data-p="disc">💰 الخصومات</button>
+      <button class="tab on" data-p="hub">🏠 المواقع</button>
+      <button class="tab" data-p="disc">💰 الخصومات</button>
       <button class="tab" data-p="cheap">⭐ القطع المميزة</button>
       <button class="tab" data-p="ship">🚚 التوصيل</button>
       <button class="tab" data-p="disp">🎨 العرض والنصوص</button>
@@ -147,8 +164,34 @@
     </div>
   </header>
 
+
+  <!-- ===== بوابة المواقع ===== -->
+  <div class="page on" id="page-hub">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>🏠 أدوات الإدارة</h2>
+        <span class="desc">كل أداة تُفتح في تبويب مستقل — لا تُحمَّل معاً</span>
+      </div>
+      <div class="panel-body">
+        <div class="tools-grid" id="toolsGrid"></div>
+        <div class="hint" style="margin-top:16px;line-height:1.9">
+          🔐 <b>الجلسة مشتركة:</b> بعد دخولك هنا تُفتح الأدوات مباشرة بلا كلمة مرور.
+          تنتهي الجلسة تلقائياً بعد 12 ساعة أو عند الضغط على «خروج».
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>⚙️ روابط الأدوات</h2><span class="desc">عدّلها لو غيّرت مواقع الملفات</span></div>
+      <div class="panel-body">
+        <div id="toolPaths"></div>
+        <button class="btn btn-ghost btn-sm" id="saveToolsBtn" style="margin-top:10px">💾 حفظ الروابط</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== الخصومات ===== -->
-  <div class="page on" id="page-disc">
+  <div class="page" id="page-disc">
     <div class="panel">
       <div class="panel-head">
         <h2>💰 قواعد الخصم حسب عدد القطع</h2>
@@ -408,8 +451,9 @@ const SIZE_MAP = {
 };
 const SMALL_SIZES = [80,90,100,110,120];
 
-let PASS = '';
-let S = null;        // الإعدادات الحالية (من الخادم)
+const AUTH_SALT = 'jood-alabbas-2026';   // يطابق السكربت
+let TOKEN = '';      // رمز الجلسة — لا كلمة مرور
+let S = null;
 let dirty = false;
 
 const $ = id => document.getElementById(id);
@@ -423,11 +467,23 @@ function toast(msg,kind){
 function markDirty(){ dirty=true; $('saveBar').classList.add('show'); }
 function clearDirty(){ dirty=false; $('saveBar').classList.remove('show'); }
 
-/* ===== الاتصال بالسكربت ===== */
+/* ===== تشفير كلمة المرور في المتصفح (نفس خوارزمية السكربت) ===== */
+async function hashPass(plain){
+  const buf = new TextEncoder().encode(AUTH_SALT + '|' + plain);
+  const dig = await crypto.subtle.digest('SHA-256', buf);
+  return [...new Uint8Array(dig)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ===== الاتصال — يرسل رمز الجلسة لا كلمة المرور ===== */
 async function apiPost(payload){
+  if(TOKEN && !payload.pass) payload.token = TOKEN;
   const r = await fetch(API, { method:'POST', body: JSON.stringify(payload) });
   if(!r.ok) throw new Error('HTTP '+r.status);
-  return await r.json();
+  const d = await r.json();
+  if(d && d.error && /غير مصرّح|الجلسة منتهية/.test(d.error)){
+    doLogout(); throw new Error('انتهت الجلسة — سجّل الدخول مجدداً');
+  }
+  return d;
 }
 
 /* ===== تسجيل الدخول ===== */
@@ -437,10 +493,15 @@ async function doLogin(){
   const btn=$('loginBtn'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span> جاري الدخول...';
   $('loginErr').textContent='';
   try{
-    const d = await apiPost({ action:'adminLogin', pass:pass });
+    const hash = await hashPass(pass);          // لا تغادر الكلمة المتصفح أبداً
+    const d = await apiPost({ action:'adminLogin', pass:hash });
     if(!d.success) throw new Error(d.error||'فشل الدخول');
-    PASS = pass;
-    if($('rememberMe').checked) localStorage.setItem('adm_p', pass);
+    TOKEN = d.token;
+    /* نحفظ رمز الجلسة فقط — لا كلمة المرور */
+    if($('rememberMe').checked){
+      localStorage.setItem('adm_tok', TOKEN);
+      localStorage.setItem('adm_exp', String(d.expires||0));
+    }
     S = d.settings;
     enterApp();
   }catch(e){
@@ -452,6 +513,22 @@ async function doLogin(){
   }
 }
 
+/* استئناف جلسة محفوظة */
+async function resumeSession(){
+  const tok = localStorage.getItem('adm_tok');
+  const exp = Number(localStorage.getItem('adm_exp')||0);
+  if(!tok || (exp && Date.now() > exp)) { clearSession(); return false; }
+  try{
+    const d = await apiPost({ action:'checkSession', token:tok });
+    if(d.success){ TOKEN=tok; S=d.settings; enterApp(); return true; }
+  }catch(_){}
+  clearSession(); return false;
+}
+function clearSession(){
+  TOKEN=''; localStorage.removeItem('adm_tok'); localStorage.removeItem('adm_exp');
+  localStorage.removeItem('adm_p');     // تنظيف أي كلمة مرور قديمة مخزّنة
+}
+
 function enterApp(){
   $('loginScreen').style.display='none';
   $('app').style.display='block';
@@ -459,7 +536,8 @@ function enterApp(){
 }
 
 function doLogout(){
-  PASS=''; S=null; localStorage.removeItem('adm_p');
+  if(TOKEN){ fetch(API,{method:'POST',body:JSON.stringify({action:'adminLogout',token:TOKEN})}).catch(()=>{}); }
+  S=null; clearSession();
   $('app').style.display='none';
   $('loginScreen').style.display='flex';
   $('passIn').value=''; clearDirty();
@@ -494,6 +572,8 @@ function fillForm(){
   $('fabricText').value  = S.fabricText || '';
   $('verCur').textContent = S.assetVersion || '—';
   fillCheap();
+  renderTools();
+  renderToolPaths();
   updatePreview();
   clearDirty();
 }
@@ -564,6 +644,76 @@ function updatePreview(){
   }).join('');
 }
 
+
+
+/* ==================== بوابة الأدوات ==================== */
+const TOOLS = [
+  { key:'invoices',  ico:'🧾', color:'#7c3aed', bg:'#ede9fe', name:'الفواتير',
+    desc:'إنشاء فواتير PDF وPNG من نص الطلب', file:'الفواتير.html' },
+  { key:'qr',        ico:'🔳', color:'#0d9488', bg:'#ccfbf1', name:'أكواد QR',
+    desc:'بطاقات شكر مع QR جاهزة للطباعة', file:'اكواد_QR.html' },
+  { key:'stock',     ico:'📦', color:'#f59e0b', bg:'#fef3c7', name:'تصحيح الجرد',
+    desc:'تعديل قياسات الموديلات مباشرة', file:'تصحيح_الجرد.html' },
+  { key:'waseet',    ico:'🚚', color:'#1565C0', bg:'#dbeafe', name:'لوحة الوسيط',
+    desc:'إنشاء طلبات الشحن ومتابعتها', file:'الوسيط.html' }
+];
+
+function toolPaths(){
+  try{ return JSON.parse(S.toolPaths || localStorage.getItem('adm_paths') || '{}'); }
+  catch(e){ return {}; }
+}
+function toolURL(t){
+  const p = toolPaths();
+  return (p[t.key] && String(p[t.key]).trim()) || t.file;
+}
+
+function renderTools(){
+  const g = $('toolsGrid'); if(!g) return;
+  g.innerHTML = '';
+  TOOLS.forEach(t=>{
+    const a = document.createElement('a');
+    a.className = 'tool';
+    a.href = toolURL(t);
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.innerHTML =
+      '<div class="t-ico" style="background:'+t.bg+';color:'+t.color+'">'+t.ico+'</div>'+
+      '<h3>'+esc(t.name)+'</h3>'+
+      '<p>'+esc(t.desc)+'</p>'+
+      '<span class="t-go">فتح ←</span>';
+    /* نمرّر الجلسة للأداة قبل فتحها */
+    a.addEventListener('click', ()=>{
+      try{
+        localStorage.setItem('adm_tok', TOKEN);
+        localStorage.setItem('adm_exp', localStorage.getItem('adm_exp')||String(Date.now()+12*3600*1000));
+      }catch(_){}
+    });
+    g.appendChild(a);
+  });
+}
+
+function renderToolPaths(){
+  const box = $('toolPaths'); if(!box) return;
+  const p = toolPaths();
+  box.innerHTML = '';
+  TOOLS.forEach(t=>{
+    const d = document.createElement('div'); d.className='path-row';
+    d.innerHTML = '<label>'+t.ico+' '+esc(t.name)+'</label>'+
+                  '<input type="text" data-k="'+t.key+'" value="'+esc(p[t.key]||t.file)+'" placeholder="'+esc(t.file)+'">';
+    box.appendChild(d);
+  });
+}
+
+async function saveToolPaths(){
+  const p = {};
+  document.querySelectorAll('#toolPaths input').forEach(i=>{ p[i.dataset.k] = i.value.trim(); });
+  localStorage.setItem('adm_paths', JSON.stringify(p));
+  try{
+    const d = await apiPost({ action:'saveSettings', data: JSON.stringify({ toolPaths: JSON.stringify(p) }) });
+    if(d.success){ S = d.settings; toast('✅ حُفظت الروابط','ok'); renderTools(); }
+    else throw new Error(d.error||'فشل');
+  }catch(e){ toast('حُفظت محلياً — '+e.message,'warn'); renderTools(); }
+}
 
 /* ===== القطع المميزة ===== */
 function parseCheap(){
@@ -647,7 +797,7 @@ async function saveAll(){
       fabricText:   $('fabricText').value.trim(),
       cheapRule:    JSON.stringify(collectCheap())
     };
-    const d = await apiPost({ action:'saveSettings', pass:PASS, data:JSON.stringify(data) });
+    const d = await apiPost({ action:'saveSettings', data:JSON.stringify(data) });
     if(!d.success) throw new Error(d.error||'فشل الحفظ');
     S = d.settings;
     clearDirty();
@@ -663,7 +813,7 @@ async function saveAll(){
 async function bumpVersion(part){
   if(!confirm('رفع الإصدار سيجبر كل الزبائن على تحميل نسخة الملفات الجديدة.\n\nهل رفعت الملفات للموقع أولاً؟')) return;
   try{
-    const d = await apiPost({ action:'bumpVersion', pass:PASS, part:part });
+    const d = await apiPost({ action:'bumpVersion', part:part });
     if(!d.success) throw new Error(d.error||'فشل');
     $('verCur').textContent = d.assetVersion;
     if(S) S.assetVersion = d.assetVersion;
@@ -677,12 +827,11 @@ async function changePass(){
   if(p1.length<4){ toast('كلمة المرور 4 أحرف على الأقل','warn'); return; }
   if(p1!==p2){ toast('الكلمتان غير متطابقتين','warn'); return; }
   try{
-    const d = await apiPost({ action:'saveSettings', pass:PASS, data:'{}', newPass:p1 });
+    const h = await hashPass(p1);                       // تُشفَّر قبل المغادرة
+    const d = await apiPost({ action:'saveSettings', data:'{}', newPassHash:h });
     if(!d.success) throw new Error(d.error||'فشل');
-    PASS = p1;
-    if(localStorage.getItem('adm_p')) localStorage.setItem('adm_p', p1);
     $('newPass').value=''; $('newPass2').value='';
-    toast('✅ تغيّرت كلمة المرور','ok');
+    toast('✅ تغيّرت كلمة المرور — لن تُخزَّن نصاً في أي مكان','ok');
   }catch(e){ toast('❌ '+e.message,'err'); }
 }
 
@@ -692,7 +841,7 @@ $('passIn').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 $('logoutBtn').addEventListener('click', doLogout);
 $('reloadBtn').addEventListener('click', async ()=>{
   try{
-    const d = await apiPost({ action:'adminLogin', pass:PASS });
+    const d = await apiPost({ action:'checkSession', token:TOKEN });
     if(d.success){ S=d.settings; fillForm(); toast('🔄 حُدّثت البيانات','ok'); }
   }catch(e){ toast('❌ '+e.message,'err'); }
 });
@@ -723,16 +872,18 @@ $('saveBtn').addEventListener('click', saveAll);
 $('discardBtn').addEventListener('click',()=>{ fillForm(); toast('تراجعت عن التغييرات'); });
 document.querySelectorAll('[data-bump]').forEach(b=>b.addEventListener('click',()=>bumpVersion(b.dataset.bump)));
 $('changePassBtn').addEventListener('click', changePass);
+const _stb=$('saveToolsBtn'); if(_stb) _stb.addEventListener('click', saveToolPaths);
 
 window.addEventListener('beforeunload', e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
 
 /* ===== بدء ===== */
-(function init(){
-  const saved = localStorage.getItem('adm_p');
-  if(saved){
-    $('passIn').value = saved;
-    doLogin();
+(async function init(){
+  /* ترحيل: لو كانت هناك كلمة مرور قديمة مخزّنة نصاً، نحذفها فوراً */
+  if(localStorage.getItem('adm_p')){
+    localStorage.removeItem('adm_p');
+    console.log('🔒 حُذفت كلمة المرور المخزّنة نصاً (ترقية أمنية)');
   }
+  await resumeSession();
 })();
 </script>
 </body>
