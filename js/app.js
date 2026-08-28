@@ -5,6 +5,8 @@
 const API = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
 const PLACEHOLDER = 'https://placehold.co/300x300?text=?';
 
+/* ==================== إعدادات الخصم والتوصيل ====================
+   مكان واحد للتحكم — أي تغيير هنا ينعكس على كل الموقع */
 /* ==================== الإعدادات المركزية ====================
    • القيم هنا افتراضية فقط — تُستبدل بما يصل من ورقة Settings
    • كل التحكم يتم من لوحة الإدارة، لا من هذا الملف */
@@ -276,10 +278,15 @@ async function loadSettings(){
 /* كسر التخزين المؤقت: لو نُشر إصدار أحدث، نعيد التحميل بنسخة جديدة */
 function checkAssetVersion(remote){
   if(!remote) return;
-  const local = localStorage.getItem('assetV') || APP_VERSION;
-  if(String(remote) === String(local)) return;
+  const stored = localStorage.getItem('assetV');
+
+  /* أول زيارة: نحفظ الإصدار بصمت — لا إعادة تحميل (تسبب وميضاً مربكاً) */
+  if(!stored){ localStorage.setItem('assetV', String(remote)); return; }
+
+  if(String(remote) === String(stored)) return;
+
+  /* إصدار جديد فعلاً: نحفظه ونعيد التحميل مرة واحدة */
   localStorage.setItem('assetV', String(remote));
-  // نعيد التحميل مرة واحدة فقط لتفادي أي حلقة
   if(sessionStorage.getItem('vReloaded') === String(remote)) return;
   sessionStorage.setItem('vReloaded', String(remote));
   console.log('🔄 إصدار جديد ('+remote+') — إعادة تحميل');
@@ -625,6 +632,51 @@ function addSwipe(el,onDelete){
 }
 
 /* ==================== FETCH & DISPLAY ==================== */
+/* جلب البيانات فقط — بلا رسم (لنرسم مرة واحدة بعد وصول الإعدادات) */
+async function fetchProducts(){
+  const r = await fetch(API,{mode:'cors'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  allData = await r.json();
+  localStorage.setItem('pc', JSON.stringify({d:allData, ts:Date.now()}));
+  return allData;
+}
+
+/* الرسم الموحّد */
+function renderAll(){
+  const bar = document.getElementById('offlineBar');
+  if(bar) bar.classList.remove('show');
+  addJsonLD(allData); updateFilterCounts(); doFilter(false);
+  cleanCart(false);
+}
+
+/* الرجوع للنسخة المخزّنة عند فشل الشبكة */
+function useCachedProducts(){
+  try{
+    const c = localStorage.getItem('pc');
+    if(!c){ showError(); return false; }
+    const parsed = JSON.parse(c);
+    allData = parsed.d || parsed;
+    const age = parsed.ts ? Math.round((Date.now()-parsed.ts)/60000) : 0;
+    const tx = document.getElementById('offlineTxt');
+    if(tx) tx.textContent = t('offline') + (age>0 ? ' ('+age+' min)' : '');
+    const bar = document.getElementById('offlineBar');
+    if(bar) bar.classList.add('show');
+    updateFilterCounts(); doFilter(false);
+    return true;
+  }catch(_){ showError(); return false; }
+}
+
+/* ==================== الإقلاع ====================
+   نجلب الإعدادات والمنتجات معاً (لا واحدة بعد الأخرى)
+   ونرسم مرة واحدة — فلا وميض ولا ظهور واختفاء */
+async function bootstrap(){
+  showSkeleton();
+  const res = await Promise.allSettled([ loadSettings(), fetchProducts() ]);
+  applySettingsToUI();
+  if(res[1].status === 'fulfilled'){ renderAll(); }
+  else { useCachedProducts(); }
+}
+
 async function fetchData(){
   showSkeleton();
   try{
@@ -1632,7 +1684,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   initInAppBanner();
   if(localStorage.getItem('dk')==='1'){ document.body.classList.add('dark'); document.getElementById('darkBtn').innerHTML='<i class="fas fa-sun"></i>'; }
   document.getElementById('promoX').addEventListener('click',()=>document.getElementById('promoBanner').style.display='none');
-  loadSettings().then(()=>{ applySettingsToUI(); fetchData(); })
-                .catch(()=>fetchData());
+  bootstrap();
   setTimeout(initTutorial,500);
 });
