@@ -5,32 +5,94 @@
 const API = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
 const PLACEHOLDER = 'https://placehold.co/300x300?text=?';
 
-/* ==================== إعدادات الخصم والتوصيل ====================
-   مكان واحد للتحكم — أي تغيير هنا ينعكس على كل الموقع */
-const DISCOUNT_PCT      = 40;    // الخصم العادي (%)
-const CLEARANCE_PCT     = 50;    // خصم آخر القطع (%)
-const CLEARANCE_MAX_PCS = 2;     // يُطبّق على الموديل الذي فيه هذا العدد أو أقل
-const SHIP_COST         = 5000;  // تكلفة التوصيل (دينار)
-const FREE_SHIP_QTY     = 6;     // عدد القطع للتوصيل المجاني
+/* ==================== الإعدادات المركزية ====================
+   • القيم هنا افتراضية فقط — تُستبدل بما يصل من ورقة Settings
+   • كل التحكم يتم من لوحة الإدارة، لا من هذا الملف */
+const APP_VERSION = '1.0.9';        // إصدار الملفات المحلي
 
-/* نسبة الخصم لموديل معيّن — 50% لآخر قطعة أو قطعتين، وإلا 40% */
-function itemDiscPct(item){
+const SETTINGS = {
+  discountRules: {
+    base: 40,
+    pieceRules: [],                 // [{maxPieces, pct}]
+    sizeBonus:  []                  // [{sizes:[...], pct}]
+  },
+  shipCost:     5000,
+  freeShipQty:  6,
+  sortDefault:  'pieces_asc',
+  fabricText:   'قطني 100%',
+  fabricNote:   '',
+  promoText:    '',
+  promoEnabled: true,
+  assetVersion: APP_VERSION,
+  cheapRule: {
+    enabled: false, maxPrice: 0, perCheap: 2, needRegular: 1,
+    penaltyMode: 'noDiscount', penaltyPct: 0, penaltyAmount: 0
+  }
+};
+
+/* ===== محرّك الخصم =====
+   القاعدة: نحسب الأساس من عدد القطع، ثم نرفعه (ولا نخفضه) بمكافأة القياس */
+function baseDiscPct(item){
   const n = parseSizes(item && item.sizes).length;
-  return (n > 0 && n <= CLEARANCE_MAX_PCS) ? CLEARANCE_PCT : DISCOUNT_PCT;
+  const rules = (SETTINGS.discountRules.pieceRules || [])
+                  .slice()
+                  .sort((a,b)=>Number(a.maxPieces)-Number(b.maxPieces));
+  for(const r of rules){
+    if(n > 0 && n <= Number(r.maxPieces)) return Number(r.pct);
+  }
+  return Number(SETTINGS.discountRules.base) || 40;
 }
-/* هل الموديل ضمن عرض التصفية؟ */
-function isClearance(item){ return itemDiscPct(item) === CLEARANCE_PCT; }
 
-/* سعر القطعة بعد الخصم — pct اختيارية (الافتراضي 40%) */
-function discPrice(orig, pct){
-  const p = Number(pct) || DISCOUNT_PCT;
-  return Math.round(Number(orig) * (100 - p) / 100);
+/* مكافأة القياس — تُرجع 0 إن لا مكافأة */
+function sizeBonusPct(size){
+  const s = String(size).trim();
+  for(const b of (SETTINGS.discountRules.sizeBonus || [])){
+    const list = (b.sizes || []).map(x=>String(x).trim());
+    if(list.indexOf(s) !== -1) return Number(b.pct) || 0;
+  }
+  return 0;
 }
+
+/* النسبة النهائية لقياس معيّن داخل موديل */
+function discPctFor(item, size){
+  const base = baseDiscPct(item);
+  if(size === undefined || size === null) return base;
+  return Math.max(base, sizeBonusPct(size));
+}
+
+/* أعلى/أدنى نسبة داخل الموديل (لعرض النطاق على البطاقة) */
+function itemPctRange(item){
+  const sizes = parseSizes(item && item.sizes);
+  if(!sizes.length){ const b=baseDiscPct(item); return {min:b,max:b}; }
+  let mn=Infinity, mx=-Infinity;
+  sizes.forEach(sz=>{ const p=discPctFor(item,sz); if(p<mn)mn=p; if(p>mx)mx=p; });
+  return {min:mn, max:mx};
+}
+
+/* سعر القطعة بعد الخصم */
+function discPrice(orig, pct){
+  const p = Number(pct);
+  const use = isFinite(p) && p>0 ? p : (Number(SETTINGS.discountRules.base)||40);
+  return Math.round(Number(orig) * (100 - use) / 100);
+}
+
+/* توافق مع الاستدعاءات القديمة */
+function itemDiscPct(item){ return baseDiscPct(item); }
+function isClearance(item){
+  const rules = SETTINGS.discountRules.pieceRules || [];
+  if(!rules.length) return false;
+  const top = rules.slice().sort((a,b)=>Number(b.pct)-Number(a.pct))[0];
+  return baseDiscPct(item) === Number(top.pct) && Number(top.pct) > (Number(SETTINGS.discountRules.base)||40);
+}
+
+/* اختصارات للتوصيل (تُقرأ من الإعدادات) */
+function shipCost(){ return Number(SETTINGS.shipCost)||0; }
+function freeShipQty(){ return Number(SETTINGS.freeShipQty)||0; }
 
 /* تكلفة التوصيل حسب عدد القطع — مجاني عند 6 قطع أو أكثر */
 function calcShip(items){
   const n = Array.isArray(items) ? items.length : Number(items||0);
-  return n >= FREE_SHIP_QTY ? 0 : SHIP_COST;
+  return n >= freeShipQty() ? 0 : shipCost();
 }
 /* هل التوصيل مجاني؟ */
 function isFreeShip(items){ return calcShip(items) === 0; }
@@ -66,6 +128,162 @@ function getFabric(item){
     }
   }
   return DEFAULT_FABRIC;
+}
+
+
+
+/* ==================== قاعدة القطع المميزة (السعر المشروط) ====================
+   القطعة «مميزة» = سعرها الأصلي ≤ الحد المحدد.
+   خصمها مشروط بشراء عدد من القطع العادية — وإلا يُطبَّق السعر غير الملتزم. */
+
+function cheapCfg(){
+  const c = SETTINGS.cheapRule || {};
+  return {
+    enabled:      c.enabled !== false && Number(c.maxPrice) > 0,
+    maxPrice:     Number(c.maxPrice)    || 0,
+    perCheap:     Number(c.perCheap)    || 1,
+    needRegular:  Number(c.needRegular) || 1,
+    penaltyMode:  c.penaltyMode || 'noDiscount',   // noDiscount | lowPct | addAmount
+    penaltyPct:   Number(c.penaltyPct)   || 0,
+    penaltyAmount:Number(c.penaltyAmount)|| 0
+  };
+}
+
+/* هل القطعة مميزة؟ (حسب السعر الأصلي) */
+function isCheapPrice(orig){
+  const c = cheapCfg();
+  return c.enabled && Number(orig) > 0 && Number(orig) <= c.maxPrice;
+}
+function isCheapItem(item){ return isCheapPrice(parseFloat(item && item.price)); }
+
+/* حالة السلة تجاه القاعدة */
+function cheapStatus(){
+  const c = cheapCfg();
+  const out = { enabled:c.enabled, cheap:0, regular:0, required:0, missing:0, ok:true, saving:0 };
+  if(!c.enabled) return out;
+
+  cart.forEach(i=>{ if(isCheapPrice(i.orig)) out.cheap++; else out.regular++; });
+  if(out.cheap === 0) return out;
+
+  out.required = Math.ceil(out.cheap / c.perCheap) * c.needRegular;
+  out.missing  = Math.max(0, out.required - out.regular);
+  out.ok       = out.missing === 0;
+
+  /* كم يوفّر الزبون لو التزم؟ */
+  cart.forEach(i=>{
+    if(!isCheapPrice(i.orig)) return;
+    out.saving += cheapPenaltyPrice(i) - cheapRewardPrice(i);
+  });
+  return out;
+}
+
+/* السعر عند الالتزام = الخصم العادي */
+function cheapRewardPrice(ci){
+  return Number(ci.disc) || discPrice(ci.orig, ci.pct);
+}
+/* السعر عند عدم الالتزام */
+function cheapPenaltyPrice(ci){
+  const c = cheapCfg();
+  const orig = Number(ci.orig) || 0;
+  if(c.penaltyMode === 'lowPct')    return discPrice(orig, c.penaltyPct);
+  if(c.penaltyMode === 'addAmount') return cheapRewardPrice(ci) + c.penaltyAmount;
+  return Math.round(orig);                       // noDiscount: السعر الأصلي
+}
+
+/* السعر الفعلي لأي عنصر في السلة (يراعي القاعدة) */
+function itemPrice(ci, status){
+  const st = status || cheapStatus();
+  if(!st.enabled || !isCheapPrice(ci.orig)) return Number(ci.disc)||0;
+  return st.ok ? cheapRewardPrice(ci) : cheapPenaltyPrice(ci);
+}
+/* مجموع السلة الفعلي */
+function cartSum(){
+  const st = cheapStatus();
+  return cart.reduce((s,ci)=>s+itemPrice(ci,st), 0);
+}
+
+/* ==================== تحميل الإعدادات من الإدارة ==================== */
+function applySettings(s){
+  if(!s) return;
+  try{
+    if(s.discountRules){
+      const dr = typeof s.discountRules==='string' ? JSON.parse(s.discountRules) : s.discountRules;
+      if(dr && typeof dr==='object'){
+        SETTINGS.discountRules = {
+          base:       Number(dr.base)||40,
+          pieceRules: Array.isArray(dr.pieceRules)? dr.pieceRules : [],
+          sizeBonus:  Array.isArray(dr.sizeBonus) ? dr.sizeBonus  : []
+        };
+      }
+    }
+    if(s.shipCost    !== undefined) SETTINGS.shipCost    = Number(s.shipCost)||0;
+    if(s.freeShipQty !== undefined) SETTINGS.freeShipQty = Number(s.freeShipQty)||0;
+    if(s.sortDefault) SETTINGS.sortDefault = String(s.sortDefault);
+    if(s.fabricText)  SETTINGS.fabricText  = String(s.fabricText);
+    if(s.fabricNote !== undefined) SETTINGS.fabricNote = String(s.fabricNote);
+    if(s.promoText  !== undefined) SETTINGS.promoText  = String(s.promoText);
+    if(s.promoEnabled !== undefined) SETTINGS.promoEnabled = String(s.promoEnabled)==='1' || s.promoEnabled===true;
+    if(s.assetVersion) SETTINGS.assetVersion = String(s.assetVersion);
+    if(s.cheapRule){
+      const cr = typeof s.cheapRule==='string' ? JSON.parse(s.cheapRule) : s.cheapRule;
+      if(cr && typeof cr==='object') SETTINGS.cheapRule = cr;
+    }
+  }catch(e){ console.warn('applySettings:', e.message); }
+}
+
+/* تطبيق النصوص القابلة للتخصيص على الصفحة */
+function applySettingsToUI(){
+  // ملاحظة الخامة
+  const note = document.getElementById('fabricNote');
+  if(note){
+    if(SETTINGS.fabricNote){
+      const sp = note.querySelector('span');
+      if(sp) sp.innerHTML = sanitize(SETTINGS.fabricNote);
+      note.style.display = '';
+    } else { note.style.display = 'none'; }
+  }
+  // شريط العرض
+  const promo = document.getElementById('promoBanner');
+  const ptxt  = document.getElementById('promoTxt');
+  if(promo){
+    if(!SETTINGS.promoEnabled){ promo.style.display='none'; }
+    else if(SETTINGS.promoText && ptxt){ ptxt.textContent = SETTINGS.promoText; }
+  }
+}
+
+/* جلب الإعدادات — كاش محلي للسرعة ثم تحديث بالخلفية */
+async function loadSettings(){
+  // ① الكاش (فوري)
+  try{
+    const c = JSON.parse(localStorage.getItem('cfg')||'null');
+    if(c && c.s){ applySettings(c.s); }
+  }catch(_){}
+
+  // ② الشبكة (محدَّث)
+  try{
+    const r = await fetch(API+'?action=getSettings', {cache:'no-store'});
+    const d = await r.json();
+    if(d && d.success && d.settings){
+      applySettings(d.settings);
+      localStorage.setItem('cfg', JSON.stringify({s:d.settings, ts:Date.now()}));
+      checkAssetVersion(d.settings.assetVersion);
+      return true;
+    }
+  }catch(e){ console.warn('loadSettings:', e.message); }
+  return false;
+}
+
+/* كسر التخزين المؤقت: لو نُشر إصدار أحدث، نعيد التحميل بنسخة جديدة */
+function checkAssetVersion(remote){
+  if(!remote) return;
+  const local = localStorage.getItem('assetV') || APP_VERSION;
+  if(String(remote) === String(local)) return;
+  localStorage.setItem('assetV', String(remote));
+  // نعيد التحميل مرة واحدة فقط لتفادي أي حلقة
+  if(sessionStorage.getItem('vReloaded') === String(remote)) return;
+  sessionStorage.setItem('vReloaded', String(remote));
+  console.log('🔄 إصدار جديد ('+remote+') — إعادة تحميل');
+  location.reload();
 }
 
 /* ==================== SECURITY UTILS ==================== */
@@ -212,7 +430,14 @@ if (_ckCopyBtn) _ckCopyBtn.addEventListener('click',()=>{
   const addr=document.getElementById('ckAddr').value.trim();
   let totO=0,totD=0;
   let msg='مرحباً، أرغب بشراء المنتجات التالية:\n';
-  cart.forEach(i=>{ const p=Number(i.pct)||DISCOUNT_PCT; msg+='- ID: '+sanitize(String(i.id))+'، القياس: '+sanitize(String(i.size))+'، السعر الأصلي: '+Number(i.orig).toLocaleString()+' دينار، بعد الخصم '+p+'%: '+Number(i.disc).toLocaleString()+' دينار\n'; totO+=Number(i.orig); totD+=Number(i.disc); });
+  const _st=cheapStatus();
+  cart.forEach(i=>{
+    const eff=itemPrice(i,_st);
+    const p=Math.round((1-eff/Number(i.orig))*100);
+    const tag=(_st.enabled&&isCheapPrice(i.orig)) ? (_st.ok?' ⭐':' (سعر غير مخفّض)') : '';
+    msg+='- ID: '+sanitize(String(i.id))+'، القياس: '+sanitize(String(i.size))+'، السعر الأصلي: '+Number(i.orig).toLocaleString()+' دينار، بعد الخصم '+p+'%: '+eff.toLocaleString()+' دينار'+tag+'\n';
+    totO+=Number(i.orig); totD+=eff;
+  });
   const ship=calcShip(cart),total=totD+ship;
   msg+='\nالمجموع الأصلي: '+totO.toLocaleString()+' دينار\n';
   msg+='المجموع بعد الخصم: '+totD.toLocaleString()+' دينار\n';
@@ -359,8 +584,13 @@ function doFilter(scrollTop=true){
   if(fSea) f=f.filter(i=>i.season===fSea);
   if(fTyp) f=f.filter(i=>i.type===fTyp);
   if(q) f=f.filter(i=>String(i.Id||'').toLowerCase().includes(q)||String(i.sizes||'').toLowerCase().includes(q));
-  if(fSort==='asc') f.sort((a,b)=>parseFloat(a.price)-parseFloat(b.price));
-  else if(fSort==='desc') f.sort((a,b)=>parseFloat(b.price)-parseFloat(a.price));
+  /* الفرز: اختيار المستخدم، وإلا الافتراضي من لوحة الإدارة */
+  const sortMode = fSort || SETTINGS.sortDefault || 'pieces_asc';
+  const pcs = x => parseSizes(x.sizes).length;
+  if(sortMode==='asc')            f.sort((a,b)=>parseFloat(a.price)-parseFloat(b.price));
+  else if(sortMode==='desc')      f.sort((a,b)=>parseFloat(b.price)-parseFloat(a.price));
+  else if(sortMode==='pieces_asc')  f.sort((a,b)=>pcs(a)-pcs(b) || String(a.Id).localeCompare(String(b.Id)));
+  else if(sortMode==='pieces_desc') f.sort((a,b)=>pcs(b)-pcs(a) || String(a.Id).localeCompare(String(b.Id)));
   displayProducts(f);
   if(scrollTop) window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -423,9 +653,14 @@ function addJsonLD(products){
 }
 
 function createCard(item){
-  const pct=itemDiscPct(item);                    // 50% لآخر القطع، 40% للباقي
-  const orig=parseFloat(item.price), disc=discPrice(orig, pct);
   const sizes=parseSizes(item.sizes), isLast=sizes.length===1;
+  const orig=parseFloat(item.price);
+  const rng=itemPctRange(item);                   // أدنى/أعلى نسبة داخل الموديل
+  const pct=rng.max;                              // نعرض الأفضل في الشارة
+  const priceHi=discPrice(orig, rng.min);         // أعلى سعر (أقل خصم)
+  const priceLo=discPrice(orig, rng.max);         // أقل سعر (أعلى خصم)
+  const mixed=rng.min!==rng.max;                  // تختلف الأسعار داخل الموديل؟
+  const disc=priceLo;
   const clear=isClearance(item);
   const imgSrc=safeImgSrc(item.picture);
   const card=document.createElement('div'); card.className='pcard';
@@ -434,9 +669,11 @@ function createCard(item){
   const bdis=document.createElement('span');
   bdis.className='badge bdis'+(clear?' bclear':'');
   const _lg=(localStorage.getItem('lang')||'ar');
-  bdis.textContent = _lg==='en' ? (pct+'% '+t('discPrefix')) : (t('discPrefix')+' '+pct+'%');
+  const _pctTxt = mixed ? (rng.min+'-'+rng.max+'%') : (pct+'%');
+  bdis.textContent = _lg==='en' ? (_pctTxt+' '+t('discPrefix')) : (t('discPrefix')+' '+_pctTxt);
   badges.appendChild(bdis);
   if(isLast){ const bl=document.createElement('span'); bl.className='badge blast'; bl.textContent=t('lastSize'); badges.appendChild(bl); }
+  if(isCheapItem(item)){ const bs=document.createElement('span'); bs.className='badge bspecial'; bs.textContent='⭐ '+t('specialTag'); badges.appendChild(bs); }
   // Wish
   // Image
   const iw=document.createElement('div'); iw.className='cimg-w'; iw.appendChild(badges);
@@ -452,17 +689,32 @@ function createCard(item){
   // Prices
   const pr=document.createElement('div'); pr.className='cprices';
   const op=document.createElement('span'); op.className='pold'; op.textContent=orig.toLocaleString()+' '+t('dinar');
-  const np=document.createElement('span'); np.className='pnew'; np.textContent=disc.toLocaleString()+' '+t('dinar');
+  const np=document.createElement('span'); np.className='pnew';
+  np.textContent = mixed
+    ? (priceLo.toLocaleString()+' – '+priceHi.toLocaleString()+' '+t('dinar'))
+    : (disc.toLocaleString()+' '+t('dinar'));
   pr.appendChild(op); pr.appendChild(np);
   // Savings
-  const sv=document.createElement('div'); sv.className='savings'; sv.textContent=t('saved')+' '+(orig-disc).toLocaleString()+' '+t('dinar')+' 💚';
+  const sv=document.createElement('div'); sv.className='savings'; sv.textContent=t('saved')+' '+t('upTo')+' '+(orig-priceLo).toLocaleString()+' '+t('dinar')+' 💚';
   // Size pills
   // تسمية توضيحية فوق الحبوب
   const pillsLbl=document.createElement('div');
   pillsLbl.className='sz-pills-lbl';
   pillsLbl.textContent='👇 ' + t('tapSizeToAdd');
   const pills=document.createElement('div'); pills.className='sz-pills';
-  sizes.forEach(sz=>{ const p=document.createElement('button'); p.className='sz-pill'; p.textContent=getSzLbl(sz); p.addEventListener('click',()=>addToCart(item.Id,sz,orig,disc,pct)); pills.appendChild(p); });
+  sizes.forEach(sz=>{
+    const szPct=discPctFor(item,sz), szPrice=discPrice(orig,szPct);
+    const p=document.createElement('button');
+    p.className='sz-pill'+(mixed && szPct>rng.min ? ' sz-best' : '');
+    if(mixed){
+      p.innerHTML='<span class="szp-lbl">'+sanitize(getSzLbl(sz))+'</span>'+
+                  '<span class="szp-price">'+szPrice.toLocaleString()+'</span>';
+    } else {
+      p.textContent=getSzLbl(sz);
+    }
+    p.addEventListener('click',()=>addToCart(item.Id,sz,orig,szPrice,szPct));
+    pills.appendChild(p);
+  });
   // زر إضافة للسلة الواضح - يفتح نافذة اختيار القياس
   // Share button removed - card actions limited to size pills only
   /* خامة القماش */
@@ -484,8 +736,8 @@ function displayProducts(arr){
 }
 
 /* ==================== SHARE ==================== */
-function shareProduct(id,price){ const txt='🛍️ '+t('hTitle')+'\n📌 ID: '+id+'\n💰 '+t('discount')+': '+price.toLocaleString()+' '+t('dinar')+'\n🔗 '+window.location.href; if(navigator.share) navigator.share({title:t('hTitle'),text:txt,url:window.location.href}).catch(()=>{}); else window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank'); }
-function shareCart(){ if(!cart.length){notify(t('cartEmpty'),'w');return;} let msg='🛍️ '+t('hTitle')+'\n\n'; let totD=0; cart.forEach(ci=>{ msg+='• #'+sanitize(String(ci.id))+' (Q:'+sanitize(String(ci.size))+') — '+Number(ci.disc).toLocaleString()+' '+t('dinar')+'\n'; totD+=Number(ci.disc); }); msg+='\n'+t('tot')+': '+(totD+calcShip(cart)).toLocaleString()+' '+t('dinar'); if(navigator.share) navigator.share({title:t('hTitle'),text:msg}).catch(()=>{}); else window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank'); }
+function shareProduct(id,price){ const txt='🛍️ '+t('hTitle')+'\n📌 ID: '+id+'\n💰 '+t('subDisc')+': '+price.toLocaleString()+' '+t('dinar')+'\n🔗 '+window.location.href; if(navigator.share) navigator.share({title:t('hTitle'),text:txt,url:window.location.href}).catch(()=>{}); else window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank'); }
+function shareCart(){ if(!cart.length){notify(t('cartEmpty'),'w');return;} let msg='🛍️ '+t('hTitle')+'\n\n'; let totD=0; const _s=cheapStatus(); cart.forEach(ci=>{ const e=itemPrice(ci,_s); msg+='• #'+sanitize(String(ci.id))+' (Q:'+sanitize(String(ci.size))+') — '+e.toLocaleString()+' '+t('dinar')+'\n'; totD+=e; }); msg+='\n'+t('tot')+': '+(totD+calcShip(cart)).toLocaleString()+' '+t('dinar'); if(navigator.share) navigator.share({title:t('hTitle'),text:msg}).catch(()=>{}); else window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank'); }
 function shareCart(){ /* removed */ }
 // Translation for copy button
 const _ckCopyLblEl=document.getElementById('ckCopyLbl');
@@ -531,7 +783,7 @@ function cleanCart(silent){
 
 function addToCart(id,size,orig,disc,pct){
   if(cart.find(i=>i.id===id&&i.size===size)){notify(t('already'),'w');return;}
-  cart.push({id,size,orig,disc,pct:Number(pct)||DISCOUNT_PCT}); saveCart(); updateCartBadge(); bounceCart();
+  cart.push({id,size,orig,disc,pct:Number(pct)||(Number(SETTINGS.discountRules.base)||40)}); saveCart(); updateCartBadge(); bounceCart();
   notify(t('cartAdded')+' — '+t('saved')+' '+(Number(orig)-Number(disc)).toLocaleString()+' '+t('dinar')+' 💚','s');
   try{
     // نستخدم meta.js (safeValue يمنع القيم الصفرية)
@@ -543,6 +795,7 @@ function addToCart(id,size,orig,disc,pct){
 }
 
 function renderCart(){
+  const _cst = cheapStatus();
   const body=document.getElementById('cartBody'), totEl=document.getElementById('cartTot');
   body.innerHTML='';
   if(!cart.length){
@@ -567,13 +820,22 @@ function renderCart(){
     const ciId=document.createElement('div'); ciId.className='ci-id'; ciId.textContent='# '+item.id;
     const ciSz=document.createElement('div'); ciSz.className='ci-sz'; ciSz.textContent='Q: '+item.size;
     const ciOld=document.createElement('div'); ciOld.className='ci-old'; ciOld.textContent=Number(item.orig).toLocaleString()+' '+t('dinar');
-    const ciNew=document.createElement('div'); ciNew.className='ci-new'; ciNew.textContent=Number(item.disc).toLocaleString()+' '+t('dinar');
+    const _eff=itemPrice(item,_cst);
+    const ciNew=document.createElement('div'); ciNew.className='ci-new';
+    ciNew.textContent=_eff.toLocaleString()+' '+t('dinar');
+    if(_cst.enabled && isCheapPrice(item.orig)){
+      const st=document.createElement('span');
+      st.className='ci-star'+(_cst.ok?' ok':'');
+      st.textContent = _cst.ok ? '⭐ '+t('specialOn') : '⚠️ '+t('specialOff');
+      ciNew.appendChild(document.createElement('br'));
+      ciNew.appendChild(st);
+    }
     info.appendChild(ciId); info.appendChild(ciSz); info.appendChild(ciOld); info.appendChild(ciNew);
     const del=document.createElement('button'); del.className='ci-del'; del.innerHTML='<i class="fas fa-trash"></i>';
     del.addEventListener('click',()=>delCartItem(item.id,item.size));
     div.appendChild(img); div.appendChild(info); div.appendChild(del);
     addSwipe(div,()=>{ cart=cart.filter(i=>!(i.id===item.id&&i.size===item.size)); saveCart(); updateCartBadge(); renderCart(); });
-    body.appendChild(div); totO+=Number(item.orig); totD+=Number(item.disc);
+    body.appendChild(div); totO+=Number(item.orig); totD+=_eff;
   });
   const ship=calcShip(cart), total=totD+ship;
   const r1=document.createElement('div'); r1.textContent=t('sub')+': '+totO.toLocaleString()+' '+t('dinar');
@@ -583,9 +845,23 @@ function renderCart(){
   else { r3.textContent=t('ship')+': '+ship.toLocaleString()+' '+t('dinar'); }
   const r4=document.createElement('div'); r4.className='ctot-final'; r4.textContent=t('tot')+': '+total.toLocaleString()+' '+t('dinar');
   const rows=[r1,r2,r3,r4];
+  /* ===== صندوق القطع المميزة ===== */
+  if(_cst.enabled && _cst.cheap>0){
+    const box=document.createElement('div');
+    box.className='cheap-box'+(_cst.ok?' ok':'');
+    if(_cst.ok){
+      box.innerHTML='<b>⭐ '+t('specialWon')+'</b><br><span>'+
+        t('specialWonSub').replace('{n}',_cst.cheap)+'</span>';
+    }else{
+      box.innerHTML='<b>🎁 '+t('specialAlmost').replace('{n}',_cst.missing)+'</b><br><span>'+
+        t('specialSave').replace('{amt}', Math.round(_cst.saving).toLocaleString())+'</span>';
+    }
+    rows.splice(2,0,box);
+  }
+
   /* تلميح: كم قطعة باقية للتوصيل المجاني */
   if(ship>0){
-    const need=FREE_SHIP_QTY-cart.length;
+    const need=freeShipQty()-cart.length;
     const hint=document.createElement('div'); hint.className='ctot-hint';
     hint.textContent='🚚 '+t('freeShipHint').replace('{n}', need);
     rows.splice(3,0,hint);
@@ -597,7 +873,15 @@ document.getElementById('clearCartBtn').addEventListener('click',()=>showDlg('�
 
 /* ==================== SIZE DIALOG ==================== */
 let _cid,_csz,_cor,_cdc,_cpct;
-function showSizeDlg(id,szRaw,orig,disc,pct){ _cid=id;_csz=parseSizes(szRaw);_cor=orig;_cdc=disc;_cpct=Number(pct)||DISCOUNT_PCT; document.getElementById('szTitle').textContent=t('szTitle'); document.getElementById('szCancel').textContent=t('cancel'); const g=document.getElementById('szGrid'); g.innerHTML=''; _csz.forEach(sz=>{ const b=document.createElement('button'); b.className='sz-btn'; b.textContent=getSzLbl(sz); b.addEventListener('click',()=>{addToCart(_cid,sz,_cor,_cdc,_cpct);closeSzDlg();}); g.appendChild(b); }); document.getElementById('szOv').classList.add('open'); document.body.style.overflow='hidden'; }
+function showSizeDlg(id,szRaw,orig,disc,pct){ _cid=id;_csz=parseSizes(szRaw);_cor=orig;_cdc=disc;_cpct=Number(pct)||(Number(SETTINGS.discountRules.base)||40); document.getElementById('szTitle').textContent=t('szTitle'); document.getElementById('szCancel').textContent=t('cancel'); const g=document.getElementById('szGrid'); g.innerHTML=''; const _it=allData.find(p=>String(p.Id)===String(_cid));
+  _csz.forEach(sz=>{
+    const b=document.createElement('button'); b.className='sz-btn';
+    const p2 = _it ? discPctFor(_it,sz) : _cpct;
+    const pr2 = discPrice(_cor, p2);
+    b.innerHTML='<span class="szp-lbl">'+sanitize(getSzLbl(sz))+'</span><span class="szp-price">'+pr2.toLocaleString()+'</span>';
+    b.addEventListener('click',()=>{addToCart(_cid,sz,_cor,pr2,p2);closeSzDlg();});
+    g.appendChild(b);
+  }); document.getElementById('szOv').classList.add('open'); document.body.style.overflow='hidden'; }
 function closeSzDlg(){ document.getElementById('szOv').classList.remove('open'); document.body.style.overflow=''; }
 document.getElementById('szCancel').addEventListener('click',closeSzDlg);
 document.getElementById('szOv').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSzDlg();});
@@ -834,7 +1118,7 @@ document.getElementById('checkoutBtn').addEventListener('click',async()=>{
   try{
     // نستخدم meta.js (يضيف contents وplatform ويمنع القيم الصفرية)
     if(typeof metaInitiateCheckout==='function' && cart.length>0){
-      const cv=cart.reduce((s,i)=>s+Number(i.disc||0),0);
+      const cv=cartSum();
       metaInitiateCheckout(cart, cv+calcShip(cart));
     }
   }catch(_){}
@@ -1110,7 +1394,14 @@ async function submitOrder(){
   sessionStorage.setItem('ls',String(now));
   let totO=0,totD=0;
   let msg='مرحباً، أرغب بشراء المنتجات التالية:\n';
-  cart.forEach(i=>{ const p=Number(i.pct)||DISCOUNT_PCT; msg+='- ID: '+sanitize(String(i.id))+'، القياس: '+sanitize(String(i.size))+'، السعر الأصلي: '+Number(i.orig).toLocaleString()+' دينار، بعد الخصم '+p+'%: '+Number(i.disc).toLocaleString()+' دينار\n'; totO+=Number(i.orig); totD+=Number(i.disc); });
+  const _st=cheapStatus();
+  cart.forEach(i=>{
+    const eff=itemPrice(i,_st);
+    const p=Math.round((1-eff/Number(i.orig))*100);
+    const tag=(_st.enabled&&isCheapPrice(i.orig)) ? (_st.ok?' ⭐':' (سعر غير مخفّض)') : '';
+    msg+='- ID: '+sanitize(String(i.id))+'، القياس: '+sanitize(String(i.size))+'، السعر الأصلي: '+Number(i.orig).toLocaleString()+' دينار، بعد الخصم '+p+'%: '+eff.toLocaleString()+' دينار'+tag+'\n';
+    totO+=Number(i.orig); totD+=eff;
+  });
   const ship=calcShip(cart), total=totD+ship;
   msg+='\nالمجموع الأصلي: '+totO.toLocaleString()+' دينار\n';
   msg+='المجموع بعد الخصم: '+totD.toLocaleString()+' دينار\n';
@@ -1341,6 +1632,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   initInAppBanner();
   if(localStorage.getItem('dk')==='1'){ document.body.classList.add('dark'); document.getElementById('darkBtn').innerHTML='<i class="fas fa-sun"></i>'; }
   document.getElementById('promoX').addEventListener('click',()=>document.getElementById('promoBanner').style.display='none');
-  fetchData();
+  loadSettings().then(()=>{ applySettingsToUI(); fetchData(); })
+                .catch(()=>fetchData());
   setTimeout(initTutorial,500);
 });
