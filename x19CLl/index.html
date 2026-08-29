@@ -177,19 +177,16 @@
     <div class="panel">
       <div class="panel-head">
         <h2>🏠 أدوات الإدارة</h2>
-        <span class="desc">كل أداة تُفتح في تبويب مستقل — لا تُحمَّل معاً</span>
       </div>
       <div class="panel-body">
         <div class="tools-grid" id="toolsGrid"></div>
         <div class="hint" style="margin-top:16px;line-height:1.9">
-          🔐 <b>الجلسة مشتركة:</b> بعد دخولك هنا تُفتح الأدوات مباشرة بلا كلمة مرور.
-          تنتهي الجلسة تلقائياً بعد 12 ساعة أو عند الضغط على «خروج».
         </div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>⚙️ روابط الأدوات</h2><span class="desc">عدّلها لو غيّرت مواقع الملفات</span></div>
+      <div class="panel-head"><h2>⚙️ روابط الأدوات</h2></div>
       <div class="panel-body">
         <div id="toolPaths"></div>
         <button class="btn btn-ghost btn-sm" id="saveToolsBtn" style="margin-top:10px">💾 حفظ الروابط</button>
@@ -204,15 +201,15 @@
             </div>
             <div class="fld" style="margin:0">
               <label>اسم الموقع <span class="req">*</span></label>
-              <input type="text" id="ntName" placeholder="موقع التجهيز">
+              <input type="text" id="ntName" placeholder=".....">
             </div>
             <div class="fld" style="margin:0;grid-column:1/-1">
               <label>الرابط أو اسم الملف <span class="req">*</span></label>
-              <input type="text" id="ntUrl" placeholder="موقع_التجهيز.html" dir="ltr" style="text-align:left">
+              <input type="text" id="ntUrl" placeholder=".....html" dir="ltr" style="text-align:left">
             </div>
             <div class="fld" style="margin:0;grid-column:1/-1">
               <label>وصف مختصر</label>
-              <input type="text" id="ntDesc" placeholder="تجهيز الطلبات وحذف القطع المباعة">
+              <input type="text" id="ntDesc" placeholder=".....">
             </div>
           </div>
           <button class="btn btn-ok btn-block" id="addToolBtn" style="margin-top:12px">➕ إضافة الموقع</button>
@@ -451,7 +448,6 @@
         </div>
         <button class="btn btn-ok" id="changePassBtn">💾 تغيير كلمة المرور</button>
         <div class="hint" style="margin-top:14px">
-          كلمة المرور محفوظة في ورقة <b>Settings</b> داخل جدولك — لا يصل إليها أحد غيرك.
         </div>
       </div>
     </div>
