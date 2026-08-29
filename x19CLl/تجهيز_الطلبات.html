@@ -891,6 +891,82 @@
 </script>
 </head>
 <body>
+<!-- ═══════════ حارس الجلسة — يُلصَق بعد <body> مباشرة ═══════════ -->
+<script>
+(function(){
+  /* يمنع فتح الأداة مباشرة بلا تسجيل دخول من لوحة الإدارة */
+  var ADMIN_URL = 'لوحة_الادارة.html';   // عدّله لو غيّرت مكان اللوحة
+  var API_URL   = 'https://script.google.com/macros/s/AKfycbwK-ocQW5eO9n0_8qKy2o34dVjFT2Qyb2vE5HWVIoAU6KrwqwbcDiVT8dhmXOtGs3eEBw/exec';
+
+  var tok = null, exp = 0;
+  try{
+    tok = localStorage.getItem('adm_tok');
+    exp = Number(localStorage.getItem('adm_exp') || 0);
+  }catch(e){}
+
+  function block(msg){
+    document.documentElement.innerHTML =
+      '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
+      '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">'+
+      '</head><body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;'+
+      'background:linear-gradient(135deg,#1e293b,#0f172a);font-family:\'IBM Plex Sans Arabic\',sans-serif;padding:20px" dir="rtl">'+
+      '<div style="background:#fff;border-radius:20px;padding:38px 30px;max-width:380px;width:100%;text-align:center;'+
+      'box-shadow:0 24px 60px rgba(0,0,0,.45)">'+
+        '<div style="font-size:52px;margin-bottom:14px">🔒</div>'+
+        '<h1 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 8px">الوصول محمي</h1>'+
+        '<p style="font-size:13.5px;color:#475569;line-height:1.8;margin:0 0 22px">'+msg+'</p>'+
+        '<a href="'+ADMIN_URL+'" style="display:block;background:#1565C0;color:#fff;text-decoration:none;'+
+        'padding:13px;border-radius:11px;font-weight:700;font-size:14.5px">🔐 الذهاب للوحة الإدارة</a>'+
+      '</div></body>';
+    throw new Error('unauthorized');   // يوقف تنفيذ باقي سكربتات الصفحة
+  }
+
+  /* لا رمز أصلاً */
+  if(!tok){ block('هذه الأداة تُفتح من لوحة الإدارة فقط.<br>سجّل دخولك أولاً.'); }
+
+  /* الرمز منتهي محلياً */
+  if(exp && Date.now() > exp){
+    try{ localStorage.removeItem('adm_tok'); localStorage.removeItem('adm_exp'); }catch(e){}
+    block('انتهت جلستك.<br>سجّل الدخول مجدداً من لوحة الإدارة.');
+  }
+
+  /* ===== تمرير رمز الجلسة تلقائياً لكل نداء للسكربت =====
+     يغني عن تعديل كود كل أداة على حدة */
+  var _origFetch = window.fetch;
+  window.fetch = function(url, cfg){
+    try{
+      var u = String(url);
+      if(u.indexOf(API_URL) === 0){
+        var method = (cfg && cfg.method ? String(cfg.method) : 'GET').toUpperCase();
+        if(method === 'GET'){
+          url = u + (u.indexOf('?') > -1 ? '&' : '?') + 'token=' + encodeURIComponent(tok);
+        }else if(cfg && typeof cfg.body === 'string'){
+          try{
+            var bd = JSON.parse(cfg.body);
+            if(bd && typeof bd === 'object' && !bd.token){ bd.token = tok; cfg.body = JSON.stringify(bd); }
+          }catch(_){ /* ليس JSON — نتركه */ }
+        }
+      }
+    }catch(_){}
+    return _origFetch.call(window, url, cfg);
+  };
+
+  /* تحقق خلفي من الخادم — لا يوقف الصفحة، لكن يحجبها لو رُفض */
+  try{
+    _origFetch.call(window, API_URL, { method:'POST', body: JSON.stringify({ action:'checkSession', token: tok }) })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d || !d.success){
+          try{ localStorage.removeItem('adm_tok'); localStorage.removeItem('adm_exp'); }catch(e){}
+          block('انتهت صلاحية الجلسة على الخادم.<br>سجّل الدخول مجدداً.');
+        }
+      })
+      .catch(function(){ /* انقطاع شبكة — نكتفي بالتحقق المحلي */ });
+  }catch(e){}
+})();
+</script>
+<!-- ═══════════ نهاية حارس الجلسة ═══════════ -->
+
 <div class="container">
   <h2>📦 تجهيز الطلبات <span>v5</span></h2>
 
