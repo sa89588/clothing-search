@@ -93,7 +93,7 @@
   .inv-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding-bottom:18px;border-bottom:3px solid var(--accent)}
   .inv-brand{display:flex;align-items:center;gap:13px}
   .inv-logo{width:66px;height:66px;border-radius:14px;object-fit:cover;border:2px solid var(--accent-soft)}
-  .inv-brand h2{font-size:21px;font-weight:700;letter-spacing:-.02em}
+  .inv-brand h2{font-size:21px;font-weight:700;letter-spacing:normal}
   .inv-brand p{font-size:12.5px;color:var(--ink2)}
   .inv-brand .contact{font-size:11.5px;color:var(--ink2);margin-top:3px}
   .inv-meta{text-align:left;flex-shrink:0}
@@ -603,18 +603,45 @@ function parseOrderText(){
   if(mAddr)  document.getElementById('fAddr').value  = mAddr[1].trim();
   if(mOrder) document.getElementById('fOrder').value = mOrder[1].trim();
 
-  /* ---------- المنتجات: نأخذ السعرين كما هما من النص ---------- */
-  // - ID: 101، القياس: 80، السعر الأصلي: 25,000 دينار، بعد الخصم 40%: 15,000 دينار
-  const fullRe = /ID\s*[:：]\s*(\S+?)\s*[،,]\s*القياس\s*[:：]\s*(\S+?)\s*[،,]\s*السعر الأصلي\s*[:：]\s*([\d,،٬\s]+?)\s*دينار\s*[،,]\s*بعد الخصم\s*(\d+)\s*%\s*[:：]\s*([\d,،٬\s]+)/g;
+  /* ---------- المنتجات ---------- */
   let m, found=[], pctFromText=null;
-  while((m = fullRe.exec(txt)) !== null){
-    pctFromText = Number(m[4]) || pctFromText;
-    found.push({
-      id:   m[1].trim(),
-      size: m[2].trim(),
-      orig: toNum(m[3]),
-      disc: toNum(m[5])          // ← السعر بعد الخصم كما في النص بالضبط
-    });
+  const isWholesale = /طلب جملة/.test(txt) || /،\s*القطع\s*[:：]/.test(txt);
+
+  /* ===== صيغة الجملة =====
+     - ID: 101، القطع: 5، القياسات: 80-90-100، سعر القطعة: 15,000 دينار، الإجمالي: 75,000 دينار */
+  if(isWholesale){
+    const wsRe = /ID\s*[:：]\s*(\S+?)\s*[،,]\s*القطع\s*[:：]\s*(\d+)\s*[،,]\s*القياسات\s*[:：]\s*([^،,\n]+?)\s*[،,]\s*سعر القطعة\s*[:：]\s*([\d,،٬\s]+?)\s*دينار\s*[،,]\s*الإجمالي\s*[:：]\s*([\d,،٬\s]+)/g;
+    while((m = wsRe.exec(txt)) !== null){
+      found.push({
+        id:    m[1].trim(),
+        size:  m[3].trim(),            // كل القياسات في خانة واحدة
+        qty:   Number(m[2]) || 1,
+        orig:  null,                   // الجملة بلا سعر أصلي/خصم
+        disc:  toNum(m[4]),            // سعر القطعة
+        total: toNum(m[5])             // إجمالي الموديل
+      });
+    }
+    /* احتياط: بلا الإجمالي */
+    if(found.length===0){
+      const wsRe2 = /ID\s*[:：]\s*(\S+?)\s*[،,]\s*القطع\s*[:：]\s*(\d+)\s*[،,]\s*القياسات\s*[:：]\s*([^،,\n]+)/g;
+      while((m = wsRe2.exec(txt)) !== null){
+        found.push({ id:m[1].trim(), size:m[3].trim(), qty:Number(m[2])||1, orig:null, disc:null, total:null });
+      }
+    }
+  }
+
+  // صيغة المفرد: - ID: 101، القياس: 80، السعر الأصلي: 25,000 دينار، بعد الخصم 40%: 15,000 دينار
+  const fullRe = /ID\s*[:：]\s*(\S+?)\s*[،,]\s*القياس\s*[:：]\s*(\S+?)\s*[،,]\s*السعر الأصلي\s*[:：]\s*([\d,،٬\s]+?)\s*دينار\s*[،,]\s*بعد الخصم\s*(\d+)\s*%\s*[:：]\s*([\d,،٬\s]+)/g;
+  if(found.length===0){
+    while((m = fullRe.exec(txt)) !== null){
+      pctFromText = Number(m[4]) || pctFromText;
+      found.push({
+        id:   m[1].trim(),
+        size: m[2].trim(),
+        orig: toNum(m[3]),
+        disc: toNum(m[5])          // ← السعر بعد الخصم كما في النص بالضبط
+      });
+    }
   }
 
   /* احتياط: صيغة بلا سعر بعد الخصم */
@@ -637,7 +664,7 @@ function parseOrderText(){
 
   /* ---------- المجاميع وتكلفة النقل — كما في النص ---------- */
   const mTotO   = txt.match(/المجموع الأصلي\s*[:：]\s*([\d,،٬\s]+)/);
-  const mTotD   = txt.match(/المجموع بعد الخصم\s*\d*\s*%?\s*[:：]\s*([\d,،٬\s]+)/);
+  const mTotD   = txt.match(/(?:المجموع بعد الخصم|مجموع البضاعة)\s*\d*\s*%?\s*[:：]\s*([\d,،٬\s]+)/);
   const mFinal  = txt.match(/المجموع النهائي\s*[:：]\s*([\d,،٬\s]+)/);
   // النقل: قد يكون رقماً أو كلمة "مجاني"
   const mShipTxt = txt.match(/(?:تكلفة النقل|التوصيل|أجور التوصيل)\s*[:：]\s*([^\n]+)/);
@@ -672,8 +699,10 @@ function parseOrderText(){
                : (orig !== null ? discPrice(orig) : null);
     return {
       id:f.id, size:f.size,
+      qty:  Number(f.qty) || 1,          // الجملة: عدد القطع بالموديل
       orig: orig,
       disc: disc,
+      total: (f.total !== null && f.total !== undefined) ? f.total : null,
       pic: mod ? safeImg(mod.picture) : PLACEHOLDER
     };
   });
@@ -727,7 +756,11 @@ function attachImgFallback(img, src){
 function render(){
   // قائمة الإدخال
   const list=document.getElementById('itemList');
-  document.getElementById('itemCount').textContent = items.length ? items.length+' قطعة' : '';
+  const _pcs = items.reduce((s,it)=>s+(Number(it.qty)||1),0);
+  const _lbl = items.length
+    ? (items.length===_pcs ? _pcs+' قطعة' : items.length+' موديل · '+_pcs+' قطعة')
+    : '';
+  document.getElementById('itemCount').textContent = _lbl;
   if(items.length===0){
     list.innerHTML='<div class="empty-note">لا منتجات — الصق نص الطلب أو أضف يدوياً</div>';
   }else{
@@ -768,8 +801,8 @@ function renderInvoice(){
       '<td class="td-img"><img src="'+it.pic+'" crossorigin="anonymous" alt=""></td>'+
       '<td class="td-id">#'+esc(it.id)+'</td>'+
       '<td>'+esc(it.size)+'</td>'+
-      '<td class="td-old">'+(it.orig?fmt(it.orig):'—')+'</td>'+
-      '<td class="td-new">'+fmt(it.disc)+'</td>';
+      '<td class="td-old">'+(it.orig?fmt(it.orig):(Number(it.qty)>1 ? '×'+it.qty : '—'))+'</td>'+
+      '<td class="td-new">'+fmt(it.total !== null && it.total !== undefined ? it.total : it.disc)+'</td>';
     attachImgFallback(tr.querySelector('img'), it.pic);
     tb.appendChild(tr);
   });
@@ -780,7 +813,7 @@ function renderInvoice(){
 
   // مجموع البنود (احتياطي)
   const sumO = items.reduce((s,i)=>s+Number(i.orig||0),0);
-  const sumD = items.reduce((s,i)=>s+Number(i.disc||0),0);
+  const sumD = items.reduce((s,i)=>s+Number((i.total!==null&&i.total!==undefined)?i.total:(i.disc||0)),0);
 
   // المجموع الأصلي: من النص إن وُجد
   const totO = (parsed.totO !== null && parsed.totO !== undefined) ? parsed.totO : sumO;
@@ -812,7 +845,10 @@ function renderInvoice(){
 
   let h='';
   if(totO>0)  h+='<div class="tot-r"><span>المجموع الأصلي</span><b>'+fmt(totO)+' د.ع</b></div>';
-  h+='<div class="tot-r"><span>بعد خصم '+pct+'%</span><b>'+fmt(totD)+' د.ع</b></div>';
+  /* الجملة: بلا سعر أصلي → نعرض «مجموع البضاعة» بلا نسبة خصم */
+  h+= (totO>0)
+      ? '<div class="tot-r"><span>بعد خصم '+pct+'%</span><b>'+fmt(totD)+' د.ع</b></div>'
+      : '<div class="tot-r"><span>مجموع البضاعة</span><b>'+fmt(totD)+' د.ع</b></div>';
   if(saved>0) h+='<div class="tot-r save"><span>وفّرت</span><b>'+fmt(saved)+' د.ع 💚</b></div>';
   h+= ship===0
       ? '<div class="tot-r free"><span>التوصيل</span><b>مجاني 🎉</b></div>'
@@ -831,7 +867,28 @@ function buildFileName(ext){
 }
 
 /* تنزيل PDF */
+
+/* ===== ضمان جاهزية الخطوط قبل التصدير =====
+   html2canvas يرسم بالخط المتاح لحظتها — لو لم يكتمل تحميله
+   تتشوّه الحروف العربية أو تتقطّع */
+async function ensureFontsReady(){
+  try{
+    if(document.fonts && document.fonts.ready){
+      await document.fonts.ready;
+      /* نطلب الأوزان المستخدمة صراحةً */
+      await Promise.all([
+        document.fonts.load("700 21px 'IBM Plex Sans Arabic'"),
+        document.fonts.load("600 14px 'IBM Plex Sans Arabic'"),
+        document.fonts.load("400 13px 'IBM Plex Sans Arabic'")
+      ]);
+    }
+  }catch(_){}
+  /* مهلة قصيرة تضمن اكتمال الرسم */
+  await new Promise(r=>setTimeout(r,120));
+}
+
 async function downloadPDF(){
+  await ensureFontsReady();   // نضمن اكتمال الخط قبل الرسم
   if(items.length===0){ toast('أضف منتجات أولاً','err'); return; }
   if(typeof html2pdf !== 'function'){
     toast('⚠️ تعذّر تحميل المكتبة — تحقق من الإنترنت','err'); return;
@@ -844,7 +901,7 @@ async function downloadPDF(){
       margin:0,
       filename:buildFileName('pdf'),
       image:{type:'jpeg',quality:.96},
-      html2canvas:{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false},
+      html2canvas:{scale:3,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false,letterRendering:true},
       jsPDF:{unit:'px',format:[794,1123],orientation:'portrait'}
     }).from(document.getElementById('invoice')).save();
     toast('✅ تم تحميل ملف PDF','ok');
@@ -857,6 +914,7 @@ async function downloadPDF(){
 
 /* تنزيل صورة PNG */
 async function downloadPNG(){
+  await ensureFontsReady();   // نضمن اكتمال الخط قبل الرسم
   if(items.length===0){ toast('أضف منتجات أولاً','err'); return; }
   if(typeof html2canvas !== 'function'){
     toast('⚠️ تعذّر تحميل المكتبة — تحقق من الإنترنت','err'); return;
@@ -867,11 +925,12 @@ async function downloadPNG(){
   try{
     const node = document.getElementById('invoice');
     const canvas = await html2canvas(node,{
-      scale:2,                 // دقة عالية للإرسال والطباعة
+      scale:3,                 // دقة أعلى — أوضح للنص العربي
       useCORS:true,
       allowTaint:true,
       backgroundColor:'#ffffff',
       logging:false,
+      letterRendering:true,    // رسم دقيق للحروف المتصلة
       windowWidth: node.scrollWidth,
       windowHeight: node.scrollHeight
     });
