@@ -247,11 +247,21 @@
     return _origFetch.call(window, url, cfg);
   };
 
-  /* تحقق خلفي من الخادم — لا يوقف الصفحة، لكن يحجبها لو رُفض */
+  /* ===== تحقق خلفي من الخادم =====
+     مرة كل 15 دقيقة فقط — لا في كل فتح صفحة.
+     التحقق المحلي يكفي بينهما، فتُفتح الأدوات فوراً بلا انتظار. */
+  var VERIFY_EVERY = 15 * 60 * 1000;
+  var lastChk = 0;
+  try{ lastChk = Number(localStorage.getItem('adm_chk') || 0); }catch(e){}
+  if(Date.now() - lastChk < VERIFY_EVERY) return;   // نوفّر نداءً كاملاً
+
   try{
     _origFetch.call(window, API_URL, { method:'POST', body: JSON.stringify({ action:'checkSession', token: tok }) })
       .then(function(r){ return r.json(); })
       .then(function(d){
+        if(d && d.success){
+          try{ localStorage.setItem('adm_chk', String(Date.now())); }catch(e){}
+        }
         if(!d || !d.success){
           try{ localStorage.removeItem('adm_tok'); localStorage.removeItem('adm_exp'); }catch(e){}
           block('انتهت صلاحية الجلسة على الخادم.<br>سجّل الدخول مجدداً.');
@@ -262,7 +272,6 @@
 })();
 </script>
 <!-- ═══════════ نهاية حارس الجلسة ═══════════ -->
-
 
 <!-- ===== شاشة تسجيل الدخول ===== -->
 <div class="login-screen" id="loginScreen">
@@ -283,8 +292,21 @@
     </label>
     <button class="btn btn-primary btn-lg" id="loginBtn" style="width:100%">دخول</button>
     <div id="loginErr" style="color:var(--danger);font-size:13px;margin-top:12px;text-align:center;font-weight:600"></div>
-    <div style="font-size:11px;color:var(--ink3);margin-top:18px;text-align:center;line-height:1.7">
-      💡 يتطلب تشغيل المتصفح بوضع تجاوز CORS<br>(انظر التعليمات في نهاية الملف)
+    <div style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
+      <button type="button" id="proxyToggle" style="width:100%;background:none;border:none;font-size:12.5px;color:var(--brand);font-weight:600;cursor:pointer;padding:4px">
+        ⚙️ إعداد الاتصال (رابط السكربت الوسيط)
+      </button>
+      <div id="proxyBox" style="display:none;margin-top:12px">
+        <div class="fld">
+          <label style="font-size:11.5px">رابط السكربت الوسيط (Apps Script)</label>
+          <input type="url" id="proxyInput" placeholder="https://script.google.com/macros/s/.../exec" dir="ltr" style="font-size:12px">
+        </div>
+        <div style="font-size:11px;color:var(--ink3);line-height:1.7;margin-top:8px">
+          ✅ <b>مع الرابط:</b> يعمل من أي جهاز (موبايل/حاسوب) بلا إعدادات<br>
+          ⚠️ <b>بدونه:</b> يتطلب Chrome بوضع تجاوز CORS (حاسوب فقط)
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="proxySave" style="width:100%;margin-top:10px">💾 حفظ</button>
+      </div>
     </div>
   </div>
 </div>
@@ -480,6 +502,16 @@
               <div class="fld"><label>اسم المستخدم</label><input type="text" id="setUser" readonly></div>
               <div class="fld"><label>حالة الاتصال</label><input type="text" id="setStatus" readonly></div>
             </div>
+            <div class="fld" style="margin-top:16px">
+              <label>🔗 رابط السكربت الوسيط (يتيح العمل من الموبايل)</label>
+              <input type="url" id="setProxy" placeholder="https://script.google.com/macros/s/.../exec" dir="ltr" style="font-size:12.5px">
+              <div class="hint">اتركه فارغاً للاتصال المباشر (يتطلب Chrome بوضع تجاوز CORS)</div>
+            </div>
+            <div style="margin-top:10px">
+              <button class="btn btn-ok btn-sm" id="saveProxyBtn">💾 حفظ رابط الوسيط</button>
+              <span id="proxyStatus" style="font-size:12.5px;font-weight:600;margin-inline-start:10px"></span>
+            </div>
+
             <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
               <button class="btn btn-primary" id="refreshRefBtn">🔄 تحديث المدن والمناطق والأحجام</button>
               <button class="btn btn-ghost" id="clearCacheBtn">🗑️ مسح البيانات المخزّنة</button>
@@ -522,6 +554,12 @@
    ================================================================== */
 
 const API_BASE = 'https://api.alwaseet-iq.net/v1/merchant';
+
+/* ===== رابط السكربت الوسيط (Google Apps Script) =====
+   • ضع رابط النشر (exec) هنا ليعمل الموقع من أي جهاز (موبايل/حاسوب) بلا مشاكل CORS
+   • اتركه فارغاً '' للاتصال المباشر (يتطلب Chrome بوضع تجاوز CORS)
+   • يمكن ضبطه أيضاً من صفحة الإعدادات داخل اللوحة */
+let PROXY_URL = localStorage.getItem('wst_proxy') || '';
 const LS = {
   token:'wst_token', user:'wst_user', pass:'wst_pass',
   cities:'wst_cities', regions:'wst_regions', sizes:'wst_sizes',
@@ -573,17 +611,63 @@ function toApiPhone(raw){
 }
 
 /* ===== طبقة API ===== */
+/* يفكّك '/endpoint?a=1&b=2' إلى { name:'endpoint', params:{a:'1',b:'2'} } */
+function parseEndpoint(endpoint){
+  const clean = String(endpoint||'').replace(/^\//,'');
+  const qIdx = clean.indexOf('?');
+  if(qIdx === -1) return { name: clean, params: {} };
+  const name = clean.slice(0, qIdx);
+  const params = {};
+  new URLSearchParams(clean.slice(qIdx+1)).forEach(function(v,k){ params[k]=v; });
+  return { name: name, params: params };
+}
+
+/* ===== طبقة API =====
+   الوضع الافتراضي: عبر السكربت الوسيط (يعمل على أي جهاز بلا CORS)
+   الوضع المباشر:   اتصال مباشر (يتطلب Chrome بوضع تجاوز CORS) */
 async function apiCall(endpoint, opts){
   opts = opts || {};
-  const url = API_BASE + endpoint;
-  const cfg = { method: opts.method||'GET' };
-  if(opts.body){ cfg.body = opts.body; }  // FormData
-  const res = await fetch(url, cfg);
+  const ep = parseEndpoint(endpoint);
+
+  /* ---------- الوضع المباشر (بلا وسيط) ---------- */
+  if(!PROXY_URL){
+    const url = API_BASE + endpoint;
+    const cfg = { method: opts.method||'GET' };
+    if(opts.body) cfg.body = opts.body;
+    const res = await fetch(url, cfg);
+    if(!res.ok){
+      let msg='HTTP '+res.status;
+      try{ const j=await res.json(); msg=j.msg||msg; }catch(_){}
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    if(!data.status) throw new Error(data.msg || 'فشل الطلب (errNum: '+(data.errNum||'?')+')');
+    return data.data;
+  }
+
+  /* ---------- عبر السكربت الوسيط ---------- */
+  let res;
+  if((opts.method||'GET').toUpperCase() === 'POST'){
+    // POST: نرسل JSON للوسيط، وهو يحوّله لـform-data
+    const payload = {
+      endpoint: ep.name,
+      token:    ep.params.token || '',
+      fields:   opts.fields || {}
+    };
+    res = await fetch(PROXY_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  } else {
+    // GET: كل المعاملات في الرابط
+    const q = new URLSearchParams();
+    q.set('endpoint', ep.name);
+    for(const k in ep.params) q.set(k, ep.params[k]);
+    res = await fetch(PROXY_URL + '?' + q.toString(), { method:'GET' });
+  }
+
   if(!res.ok){
-    // قد يكون rate limit أو خطأ خادم
-    let msg = 'HTTP '+res.status;
-    try{ const j=await res.json(); msg=j.msg||msg; }catch(_){}
-    throw new Error(msg);
+    throw new Error('تعذّر الاتصال بالوسيط (HTTP '+res.status+')');
   }
   const data = await res.json();
   if(!data.status){
@@ -591,7 +675,10 @@ async function apiCall(endpoint, opts){
   }
   return data.data;
 }
+
+/* في وضع الوسيط لا نحتاج FormData — نمرّر كائناً عادياً */
 function formData(obj){
+  if(PROXY_URL) return obj;              // كائن عادي (يذهب في fields)
   const fd=new FormData();
   for(const k in obj){ if(obj[k]!==undefined && obj[k]!==null) fd.append(k, obj[k]); }
   return fd;
@@ -599,7 +686,7 @@ function formData(obj){
 
 /* ===== المصادقة ===== */
 async function doLogin(username, password){
-  const data = await apiCall('/login', { method:'POST', body: formData({username, password}) });
+  const data = await apiCall('/login', { method:'POST', fields:{username:username, password:password}, body: formData({username, password}) });
   if(!data || !data.token) throw new Error('لم يصل التوكن');
   return data.token;
 }
@@ -738,7 +825,7 @@ function gotoPage(page){
   // تحميل بيانات الصفحة
   if(page==='orders' || page==='dashboard' || page==='qrcards') refreshOrders();
   if(page==='invoices') loadInvoices();
-  if(page==='settings') updateCacheInfo();
+  if(page==='settings'){ updateCacheInfo(); updateProxyUI(); }
 }
 
 /* ===== لوحة التحكم — الإحصائيات ===== */
@@ -825,7 +912,7 @@ async function submitOrder(e){
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span> جاري الإنشاء...';
   try{
     const data = await apiCall('/create-order?token='+encodeURIComponent(state.token), {
-      method:'POST', body: formData(payload)
+      method:'POST', fields: payload, body: formData(payload)
     });
     const order = Array.isArray(data) ? data[0] : data;
     const qrId = order.qr_id;
@@ -1138,7 +1225,7 @@ async function saveEdit(){
 
   const btn=$('edSaveBtn'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span> حفظ...';
   try{
-    await apiCall('/edit-order?token='+encodeURIComponent(state.token), { method:'POST', body:formData(payload) });
+    await apiCall('/edit-order?token='+encodeURIComponent(state.token), { method:'POST', fields: payload, body:formData(payload) });
     toast('✅ حُفظ التعديل','ok');
     closeEdit();
     refreshOrders(true);
@@ -1307,6 +1394,30 @@ function clearInvoiceAccount(){
   updateCacheInfo();
 }
 
+
+/* ===== إدارة رابط السكربت الوسيط ===== */
+function saveProxyUrl(url){
+  url = String(url||'').trim();
+  // تنظيف: نزيل أي مسافات أو علامات اقتباس
+  url = url.replace(/^["']|["']$/g,'');
+  if(url && !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(url)){
+    return { ok:false, msg:'الرابط يجب أن يكون رابط نشر Apps Script ينتهي بـ /exec' };
+  }
+  PROXY_URL = url;
+  if(url) localStorage.setItem('wst_proxy', url);
+  else localStorage.removeItem('wst_proxy');
+  return { ok:true };
+}
+function updateProxyUI(){
+  const inp=$('setProxy'); if(inp) inp.value = PROXY_URL||'';
+  const st=$('proxyStatus');
+  if(st){
+    st.textContent = PROXY_URL ? '✅ عبر الوسيط — يعمل من أي جهاز' : '⚠️ اتصال مباشر — يتطلب تجاوز CORS';
+    st.style.color = PROXY_URL ? 'var(--ok)' : 'var(--warn)';
+  }
+  const li=$('proxyInput'); if(li) li.value = PROXY_URL||'';
+}
+
 /* ===== تسجيل الدخول / الخروج ===== */
 async function handleLogin(){
   const user=$('loginUser').value.trim();
@@ -1321,8 +1432,10 @@ async function handleLogin(){
     await enterApp();
   }catch(e){
     let msg = e.message;
-    if(/failed to fetch|networkerror/i.test(msg)){
-      msg = 'تعذّر الاتصال — تأكد من تشغيل المتصفح بوضع تجاوز CORS (انظر التعليمات)';
+    if(/failed to fetch|networkerror|تعذّر الاتصال بالوسيط/i.test(msg)){
+      msg = PROXY_URL
+        ? 'تعذّر الاتصال بالسكربت الوسيط — تأكد من صحة الرابط وأنه منشور للجميع (Anyone)'
+        : 'تعذّر الاتصال — أضف رابط السكربت الوسيط من "⚙️ إعداد الاتصال" أعلاه ليعمل من أي جهاز';
     }
     $('loginErr').textContent = '❌ '+msg;
   }finally{
@@ -1357,6 +1470,27 @@ async function enterApp(){
 
 /* ===== ربط الأحداث ===== */
 function bindEvents(){
+  // إعداد الوسيط (شاشة الدخول)
+  const pt=$('proxyToggle');
+  if(pt) pt.addEventListener('click',()=>{
+    const box=$('proxyBox');
+    box.style.display = box.style.display==='none' ? 'block' : 'none';
+    if(box.style.display==='block') $('proxyInput').value = PROXY_URL||'';
+  });
+  const ps=$('proxySave');
+  if(ps) ps.addEventListener('click',()=>{
+    const r=saveProxyUrl($('proxyInput').value);
+    if(r.ok){ toast(PROXY_URL?'✅ حُفظ رابط الوسيط':'تم الاتصال المباشر','ok'); $('proxyBox').style.display='none'; }
+    else toast('❌ '+r.msg,'err');
+  });
+  // إعداد الوسيط (الإعدادات)
+  const sp=$('saveProxyBtn');
+  if(sp) sp.addEventListener('click',()=>{
+    const r=saveProxyUrl($('setProxy').value);
+    if(r.ok){ toast(PROXY_URL?'✅ حُفظ — يعمل من أي جهاز':'تم التبديل للاتصال المباشر','ok'); updateProxyUI(); }
+    else toast('❌ '+r.msg,'err');
+  });
+
   // تسجيل الدخول
   $('loginBtn').addEventListener('click', handleLogin);
   $('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') handleLogin(); });
@@ -1419,6 +1553,7 @@ function debounce(fn, ms){ let t; return function(){ clearTimeout(t); const a=ar
 /* ===== بدء التشغيل ===== */
 function init(){
   bindEvents();
+  updateProxyUI();
   // بيانات دخول محفوظة
   $('loginUser').value = localStorage.getItem(LS.user)||'';
   $('loginPass').value = localStorage.getItem(LS.pass)||'';
