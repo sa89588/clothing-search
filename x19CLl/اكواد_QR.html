@@ -177,11 +177,21 @@
     return _origFetch.call(window, url, cfg);
   };
 
-  /* تحقق خلفي من الخادم — لا يوقف الصفحة، لكن يحجبها لو رُفض */
+  /* ===== تحقق خلفي من الخادم =====
+     مرة كل 15 دقيقة فقط — لا في كل فتح صفحة.
+     التحقق المحلي يكفي بينهما، فتُفتح الأدوات فوراً بلا انتظار. */
+  var VERIFY_EVERY = 15 * 60 * 1000;
+  var lastChk = 0;
+  try{ lastChk = Number(localStorage.getItem('adm_chk') || 0); }catch(e){}
+  if(Date.now() - lastChk < VERIFY_EVERY) return;   // نوفّر نداءً كاملاً
+
   try{
     _origFetch.call(window, API_URL, { method:'POST', body: JSON.stringify({ action:'checkSession', token: tok }) })
       .then(function(r){ return r.json(); })
       .then(function(d){
+        if(d && d.success){
+          try{ localStorage.setItem('adm_chk', String(Date.now())); }catch(e){}
+        }
         if(!d || !d.success){
           try{ localStorage.removeItem('adm_tok'); localStorage.removeItem('adm_exp'); }catch(e){}
           block('انتهت صلاحية الجلسة على الخادم.<br>سجّل الدخول مجدداً.');
@@ -192,7 +202,6 @@
 })();
 </script>
 <!-- ═══════════ نهاية حارس الجلسة ═══════════ -->
-
 
 <header>
   <div class="hwrap">
