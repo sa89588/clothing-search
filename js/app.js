@@ -1137,7 +1137,6 @@ function createCard(item){
     : (disc.toLocaleString()+' '+t('dinar'));
   pr.appendChild(op); pr.appendChild(np);
   // Savings
-  const sv=document.createElement('div'); sv.className='savings'; sv.textContent=t('saved')+' '+t('upTo')+' '+(orig-priceLo).toLocaleString()+' '+t('dinar')+' 💚';
   /* عدد القياسات المتوفرة — الاختيار يتم في صفحة المنتج */
   const szc=document.createElement('div'); szc.className='cszc';
   szc.textContent = sizes.length + ' ' + (sizes.length===1 ? t('szOne') : t('szMany'));

@@ -49,7 +49,7 @@ const L = {
 '👧👦 الأقسام والأعمار\nاختر «ولادي» أو «بناتي» من البطاقات أعلى الصفحة، ثم عمر طفلك من شريط الأعمار — فتظهر الموديلات المتوفرة بقياسه فقط. وزر 📏 في آخر الشريط يفتح جدول القياسات الكامل.',
 '🔍 البحث عن منتج\nاكتب رقم المنتج (ID) أو رقم القياس في مربع البحث. يمكنك أيضاً الضغط مباشرةً على رقم # أي منتج لنسخه.',
 '⚙️ الفلاتر\nاضغط زر "الفلاتر" لتصفية المنتجات حسب الموسم (صيفي / شتوي / بهاري) أو النوع (طلعة / منزلي) أو ترتيبها حسب السعر. الرقم على الزر يُظهر عدد الفلاتر النشطة.',
-'🛒 إضافة منتج للسلة\nكل منتج يُعرض قياساته كأزرار ملونة مباشرةً. اضغط على القياس المطلوب لإضافته للسلة فوراً بضغطة واحدة — بدون خطوات إضافية!',
+'🛒 إضافة منتج للسلة\nاضغط على صورة المنتج لتفتح صفحته: صورة أكبر، والخامة والموسم، وكل قياس بسعره. ثم اضغط القياس المطلوب ليُضاف للسلة. وزر ♥ يحفظ المنتج لترجع له لاحقاً.',
 '🛍️ السلة والدفع\nاضغط زر السلة 🛒 في الشريط السفلي لمراجعة طلبك.\n• اسحب أي منتج يميناً لحذفه\n• اضغط "إتمام الشراء"، أدخل اسمك ورقمك وعنوانك، ثم اضغط تأكيد الطلب.',
 '📞 التواصل\nللتواصل وعرض شبكات التواصل الاجتماعي اضغط على "تواصل" في الشريط اسفل الشاشة .',
 '🌙 الإعدادات\n• غيّر اللغة (عربي / English / کوردی) من أزرار اللغة في الهيدر\n• فعّل الوضع الداكن 🌙 من الزر بجانب اللغة\n• اسحب الصفحة للأسفل لتحديث المنتجات\n• يمكن تثبيت المتجر كتطبيق على هاتفك!'
@@ -102,7 +102,7 @@ const L = {
 '👧👦 Categories & ages\nTap Boys or Girls at the top, then your child\'s age in the age bar — only models available in that size will show. The 📏 button at the end of the bar opens the full size chart.',
 '🔍 Find a Product\nType the product ID or size number in the search box. You can also tap any product\'s # number directly to copy it.',
 '⚙️ Filters\nTap the "Filters" button to filter products by season (Summer / Winter / Spring), type (Outdoor / Home), or sort by price. The number on the button shows active filters.',
-'🛒 Add to Cart\nEach product shows its sizes as colored buttons directly. Tap the size you want to add it to the cart instantly with one tap — no extra steps!',
+'🛒 Add to Cart\nTap a product image to open its page: a larger photo, fabric and season, and every size with its price. Then tap the size you want to add it to the cart. The ♥ button saves it for later.',
 '🛍️ Cart & Checkout\nTap the cart button 🛒 in the bottom bar to review your order.\n• Swipe any item left to remove it\n• Tap "Checkout", enter your name, number, and address, then tap Confirm Order.',
 '📞 Contact\nTo get in touch and view our social networks, tap "Contact" in the bottom bar.',
 '🌙 Settings\n• Change the language (عربي / English / کوردی) from the language buttons in the header\n• Enable dark mode 🌙 from the button next to the language\n• Pull the page down to refresh products\n• You can install the store as an app on your phone!'
@@ -155,7 +155,7 @@ const L = {
 '👧👦 بەشەکان و تەمەنەکان\nلە سەرەوە «کوڕان» یان «کچان» هەڵبژێرە، پاشان تەمەنی منداڵەکەت لە شریتی تەمەنەکان — تەنها ئەو مۆدێلانە دەردەکەون کە قەبارەکەیان هەیە. دوگمەی 📏 لە کۆتایی شریتەکە خشتەی تەواو دەکاتەوە.',
 '🔍 گەڕان بۆ کاڵا\nژمارەی کاڵا (ID) یان ژمارەی قەبارە لە خانەی گەڕاندا بنووسە. هەروەها دەتوانیت ڕاستەوخۆ کرتە لە ژمارەی # هەر کاڵایەک بکەیت بۆ کۆپیکردنی.',
 '⚙️ فلتەرەکان\nکرتە لە دوگمەی "فلتەرەکان" بکە بۆ فلتەرکردنی کاڵاکان بەپێی وەرز (هاوین / زستان / بەھار) یان جۆر (دەرەوە / ماڵەوە) یان ڕیزکردنیان بەپێی نرخ. ژمارەکە لەسەر دوگمەکە ژمارەی فلتەرە چالاکەکان پیشان دەدات.',
-'🛒 زیادکردنی کاڵا بۆ سەبەتە\nهەر کاڵایەک قەبارەکانی وەک دوگمەی ڕەنگاوڕەنگ ڕاستەوخۆ پیشان دەدرێت. کرتە لە قەبارەی پێویست بکە بۆ زیادکردنی خێرا بۆ سەبەتە بە یەک کرتە — بەبێ هەنگاوی زیادە!',
+'🛒 زیادکردنی کاڵا بۆ سەبەتە\nکرتە لە وێنەی کاڵا بکە بۆ کردنەوەی لاپەڕەکەی: وێنەی گەورەتر، جۆری قوماش و وەرز، و هەر قەبارەیەک بە نرخەکەی. پاشان کرتە لە قەبارەی پێویست بکە. دوگمەی ♥ بۆ دواتر هەڵیدەگرێت.',
 '🛍️ سەبەتە و پارەدان\nکرتە لە دوگمەی سەبەتە 🛒 لە شریتی خوارەوە بکە بۆ پێداچوونەوەی داواکارییەکەت.\n• هەر کاڵایەک بەرەو ڕاست بیکێشە بۆ سڕینەوەی\n• کرتە لە "تەواوکردنی کڕین" بکە، ناو و ژمارە و ناونیشانت بنووسە، دواتر کرتە لە پشتڕاستکردنەوەی داواکاری بکە.',
 '📞 پەیوەندی\nبۆ پەیوەندیکردن و بینینی تۆڕە کۆمەڵایەتییەکان کرتە لە "پەیوەندی" لە شریتی خوارەوەی شاشە بکە.',
 '🌙 ڕێکخستنەکان\n• زمان بگۆڕە (عربي / English / کوردی) لە دوگمەکانی زمان لە سەرەوە\n• دۆخی تاریک چالاک بکە 🌙 لە دوگمەکە تەنیشت زمان\n• پەڕەکە بەرەو خوارەوە بکێشە بۆ نوێکردنەوەی کاڵاکان\n• دەتوانیت فرۆشگا وەک ئەپ لەسەر مۆبایلەکەت دابمەزرێنیت!'
