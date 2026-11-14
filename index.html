@@ -30,6 +30,26 @@
 <link rel="apple-touch-icon" href="/icons/icon-180.png">
 <link rel="manifest" href="/manifest.json">
 <script>
+/* ===== حارس المعاينة =====
+   يعطّل بكسل ميتا على أي نطاق غير نطاق المتجر الحقيقي،
+   فلا تتلوّث بيانات إعلاناتك من نسخ التجربة. */
+(function(){
+  var isProd = /(^|\.)jasotre\.com$/i.test(location.hostname);
+  if(isProd) return;
+  window.__PREVIEW__ = true;
+  window.fbq = function(){};            /* استدعاءات البكسل تصبح بلا أثر */
+  window._fbq = window.fbq;
+  document.addEventListener('DOMContentLoaded', function(){
+    var b = document.createElement('div');
+    b.textContent = '🧪 نسخة تجريبية — البكسل معطّل';
+    b.style.cssText = 'position:fixed;bottom:0;inset-inline-start:0;z-index:99999;'+
+      'background:#7c3aed;color:#fff;font:700 10.5px/1 system-ui,sans-serif;'+
+      'padding:5px 9px;border-start-end-radius:8px;opacity:.9;pointer-events:none';
+    document.body.appendChild(b);
+  });
+})();
+</script>
+<script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','2514076832364278');fbq('track','PageView');
 </script>
