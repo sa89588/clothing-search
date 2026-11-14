@@ -8,13 +8,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="جود العباس">
-<meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta http-equiv="X-XSS-Protection" content="1; mode=block">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>متجر جود العباس — الجملة</title>
-<link rel="icon" href="https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png">
-<link rel="manifest" id="pwaManifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="جود العباس — الجملة">
+<meta property="og:locale" content="ar_IQ">
+<meta property="og:title" content="جود العباس — بيع الجملة">
+<meta property="og:description" content="ملابس أطفال بالجملة · أسعار التاجر · توصيل مجاني لكل العراق">
+<meta property="og:image" content="https://jasotre.com/icons/icon-512.png">
+
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="manifest" href="/manifest.json">
 <script>
 
 </script>
@@ -71,6 +76,24 @@
 
 <!-- WELCOME -->
 <div class="welcome" id="welcomeEl">أهلاً بكم في قسم الجملة — متجر جود العباس 📦</div>
+
+<!-- ===== أقسام التسوّق ===== -->
+<div class="shop-nav">
+  <div class="cats" id="catRow">
+    <button class="cat cat-all on" data-g=""><span class="cat-ico">🛍️</span><span class="cat-lbl" id="catAll">الكل</span></button>
+    <button class="cat cat-boys"  data-g="boys"><span class="cat-ico">👦</span><span class="cat-lbl" id="catBoys">ولادي</span></button>
+    <button class="cat cat-girls" data-g="girls"><span class="cat-ico">👧</span><span class="cat-lbl" id="catGirls">بناتي</span></button>
+  </div>
+  <div class="ages" id="ageRow">
+    <button class="age on" data-a=""><span id="ageAll">كل الأعمار</span></button>
+    <button class="age" data-a="baby">👶 <span id="ageBaby">0-10 شهر</span></button>
+    <button class="age" data-a="toddler">🧸 <span id="ageToddler">1-2 سنة</span></button>
+    <button class="age" data-a="kid">🧒 <span id="ageKid">3-5 سنوات</span></button>
+    <button class="age" data-a="big">👦 <span id="ageBig">6-9 سنوات</span></button>
+    <button class="age" data-a="teen">🧑 <span id="ageTeen">10+ سنة</span></button>
+    <button class="age age-guide" id="measBtn" title="شرح القياسات">📏</button>
+  </div>
+</div>
 
 <!-- SEARCH -->
 <div class="srch-wrap">
