@@ -539,6 +539,16 @@ function restoreShopNav(){
 }
 
 
+
+/* تسجيل Service Worker — يلزم لتثبيت التطبيق على أندرويد */
+function registerSW(){
+  if(!('serviceWorker' in navigator)) return;
+  if(location.protocol !== 'https:' && location.hostname !== 'localhost') return;
+  try{
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  }catch(_){}
+}
+
 /* ==================== HELPERS ==================== */
 function parseSizes(s){ if(!s&&s!==0) return []; if(typeof s==='number') return [String(s)]; if(Array.isArray(s)) return s.map(x=>String(x).trim()).filter(Boolean); return String(s).split(/[-,،\s]+/).map(x=>x.trim()).filter(x=>x&&!isNaN(x)); }
 function getSzLbl(sz){ const k='s'+sz; return L[lang][k] ? sz+'('+L[lang][k]+')' : sz; }
@@ -1578,6 +1588,7 @@ document.addEventListener('keydown',e=>{
 /* ==================== INIT ==================== */
 document.addEventListener('DOMContentLoaded',()=>{
   try{ const _l=localStorage.getItem('lang'); if(_l && L[_l]) setLang(_l); }catch(_){}
+  registerSW();
   setupPWA(); startCountdown(); loadCart(); initPTR();
   initShopNav(); restoreShopNav();
   initInAppBanner();
