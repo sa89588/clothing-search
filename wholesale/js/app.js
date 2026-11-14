@@ -629,7 +629,12 @@ function createCard(item){
   const iw=document.createElement('div'); iw.className='cimg-w'; iw.appendChild(badges);
   const img=document.createElement('img'); img.className='cimg'; img.src=imgSrc; img.alt=String(item.Id);
   img.loading='lazy'; img.decoding='async'; img.fetchPriority='low';
-  img.onerror=function(){this.src=PLACEHOLDER;};
+  img.dataset.full = imgFull;
+  img.onerror = function(){
+    /* المصغّرة غير موجودة؟ نعود للأصل، ثم للصورة البديلة */
+    if(this.dataset.full && this.src !== this.dataset.full){ this.src = this.dataset.full; return; }
+    this.src = PLACEHOLDER;
+  };
   img.addEventListener('click',function(){openLB(imgFull, item.Id, unit);});
   iw.appendChild(img);
 

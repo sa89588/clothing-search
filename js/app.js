@@ -1114,7 +1114,12 @@ function createCard(item){
   // Image
   const iw=document.createElement('div'); iw.className='cimg-w'; iw.appendChild(badges);
   iw.appendChild(makeFavBtn(item.Id));
-  const img=document.createElement('img'); img.className='cimg'; img.src=imgSrc; img.alt=String(item.Id); img.loading='lazy'; img.decoding='async'; img.fetchPriority='low'; img.onerror=function(){this.src=PLACEHOLDER;}; img.addEventListener('click',function(){ openProduct(item.Id); }); iw.appendChild(img);
+  const img=document.createElement('img'); img.className='cimg'; img.src=imgSrc; img.alt=String(item.Id); img.loading='lazy'; img.decoding='async'; img.fetchPriority='low'; img.dataset.full = imgFull;
+  img.onerror = function(){
+    /* المصغّرة غير موجودة؟ نعود للأصل، ثم للصورة البديلة */
+    if(this.dataset.full && this.src !== this.dataset.full){ this.src = this.dataset.full; return; }
+    this.src = PLACEHOLDER;
+  }; img.addEventListener('click',function(){ openProduct(item.Id); }); iw.appendChild(img);
   // Body
   const body=document.createElement('div'); body.className='cbody';
   // ID + copy
