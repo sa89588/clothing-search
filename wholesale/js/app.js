@@ -687,7 +687,13 @@ function displayProducts(arr){
   const cont=document.getElementById('prodCont');
   /* الجملة: سعر جملة صالح + عدد قطع كافٍ */
   const filtered=arr.filter(isWholesaleItem);
-  document.getElementById('rcount').textContent=filtered.length+' '+t('res');
+  const _rc=document.getElementById('rcount');
+  if(_rc){
+    const _q=(document.getElementById('searchIn')||{}).value||'';
+    const _active=!!(_q.trim()||fSea||fTyp||fGen||fAge);
+    _rc.textContent = filtered.length+' '+t('res');
+    _rc.classList.toggle('show', _active);
+  }
   cont.innerHTML='';
   if(!filtered.length){
     const n=document.createElement('div'); n.className='nores';

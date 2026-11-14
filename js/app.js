@@ -1138,38 +1138,24 @@ function createCard(item){
   pr.appendChild(op); pr.appendChild(np);
   // Savings
   const sv=document.createElement('div'); sv.className='savings'; sv.textContent=t('saved')+' '+t('upTo')+' '+(orig-priceLo).toLocaleString()+' '+t('dinar')+' 💚';
-  // Size pills
-  // تسمية توضيحية فوق الحبوب
-  const pillsLbl=document.createElement('div');
-  pillsLbl.className='sz-pills-lbl';
-  pillsLbl.textContent='👇 ' + t('tapSizeToAdd');
-  const pills=document.createElement('div'); pills.className='sz-pills';
-  sizes.forEach(sz=>{
-    const szPct=discPctFor(item,sz), szPrice=discPrice(orig,szPct);
-    const p=document.createElement('button');
-    p.className='sz-pill'+(mixed && szPct>rng.min ? ' sz-best' : '');
-    /* الرقم بارز، والعمر سطر صغير تحته، والسعر حين يختلف */
-    const _age = L[lang]['s'+sz] || '';
-    p.innerHTML = '<span class="szp-n">'+sanitize(String(sz))+'</span>'+
-                  (_age ? '<span class="szp-age">'+sanitize(_age)+'</span>' : '')+
-                  (mixed ? '<span class="szp-price">'+szPrice.toLocaleString()+'</span>' : '');
-    p.title = getSzLbl(sz);
-    p.addEventListener('click',()=>addToCart(item.Id,sz,orig,szPrice,szPct));
-    pills.appendChild(p);
-  });
-  // زر إضافة للسلة الواضح - يفتح نافذة اختيار القياس
-  // Share button removed - card actions limited to size pills only
-  /* خامة القماش */
-  const fab=document.createElement('div'); fab.className='cfabric';
-  fab.innerHTML='<i class="fas fa-tshirt"></i> <span>'+sanitize(getFabric(item))+'</span>';
-  body.appendChild(idEl); body.appendChild(fab); body.appendChild(pr); body.appendChild(sv); body.appendChild(pillsLbl); body.appendChild(pills);
+  /* عدد القياسات المتوفرة — الاختيار يتم في صفحة المنتج */
+  const szc=document.createElement('div'); szc.className='cszc';
+  szc.textContent = sizes.length + ' ' + (sizes.length===1 ? t('szOne') : t('szMany'));
+  body.appendChild(pr); body.appendChild(szc); body.appendChild(idEl);
   card.appendChild(iw); card.appendChild(body);
   return card;
 }
 function displayProducts(arr){
   const cont=document.getElementById('prodCont');
   const filtered=arr.filter(i=>parseSizes(i.sizes).length>0);
-  document.getElementById('rcount').textContent=filtered.length+' '+t('res');
+  /* العداد يظهر فقط عند وجود فلتر أو بحث — وإلا فهو ضجيج */
+  const _rc = document.getElementById('rcount');
+  if(_rc){
+    const _q = (document.getElementById('searchIn')||{}).value || '';
+    const _active = !!(_q.trim() || fSea || fTyp || fGen || fAge || fFav);
+    _rc.textContent = filtered.length + ' ' + t('res');
+    _rc.classList.toggle('show', _active);
+  }
   cont.innerHTML='';
   if(!filtered.length){ const n=document.createElement('div'); n.className='nores'; n.innerHTML='<i class="fas fa-search"></i>'; n.appendChild(document.createTextNode(t('noRes'))); cont.appendChild(n); return; }
   const grid=document.createElement('div'); grid.className='pgrid';

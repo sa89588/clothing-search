@@ -886,3 +886,47 @@ body.dark .fav-btn.on{ color:#fb7185 }
 /* شارة السلة لا تغطي النص */
 .cnav-wrap{ position:relative; display:inline-flex }
 .bnavbtn .cdot{ top:-4px; inset-inline-end:-8px }
+
+/* ════════════════════════════════════════════════════════════
+   الشبكة المضغوطة — 3 أعمدة على الهاتف
+   ════════════════════════════════════════════════════════════ */
+.pgrid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; padding:10px }
+
+.cbody{ padding:7px 8px 8px; gap:2px }
+.cprices{ gap:5px; flex-direction:column; align-items:flex-start }
+.pnew{ font-size:14px; font-weight:900; line-height:1.2 }
+.pold{ font-size:10px; line-height:1.1 }
+
+/* عدد القياسات */
+.cszc{
+  order:3; font-size:9.5px; font-weight:800;
+  color:var(--p); opacity:.88; margin-top:2px;
+}
+.cid{ order:4; font-size:9px; opacity:.6; margin-top:1px }
+.cid-icon{ font-size:8px }
+
+/* شارات وأزرار أصغر */
+.cbadges{ gap:3px; top:6px; inset-inline-end:6px }
+.badge{ font-size:8.5px; padding:2px 6px; border-radius:9px }
+.fav-btn{ width:26px; height:26px; font-size:14px; top:6px; inset-inline-start:6px }
+
+@media (max-width:520px){
+  .pgrid{ grid-template-columns:repeat(3,1fr); gap:7px; padding:8px }
+  .pnew{ font-size:12.5px }
+  .pold{ font-size:9px }
+  .cszc{ font-size:8.5px }
+  .cid{ font-size:8px }
+  .cbody{ padding:6px 6px 7px }
+  .badge{ font-size:7.5px; padding:2px 5px }
+  .fav-btn{ width:23px; height:23px; font-size:12.5px; top:5px; inset-inline-start:5px }
+  .cbadges{ top:5px; inset-inline-end:5px; max-width:calc(100% - 34px) }
+}
+@media (max-width:340px){
+  .pgrid{ grid-template-columns:repeat(2,1fr) }
+}
+
+/* ===== ضغط أعلى الصفحة: الخامة انتقلت لصفحة المنتج ===== */
+#fabricNote{ display:none }
+.rcount{ display:none; padding:0 12px 5px; font-size:11px; opacity:.6; font-weight:600 }
+.rcount.show{ display:block }
+.srch-wrap{ padding-bottom:7px }
