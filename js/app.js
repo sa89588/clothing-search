@@ -99,7 +99,7 @@ function calcShip(items){
 /* هل التوصيل مجاني؟ */
 function isFreeShip(items){ return calcShip(items) === 0; }
 let allData = [], cart = [], lang = 'ar';
-let fSea = '', fTyp = '', fSort = '';
+let fSea = '', fTyp = '', fSort = '', fGen = '', fAge = '';
 
 function t(k){ return (L[lang]&&L[lang][k]) ? L[lang][k] : (L.ar[k]||k); }
 
@@ -295,11 +295,43 @@ function checkAssetVersion(remote){
 
 /* ==================== SECURITY UTILS ==================== */
 function sanitize(str){ const d=document.createElement('div'); d.appendChild(document.createTextNode(String(str==null?'':str))); return d.innerHTML; }
-function safeImgSrc(url){ if(!url||typeof url!=='string') return PLACEHOLDER; try{ const u=new URL(url); return (u.protocol==='https:'||u.protocol==='http:') ? url : PLACEHOLDER; } catch(_){ return PLACEHOLDER; } }
+/* ===== تسريع الصور =====
+   raw.githubusercontent ليس شبكة توزيع: يُخدَم من خادم واحد بلا تخزين قريب.
+   jsDelivr يخدم نفس الملف بنفس الصيغة من أقرب خادم للزبون — مجاناً.
+   ونفضّل النسخة المصغّرة (THUMB/) للبطاقات حين تتوفر. */
+const CDN_FROM = /^https?:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/(?:refs\/heads\/)?([^/]+)\/(.+)$/;
+
+function toCDN(url){
+  try{
+    const m = String(url).match(CDN_FROM);
+    if(!m) return url;
+    return 'https://cdn.jsdelivr.net/gh/' + m[1] + '/' + m[2] + '@' + m[3] + '/' + m[4];
+  }catch(_){ return url; }
+}
+
+/* النسخة المصغّرة للبطاقة (أخف بكثير على شبكة الهاتف) */
+function thumbOf(url){
+  try{
+    const u = String(url);
+    if(u.indexOf('/THUMB/') > -1) return u;
+    return u.replace(/\/WEBP\//, '/THUMB/');
+  }catch(_){ return url; }
+}
+
+function safeImgSrc(url, wantThumb){
+  if(!url || typeof url!=='string') return PLACEHOLDER;
+  try{
+    const u = new URL(url);
+    if(u.protocol!=='https:' && u.protocol!=='http:') return PLACEHOLDER;
+    const cdn = toCDN(url);
+    return wantThumb ? thumbOf(cdn) : cdn;
+  } catch(_){ return PLACEHOLDER; }
+}
 
 /* ==================== LANGUAGE ==================== */
 function setLang(l){
   lang=l;
+  try{ localStorage.setItem('lang', l); }catch(_){}   /* يُحفظ الاختيار */
   const root=document.getElementById('htmlRoot');
   root.lang=l; root.dir=L[l].dir;
   document.querySelectorAll('.lopt').forEach(b=>b.classList.toggle('on',b.dataset.lang===l));
@@ -510,7 +542,7 @@ function openSheet(id){
   if(navMap[id]) setNavActive(navMap[id]);
 }
 function closeSheets(){
-  ['cartSheet','filterSheet','contactSheet'].forEach(s=>document.getElementById(s).classList.remove('open'));
+  ['cartSheet','filterSheet','contactSheet','trackSheet','prodSheet'].forEach(s=>{const e=document.getElementById(s); if(e) e.classList.remove('open');});
   document.getElementById('shOv').classList.remove('open');
   document.body.style.overflow='';
   setNavActive('bnHome');
@@ -552,9 +584,9 @@ function updateFltBadge(){
   const badge=document.getElementById('fltBadge');
   const btn=document.getElementById('fltOpenBtn');
   const clrBtn=document.getElementById('fltClearBtn');
-  badge.textContent=cnt; badge.style.display=cnt?'inline-flex':'none';
-  btn.classList.toggle('active-filters',cnt>0);
-  clrBtn.classList.toggle('show',cnt>0);
+  if(badge){ badge.textContent=cnt; badge.style.display=cnt?'inline-flex':'none'; }
+  if(btn)   btn.classList.toggle('active-filters',cnt>0);
+  if(clrBtn) clrBtn.classList.toggle('show',cnt>0);
 }
 // Filter sheet tab clicks
 document.querySelectorAll('#fSeaTabs .filt-tab').forEach(btn=>btn.addEventListener('click',()=>{
@@ -568,7 +600,8 @@ document.querySelectorAll('#fSortTabs .filt-tab').forEach(btn=>btn.addEventListe
 }));
 document.getElementById('applyFltBtn').addEventListener('click',()=>{ closeSheets(); updateFltBadge(); doFilter(); });
 document.getElementById('resetFltBtn').addEventListener('click',()=>{ fSea='';fTyp='';fSort=''; document.querySelectorAll('.filt-tab').forEach(b=>b.classList.toggle('on',b.dataset.v==='')); updateFltBadge(); doFilter(); closeSheets(); });
-document.getElementById('fltClearBtn').addEventListener('click',()=>{ fSea='';fTyp='';fSort=''; document.querySelectorAll('.filt-tab').forEach(b=>b.classList.toggle('on',b.dataset.v==='')); updateFltBadge(); doFilter(); });
+const _pc=document.getElementById('prodShClose'); if(_pc) _pc.addEventListener('click', closeProduct);
+const _fcb=document.getElementById('fltClearBtn'); if(_fcb) _fcb.addEventListener('click',()=>{ fSea='';fTyp='';fSort=''; document.querySelectorAll('.filt-tab').forEach(b=>b.classList.toggle('on',b.dataset.v==='')); updateFltBadge(); doFilter(); });
 document.getElementById('searchIn').addEventListener('input', doFilter);
 let _fbqSearchTimer=null;
 document.getElementById('searchIn').addEventListener('input', function(){
@@ -590,6 +623,10 @@ function doFilter(scrollTop=true){
   let f=[...allData];
   if(fSea) f=f.filter(i=>i.season===fSea);
   if(fTyp) f=f.filter(i=>i.type===fTyp);
+  /* الجنس: المشترك يظهر في الفلترين */
+  if(fGen) f=f.filter(i=>{ const g=genderOf(i); return g===fGen || g==='unisex'; });
+  /* العمر: الموديل يظهر إن كان فيه قياس واحد على الأقل من الفئة */
+  if(fAge) f=f.filter(i=>agesOf(i).indexOf(fAge) > -1);
   if(q) f=f.filter(i=>String(i.Id||'').toLowerCase().includes(q)||String(i.sizes||'').toLowerCase().includes(q));
   /* الفرز: اختيار المستخدم، وإلا الافتراضي من لوحة الإدارة */
   const sortMode = fSort || SETTINGS.sortDefault || 'pieces_asc';
@@ -602,9 +639,247 @@ function doFilter(scrollTop=true){
   if(scrollTop) window.scrollTo({top:0,behavior:'smooth'});
 }
 
+
+/* ============================================================
+   الجنس والعمر — محرّك التصنيف
+   ------------------------------------------------------------
+   الجنس: من عمود gender في الشيت إن وُجد، وإلا من الحرف الأخير
+          في رقم الموديل (G = بنات، B = أولاد). ما عداه غير محدّد.
+   العمر: من القياسات. كل قياس يقابل فئة عمرية.
+   ============================================================ */
+
+/* عمود الجنس إن أضيف للشيت لاحقاً (يتقدّم على الاستنتاج) */
+function genderField(item){
+  const keys = ['gender','Gender','الجنس','النوع الجنسي','sex'];
+  for(const k of keys){
+    const v = item[k];
+    if(v===null || v===undefined || v==='') continue;
+    const s = String(v).trim().toLowerCase();
+    if(/^(g|girl|girls|f|female|بنات|بنت|بناتي|انثى|أنثى)$/.test(s)) return 'girls';
+    if(/^(b|boy|boys|m|male|اولاد|أولاد|ولد|ولادي|ذكر)$/.test(s))     return 'boys';
+    if(/^(u|uni|unisex|both|مشترك|الاثنين|للجنسين)$/.test(s))         return 'unisex';
+  }
+  return null;
+}
+
+/* استنتاج الجنس من رقم الموديل: الحرف الأخير G أو B */
+function genderOf(item){
+  const fromCol = genderField(item);
+  if(fromCol) return fromCol;
+  const id = String(item.Id || '').trim();
+  /* نتجاهل أي لاحقة بين قوسين مثل SS-4740B(4) */
+  const core = id.replace(/\([^)]*\)\s*$/, '').trim();
+  const last = core.slice(-1).toUpperCase();
+  if(last === 'G') return 'girls';
+  if(last === 'B') return 'boys';
+  return '';          /* غير محدّد */
+}
+
+/* الفئات العمرية — القياس هو المرجع */
+const AGE_GROUPS = [
+  { key:'baby',    sizes:[55,60,65,70,75],      ico:'👶', lbl:'ageBaby'    },  /* 0-10 شهر */
+  { key:'toddler', sizes:[80,90],               ico:'🧸', lbl:'ageToddler' },  /* 1-2 سنة  */
+  { key:'kid',     sizes:[100,110,120],         ico:'🧒', lbl:'ageKid'     },  /* 3-5 سنوات */
+  { key:'big',     sizes:[130,140],             ico:'👦', lbl:'ageBig'     },  /* 6-9 سنوات */
+  { key:'teen',    sizes:[150,160,170],         ico:'🧑', lbl:'ageTeen'    }   /* 10+ سنة  */
+];
+
+function agesOf(item){
+  const sizes = parseSizes(item.sizes).map(Number);
+  const out = [];
+  AGE_GROUPS.forEach(function(g){
+    if(sizes.some(function(s){ return g.sizes.indexOf(s) > -1; })) out.push(g.key);
+  });
+  return out;
+}
+
+/* القياسات التي تقع ضمن فئة عمرية (لتصفية الأزرار داخل البطاقة) */
+function sizesInAge(ageKey){
+  const g = AGE_GROUPS.find(function(x){ return x.key===ageKey; });
+  return g ? g.sizes.map(String) : [];
+}
+
+
+/* ==================== أزرار الأقسام والأعمار ==================== */
+function initShopNav(){
+  const catRow = document.getElementById('catRow');
+  const ageRow = document.getElementById('ageRow');
+
+  if(catRow) catRow.addEventListener('click', function(e){
+    const b = e.target.closest('.cat'); if(!b) return;
+    fGen = b.dataset.g || '';
+    catRow.querySelectorAll('.cat').forEach(x=>x.classList.toggle('on', x===b));
+    try{ localStorage.setItem('fGen', fGen); }catch(_){}
+    updateFilterCounts(); doFilter(false);
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  if(ageRow) ageRow.addEventListener('click', function(e){
+    const b = e.target.closest('.age'); if(!b) return;
+    if(b.id === 'measBtn') return;          /* دليل القياسات ليس فلتراً */
+    fAge = b.dataset.a || '';
+    ageRow.querySelectorAll('.age').forEach(x=>x.classList.toggle('on', x===b));
+    try{ localStorage.setItem('fAge', fAge); }catch(_){}
+    updateFilterCounts(); doFilter(false);
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+}
+
+/* استعادة اختيار الزائر السابق */
+function restoreShopNav(){
+  try{
+    fGen = localStorage.getItem('fGen') || '';
+    fAge = localStorage.getItem('fAge') || '';
+  }catch(_){ fGen=''; fAge=''; }
+  const cr = document.getElementById('catRow');
+  const ar = document.getElementById('ageRow');
+  if(cr) cr.querySelectorAll('.cat').forEach(b=>b.classList.toggle('on', (b.dataset.g||'')===fGen));
+  if(ar) ar.querySelectorAll('.age').forEach(b=>b.classList.toggle('on', (b.dataset.a||'')===fAge));
+}
+
+
+/* ============================================================
+   صفحة المنتج — رابط خاص لكل موديل  (?id=SSP-1058G)
+   ------------------------------------------------------------
+   يوصل إعلان ميتا الزبون للمنتج نفسه بدل الصفحة الرئيسية.
+   ============================================================ */
+
+function productURL(id){
+  return location.origin + location.pathname + '?id=' + encodeURIComponent(String(id));
+}
+
+function openProduct(id, push){
+  const item = allData.find(function(x){ return String(x.Id)===String(id); });
+  if(!item){ notify(t('noRes'),'w'); return; }
+
+  const sizes = parseSizes(item.sizes);
+  const orig  = parseFloat(item.price);
+  const rng   = itemPctRange(item);
+  const g     = genderOf(item);
+
+  const body = document.getElementById('prodBody');
+  if(!body) return;
+  body.innerHTML = '';
+
+  /* الصورة */
+  const ph = document.createElement('div'); ph.className='pv-img';
+  const im = document.createElement('img');
+  im.src = safeImgSrc(item.picture); im.alt = String(item.Id);
+  im.addEventListener('click', function(){ openLB(im.src, item.Id, discPrice(orig, rng.max)); });
+  ph.appendChild(im);
+
+  /* شارات */
+  const bd = document.createElement('div'); bd.className='pv-badges';
+  const b1 = document.createElement('span'); b1.className='badge bdis';
+  b1.textContent = t('discPrefix')+' '+(rng.min!==rng.max ? rng.min+'-'+rng.max+'%' : rng.max+'%');
+  bd.appendChild(b1);
+  if(sizes.length===1){ const b2=document.createElement('span'); b2.className='badge blast'; b2.textContent=t('lastSize'); bd.appendChild(b2); }
+  if(g==='girls'||g==='boys'){
+    const b3=document.createElement('span'); b3.className='badge bgen '+(g==='girls'?'bgen-g':'bgen-b');
+    b3.textContent=(g==='girls'?'👧 ':'👦 ')+t(g==='girls'?'catGirls':'catBoys'); bd.appendChild(b3);
+  }
+  ph.appendChild(bd);
+
+  /* التفاصيل */
+  const info = document.createElement('div'); info.className='pv-info';
+
+  const pr = document.createElement('div'); pr.className='pv-prices';
+  const lo = discPrice(orig, rng.max), hi = discPrice(orig, rng.min);
+  pr.innerHTML = '<span class="pv-new">'+(rng.min!==rng.max
+        ? lo.toLocaleString()+' – '+hi.toLocaleString()
+        : lo.toLocaleString())+' '+sanitize(t('dinar'))+'</span>'+
+     '<span class="pv-old">'+orig.toLocaleString()+' '+sanitize(t('dinar'))+'</span>';
+
+  const meta = document.createElement('div'); meta.className='pv-meta';
+  meta.innerHTML =
+    '<div><span>'+sanitize(t('fabricLbl')||'الخامة')+'</span><b>'+sanitize(getFabric(item))+'</b></div>'+
+    '<div><span>'+sanitize(t('seaLbl'))+'</span><b>'+sanitize(String(item.season||'—'))+'</b></div>'+
+    '<div><span>'+sanitize(t('typLbl'))+'</span><b>'+sanitize(String(item.type||'—'))+'</b></div>'+
+    '<div><span>ID</span><b dir="ltr">'+sanitize(String(item.Id))+'</b></div>';
+
+  const szl = document.createElement('div'); szl.className='pv-szlbl';
+  szl.textContent = t('tapSizeToAdd');
+  const szs = document.createElement('div'); szs.className='pv-sizes';
+  sizes.forEach(function(sz){
+    const pct = discPctFor(item, sz), price = discPrice(orig, pct);
+    const age = L[lang]['s'+sz] || '';
+    const bn = document.createElement('button'); bn.className='pv-sz';
+    bn.innerHTML = '<span class="pv-sz-n">'+sanitize(String(sz))+'</span>'+
+                   (age ? '<span class="pv-sz-a">'+sanitize(age)+'</span>' : '')+
+                   '<span class="pv-sz-p">'+price.toLocaleString()+'</span>';
+    bn.addEventListener('click', function(){ addToCart(item.Id, sz, orig, price, pct); });
+    szs.appendChild(bn);
+  });
+
+  /* مشاركة */
+  const acts = document.createElement('div'); acts.className='pv-acts';
+  const sh = document.createElement('button'); sh.className='pv-share';
+  sh.innerHTML = '🔗 <span>'+sanitize(t('share'))+'</span>';
+  sh.addEventListener('click', function(){ shareOneProduct(item); });
+  const wa = document.createElement('a'); wa.className='pv-wa'; wa.target='_blank'; wa.rel='noopener';
+  wa.href = 'https://wa.me/9647766142936?text=' + encodeURIComponent(
+      t('askAbout') + ' #' + item.Id + '\n' + productURL(item.Id));
+  wa.innerHTML = '💬 <span>'+sanitize(t('askBtn'))+'</span>';
+  acts.appendChild(sh); acts.appendChild(wa);
+
+  info.appendChild(pr); info.appendChild(meta);
+  info.appendChild(szl); info.appendChild(szs); info.appendChild(acts);
+  body.appendChild(ph); body.appendChild(info);
+
+  /* عنوان النافذة والرابط */
+  const ttl = document.getElementById('prodShTitle');
+  if(ttl) ttl.textContent = '#' + item.Id;
+
+  openSheet('prodSheet');
+  if(push !== false){
+    try{ history.pushState({pid:item.Id}, '', productURL(item.Id)); }catch(_){}
+  }
+  try{ if(typeof metaViewContent==='function') metaViewContent(item.Id, lo, item.season, item.type); }catch(_){}
+}
+
+function closeProduct(){
+  const s = document.getElementById('prodSheet');
+  if(s) s.classList.remove('open');
+  const ov = document.getElementById('shOv'); if(ov) ov.classList.remove('open');
+  document.body.style.overflow='';
+  /* نُنظّف الرابط */
+  try{
+    if(location.search.indexOf('id=') > -1){
+      history.replaceState({}, '', location.origin + location.pathname);
+    }
+  }catch(_){}
+}
+
+function shareOneProduct(item){
+  const rng = itemPctRange(item);
+  const lo  = discPrice(parseFloat(item.price), rng.max);
+  const txt = '🛍️ ' + t('hTitle') + '\n#' + item.Id + ' — ' + lo.toLocaleString() + ' ' + t('dinar') + '\n' + productURL(item.Id);
+  if(navigator.share){
+    navigator.share({ title: t('hTitle') + ' #' + item.Id, text: txt, url: productURL(item.Id) }).catch(function(){});
+  } else {
+    if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(function(){ notify(t('linkCopied'),'i'); }).catch(function(){}); }
+    else window.open('https://wa.me/?text='+encodeURIComponent(txt), '_blank');
+  }
+}
+
+/* فتح المنتج تلقائياً إن كان الرابط يحمل ?id= */
+function openProductFromURL(){
+  try{
+    const id = new URLSearchParams(location.search).get('id');
+    if(id) setTimeout(function(){ openProduct(id, false); }, 150);
+  }catch(_){}
+}
+
+/* زر الرجوع في المتصفح */
+window.addEventListener('popstate', function(e){
+  const s = document.getElementById('prodSheet');
+  if(e.state && e.state.pid) openProduct(e.state.pid, false);
+  else if(s && s.classList.contains('open')) closeProduct();
+});
+
 /* ==================== HELPERS ==================== */
 function parseSizes(s){ if(!s&&s!==0) return []; if(typeof s==='number') return [String(s)]; if(Array.isArray(s)) return s.map(x=>String(x).trim()).filter(Boolean); return String(s).split(/[-,،\s]+/).map(x=>x.trim()).filter(x=>x&&!isNaN(x)); }
-function getSzLbl(sz){ const k='s'+sz; return L[lang][k] ? sz+'('+L[lang][k]+')' : sz; }
+function getSzLbl(sz){ const k='s'+sz; return L[lang][k] ? sz+' ('+L[lang][k]+')' : sz; }
 
 /* ==================== SWIPE TO DELETE ==================== */
 function addSwipe(el,onDelete){
@@ -714,7 +989,8 @@ function createCard(item){
   const mixed=rng.min!==rng.max;                  // تختلف الأسعار داخل الموديل؟
   const disc=priceLo;
   const clear=isClearance(item);
-  const imgSrc=safeImgSrc(item.picture);
+  const imgSrc=safeImgSrc(item.picture, true);   /* مصغّرة للبطاقة */
+  const imgFull=safeImgSrc(item.picture);        /* الأصل للتكبير */
   const card=document.createElement('div'); card.className='pcard';
   // Badges
   const badges=document.createElement('div'); badges.className='cbadges';
@@ -726,10 +1002,18 @@ function createCard(item){
   badges.appendChild(bdis);
   if(isLast){ const bl=document.createElement('span'); bl.className='badge blast'; bl.textContent=t('lastSize'); badges.appendChild(bl); }
   if(isCheapItem(item)){ const bs=document.createElement('span'); bs.className='badge bspecial'; bs.textContent='⭐ '+t('specialTag'); badges.appendChild(bs); }
+  /* شارة الجنس — تساعد الأم على التمييز بنظرة */
+  const _g = genderOf(item);
+  if(_g==='girls' || _g==='boys'){
+    const bg=document.createElement('span');
+    bg.className='badge bgen '+(_g==='girls'?'bgen-g':'bgen-b');
+    bg.textContent=(_g==='girls'?'👧 ':'👦 ')+t(_g==='girls'?'catGirls':'catBoys');
+    badges.appendChild(bg);
+  }
   // Wish
   // Image
   const iw=document.createElement('div'); iw.className='cimg-w'; iw.appendChild(badges);
-  const img=document.createElement('img'); img.className='cimg'; img.src=imgSrc; img.alt=String(item.Id); img.loading='lazy'; img.decoding='async'; img.fetchPriority='low'; img.onerror=function(){this.src=PLACEHOLDER;}; img.addEventListener('click',function(){openLB(this.src, item.Id, disc);}); iw.appendChild(img);
+  const img=document.createElement('img'); img.className='cimg'; img.src=imgSrc; img.alt=String(item.Id); img.loading='lazy'; img.decoding='async'; img.fetchPriority='low'; img.onerror=function(){this.src=PLACEHOLDER;}; img.addEventListener('click',function(){ openProduct(item.Id); }); iw.appendChild(img);
   // Body
   const body=document.createElement('div'); body.className='cbody';
   // ID + copy
@@ -758,12 +1042,12 @@ function createCard(item){
     const szPct=discPctFor(item,sz), szPrice=discPrice(orig,szPct);
     const p=document.createElement('button');
     p.className='sz-pill'+(mixed && szPct>rng.min ? ' sz-best' : '');
-    if(mixed){
-      p.innerHTML='<span class="szp-lbl">'+sanitize(getSzLbl(sz))+'</span>'+
-                  '<span class="szp-price">'+szPrice.toLocaleString()+'</span>';
-    } else {
-      p.textContent=getSzLbl(sz);
-    }
+    /* الرقم بارز، والعمر سطر صغير تحته، والسعر حين يختلف */
+    const _age = L[lang]['s'+sz] || '';
+    p.innerHTML = '<span class="szp-n">'+sanitize(String(sz))+'</span>'+
+                  (_age ? '<span class="szp-age">'+sanitize(_age)+'</span>' : '')+
+                  (mixed ? '<span class="szp-price">'+szPrice.toLocaleString()+'</span>' : '');
+    p.title = getSzLbl(sz);
     p.addEventListener('click',()=>addToCart(item.Id,sz,orig,szPrice,szPct));
     pills.appendChild(p);
   });
@@ -867,7 +1151,7 @@ function renderCart(){
     const prod=allData.find(p=>String(p.Id)===String(item.id));
     const available = isItemAvailable(item);
     const div=document.createElement('div'); div.className='ci' + (available ? '' : ' ci-unavailable');
-    const img=document.createElement('img'); img.className='ci-img'; img.loading='lazy'; img.decoding='async'; img.src=safeImgSrc(prod&&prod.picture?prod.picture:''); img.alt='';
+    const img=document.createElement('img'); img.className='ci-img'; img.loading='lazy'; img.decoding='async'; img.src=safeImgSrc(prod&&prod.picture?prod.picture:'', true); img.alt='';
     const info=document.createElement('div'); info.className='ci-info';
     const ciId=document.createElement('div'); ciId.className='ci-id'; ciId.textContent='# '+item.id;
     const ciSz=document.createElement('div'); ciSz.className='ci-sz'; ciSz.textContent='Q: '+item.size;
@@ -1536,9 +1820,7 @@ document.getElementById('ckConfirm').addEventListener('click',()=>submitOrder())
 
 /* ==================== PWA ==================== */
 function setupPWA(){
-  const m={name:'متجر جود العباس',short_name:'جود العباس',start_url:'./',display:'standalone',background_color:'#1565C0',theme_color:'#1565C0',lang:'ar',icons:[{src:'https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png',sizes:'192x192',type:'image/png'},{src:'https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png',sizes:'512x512',type:'image/png'}]};
-  const blob=new Blob([JSON.stringify(m)],{type:'application/json'});
-  document.getElementById('pwaManifest').href=URL.createObjectURL(blob);
+  /* الـmanifest صار ملفاً ثابتاً (/manifest.json) — blob لا يعمل على أندرويد */
 }
 let _pwaEvt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();_pwaEvt=e;});
@@ -1680,10 +1962,13 @@ document.addEventListener('keydown',e=>{
 
 /* ==================== INIT ==================== */
 document.addEventListener('DOMContentLoaded',()=>{
+  /* اللغة المحفوظة من زيارة سابقة */
+  try{ const _l=localStorage.getItem('lang'); if(_l && L[_l]) setLang(_l); }catch(_){}
   setupPWA(); startCountdown(); loadCart(); initPTR();
   initInAppBanner();
+  initShopNav(); restoreShopNav();
   if(localStorage.getItem('dk')==='1'){ document.body.classList.add('dark'); document.getElementById('darkBtn').innerHTML='<i class="fas fa-sun"></i>'; }
   document.getElementById('promoX').addEventListener('click',()=>document.getElementById('promoBanner').style.display='none');
-  bootstrap();
+  bootstrap().then(openProductFromURL).catch(openProductFromURL);
   setTimeout(initTutorial,500);
 });

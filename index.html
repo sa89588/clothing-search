@@ -8,13 +8,27 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="جود العباس">
-<meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta http-equiv="X-XSS-Protection" content="1; mode=block">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>متجر جود العباس</title>
-<link rel="icon" href="https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png">
-<link rel="manifest" id="pwaManifest">
+<title>متجر جود العباس — ملابس أطفال</title>
+<!-- ===== معاينة الرابط عند المشاركة (واتساب · فيسبوك · تليجرام) ===== -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="متجر جود العباس">
+<meta property="og:locale" content="ar_IQ">
+<meta property="og:title" content="متجر جود العباس — ملابس أطفال">
+<meta property="og:description" content="ملابس أطفال قطنية 100% بأسعار مميزة · الدفع عند الاستلام · توصيل لكل العراق">
+<meta property="og:image" content="https://jasotre.com/icons/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:url" content="https://jasotre.com/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="متجر جود العباس — ملابس أطفال">
+<meta name="twitter:description" content="ملابس أطفال قطنية 100% بأسعار مميزة · الدفع عند الاستلام">
+<meta name="twitter:image" content="https://jasotre.com/icons/icon-512.png">
+<link rel="canonical" href="https://jasotre.com/">
+
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="manifest" href="/manifest.json">
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','2514076832364278');fbq('track','PageView');
@@ -77,7 +91,23 @@ fbq('init','2514076832364278');fbq('track','PageView');
 </div>
 
 <!-- WELCOME -->
-<div class="welcome" id="welcomeEl">أهلاً بكم في متجر جود العباس! تسوق سعيد 🌟</div>
+<!-- ===== أقسام التسوّق ===== -->
+<div class="shop-nav">
+  <div class="cats" id="catRow">
+    <button class="cat cat-all on" data-g=""><span class="cat-ico">🛍️</span><span class="cat-lbl" id="catAll">الكل</span></button>
+    <button class="cat cat-boys"  data-g="boys"><span class="cat-ico">👦</span><span class="cat-lbl" id="catBoys">ولادي</span></button>
+    <button class="cat cat-girls" data-g="girls"><span class="cat-ico">👧</span><span class="cat-lbl" id="catGirls">بناتي</span></button>
+  </div>
+  <div class="ages" id="ageRow">
+    <button class="age on" data-a=""><span id="ageAll">كل الأعمار</span></button>
+    <button class="age" data-a="baby">👶 <span id="ageBaby">0-10 شهر</span></button>
+    <button class="age" data-a="toddler">🧸 <span id="ageToddler">1-2 سنة</span></button>
+    <button class="age" data-a="kid">🧒 <span id="ageKid">3-5 سنوات</span></button>
+    <button class="age" data-a="big">👦 <span id="ageBig">6-9 سنوات</span></button>
+    <button class="age" data-a="teen">🧑 <span id="ageTeen">10+ سنة</span></button>
+    <button class="age age-guide" id="measBtn" title="شرح القياسات">📏</button>
+  </div>
+</div>
 
 <!-- ملاحظة الخامة -->
 <div class="fabric-note" id="fabricNote">
@@ -86,28 +116,22 @@ fbq('init','2514076832364278');fbq('track','PageView');
 </div>
 
 
-<!-- SEARCH -->
+<!-- SEARCH + FILTERS في صف واحد -->
 <div class="srch-wrap">
   <div class="srch-row">
     <input type="search" class="srch-in" id="searchIn" placeholder="ابحث بالـ ID أو القياس...">
+    <button class="flt-btn" id="fltOpenBtn" title="الفلاتر" aria-label="الفلاتر">
+      <span class="flt-ico">⚙</span>
+      <span class="flt-badge" id="fltBadge" style="display:none;">0</span>
+    </button>
     <button class="srch-rst" id="rstBtn">مسح</button>
   </div>
-</div>
-
-<!-- FILTER BUTTON ROW -->
-<div class="flt-row">
-  <button class="flt-btn" id="fltOpenBtn">
-    <i class="fas fa-sliders-h"></i>
-    <span id="fltBtnLbl">الفلاتر</span>
-    <span class="flt-badge" id="fltBadge" style="display:none;">0</span>
-  </button>
-  <button class="flt-clear" id="fltClearBtn" title="مسح الفلاتر"><i class="fas fa-times"></i></button>
 </div>
 
 <div class="rcount" id="rcount"></div>
 <div id="prodCont"></div>
 
-<footer id="footerEl">© 2025 متجر جود العباس — جميع الحقوق محفوظة</footer>
+<footer id="footerEl">© 2026 متجر جود العباس — جميع الحقوق محفوظة</footer>
 
 <!-- BOTTOM NAV -->
 <nav class="bnav">
@@ -124,7 +148,6 @@ fbq('init','2514076832364278');fbq('track','PageView');
   </div>
 </nav>
 
-<button class="measbtn" id="measBtn"><i class="fas fa-ruler"></i></button>
 <button class="stbtn" id="stBtn"><i class="fas fa-chevron-up"></i></button>
 
 <!-- MEASUREMENTS PANEL -->
@@ -189,6 +212,17 @@ fbq('init','2514076832364278');fbq('track','PageView');
   </div>
 </div>
 
+
+<!-- ===== صفحة المنتج ===== -->
+<div class="sheet sheet-tall" id="prodSheet">
+  <div class="sh-drag" id="prodDrag"><div class="sh-handle"></div></div>
+  <div class="sh-hdr">
+    <div class="sh-title"><span id="prodShTitle">المنتج</span></div>
+    <button class="sh-close" id="prodShClose">✕</button>
+  </div>
+  <div class="sh-body" id="prodBody"></div>
+</div>
+
 <!-- CART SHEET -->
 <div class="sheet" id="cartSheet">
   <div class="sh-drag" id="cartDrag"><div class="sh-handle"></div></div>
@@ -199,7 +233,7 @@ fbq('init','2514076832364278');fbq('track','PageView');
   <div class="sh-body" id="cartBody"></div>
   <div class="sh-foot">
     <div class="ctotrow" id="cartTot"></div>
-    <button class="shbtn shbtn-go" id="checkoutBtn"><i class="fab fa-whatsapp"></i><span id="checkoutLbl">إتمام الشراء</span></button>
+    <button class="shbtn shbtn-go" id="checkoutBtn"><i class="fas fa-bag-shopping"></i><span id="checkoutLbl">إتمام الشراء</span></button>
     <button class="shbtn shbtn-del" id="clearCartBtn"><i class="fas fa-trash"></i><span id="clearCartLbl">إفراغ السلة</span></button>
   </div>
 </div>
