@@ -468,6 +468,20 @@ function setNavActive(id){
   const el=document.getElementById(id); if(el) el.classList.add('on');
 }
 
+/* ===== المفضلة عرضٌ قائم بذاته، كالرئيسية =====
+   مفتاح واحد يضبط الحالة والزر والشبكة معاً، فلا تفترق الواجهة
+   عن المعروض: كان زر «الرئيسية» يُضيء وحده والشبكة ما زالت مفضلة. */
+function setFav(on){
+  fFav = !!on;
+  const bf = document.getElementById('bnFav');
+  if(bf) bf.classList.toggle('on', fFav);
+  setNavActive(fFav ? 'bnFav' : 'bnHome');
+  doFilter(false);
+}
+
+/* إغلاق أي نافذة يُعيد الإضاءة للعرض الحالي لا للرئيسية دائماً */
+function navRestore(){ setNavActive(fFav ? 'bnFav' : 'bnHome'); }
+
 /* ==================== COUNTDOWN ==================== */
 function startCountdown(){
   const upd=()=>{
@@ -499,7 +513,11 @@ function initPTR(){
 }
 
 /* ==================== SCROLL ==================== */
-document.getElementById('bnHome').addEventListener('click',()=>{ window.scrollTo({top:0,behavior:'smooth'}); setNavActive('bnHome'); });
+document.getElementById('bnHome').addEventListener('click',()=>{
+  /* «الرئيسية» تعني الخروج من المفضلة والعودة لكل المنتجات */
+  if(fFav) setFav(false); else setNavActive('bnHome');
+  window.scrollTo({top:0,behavior:'smooth'});
+});
 document.getElementById('bnSearch').addEventListener('click',()=>{
   const el=document.getElementById('searchIn'); el.focus();
   window.scrollTo({top:document.querySelector('.srch-wrap').offsetTop-60,behavior:'smooth'});
@@ -603,7 +621,7 @@ function closeSheets(){
   ['cartSheet','filterSheet','contactSheet','trackSheet','prodSheet'].forEach(s=>{const e=document.getElementById(s); if(e) e.classList.remove('open');});
   document.getElementById('shOv').classList.remove('open');
   document.body.style.overflow='';
-  setNavActive('bnHome');
+  navRestore();
 }
 document.getElementById('shOv').addEventListener('click',closeSheets);
 ['cartDrag','wishDrag','filterDrag','contactDrag','cartShClose','wishShClose','filterShClose','contactShClose'].forEach(id=>{
@@ -660,11 +678,8 @@ document.getElementById('applyFltBtn').addEventListener('click',()=>{ closeSheet
 document.getElementById('resetFltBtn').addEventListener('click',()=>{ fSea='';fTyp='';fSort=''; document.querySelectorAll('.filt-tab').forEach(b=>b.classList.toggle('on',b.dataset.v==='')); updateFltBadge(); doFilter(); closeSheets(); });
 const _bf=document.getElementById('bnFav');
 if(_bf) _bf.addEventListener('click', function(){
-  fFav = !fFav;
-  setNavActive(fFav ? 'bnFav' : 'bnHome');
-  _bf.classList.toggle('on', fFav);
+  setFav(!fFav);
   if(fFav && !favs.length){ notify(t('favEmpty'),'i'); }
-  doFilter(false);
   window.scrollTo({top:0, behavior:'smooth'});
 });
 const _ti=document.getElementById('trackIn');
@@ -2103,7 +2118,7 @@ function closeTrack(){
   document.getElementById('trackSheet').classList.remove('open');
   document.getElementById('shOv').classList.remove('open');
   document.body.style.overflow='';
-  setNavActive('bnHome');
+  navRestore();
 }
 
 async function trackOrder(){
@@ -2517,7 +2532,7 @@ function showPWAInstallModal(){
 function closePWAModal(){
   document.getElementById('pwaInstallModal').classList.remove('open');
   document.body.style.overflow='';
-  setNavActive('bnHome');
+  navRestore();
 }
 document.getElementById('pwaModalClose').addEventListener('click',closePWAModal);
 document.getElementById('pwaInstallModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePWAModal();});
