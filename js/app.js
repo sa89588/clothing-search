@@ -1035,6 +1035,141 @@ function trustItems(){
   ];
 }
 
+
+/* ============================================================
+   «قد يعجبك أيضاً» — اقتراح آخر القطع بقياسات السلة
+   ------------------------------------------------------------
+   تظهر بعد الضغط على «إتمام الشراء» وقبل نافذة البيانات،
+   ولا تظهر إطلاقاً إن لم توجد مطابقات — فلا احتكاك بلا فائدة.
+   ============================================================ */
+
+/* القياسات الموجودة في السلة */
+function cartSizes(){
+  const s = new Set();
+  cart.forEach(function(i){ if(i.size) s.add(String(i.size)); });
+  return s;
+}
+
+/* الفئات العمرية التي تغطيها السلة */
+function cartAgeKeys(){
+  const szs = cartSizes();
+  const out = new Set();
+  AGE_GROUPS.forEach(function(g){
+    if(g.sizes.some(function(s){ return szs.has(String(s)); })) out.add(g.key);
+  });
+  return out;
+}
+
+function suggestions(limit){
+  const max   = limit || 6;
+  const szs   = cartSizes();
+  const ages  = cartAgeKeys();
+  const inCart = new Set(cart.map(function(i){ return String(i.id); }));
+
+  /* المرشّحون: آخر قطعة فقط، وليست في السلة، ومتوفرة */
+  const pool = allData.filter(function(it){
+    if(inCart.has(String(it.Id))) return false;
+    const s = parseSizes(it.sizes);
+    return s.length === 1;
+  });
+
+  /* الأولى: مطابقة القياس تماماً */
+  const exact = pool.filter(function(it){
+    return szs.has(String(parseSizes(it.sizes)[0]));
+  });
+
+  /* الثانية (تكملة فقط): نفس الفئة العمرية */
+  const near = pool.filter(function(it){
+    if(exact.indexOf(it) > -1) return false;
+    return agesOf(it).some(function(k){ return ages.has(k); });
+  });
+
+  const byPrice = function(a,b){
+    return discPrice(parseFloat(a.price), itemPctRange(a).max) -
+           discPrice(parseFloat(b.price), itemPctRange(b).max);
+  };
+  exact.sort(byPrice); near.sort(byPrice);
+
+  return exact.concat(near).slice(0, max).map(function(it){
+    return { item: it, exact: exact.indexOf(it) > -1 };
+  });
+}
+
+/* بناء الشاشة وفتحها — تُرجع true إن ظهرت */
+function showSuggest(){
+  const list = suggestions(6);
+  if(!list.length) return false;
+
+  const box = document.getElementById('sgList');
+  const ov  = document.getElementById('sgOv');
+  if(!box || !ov) return false;
+
+  const ttl = document.getElementById('sgTitle');
+  const sub = document.getElementById('sgSub');
+  const go  = document.getElementById('sgGo');
+  if(ttl) ttl.textContent = t('sgTitle');
+  if(sub) sub.textContent = t('sgSub');
+  if(go)  go.textContent  = t('sgGo');
+
+  box.innerHTML = '';
+  list.forEach(function(x){
+    const it   = x.item;
+    const sz   = parseSizes(it.sizes)[0];
+    const orig = parseFloat(it.price);
+    const pct  = discPctFor(it, sz);
+    const pr   = discPrice(orig, pct);
+    const age  = L[lang]['s'+sz] || '';
+
+    const c = document.createElement('div'); c.className = 'sg-card';
+    c.innerHTML =
+      '<div class="sg-img"><img loading="lazy" decoding="async" alt="'+sanitize(String(it.Id))+'">'+
+        '<span class="sg-last">'+sanitize(t('lastSize'))+'</span></div>'+
+      '<div class="sg-body">'+
+        '<div class="sg-sz">'+sanitize(String(sz))+(age ? ' · '+sanitize(age) : '')+'</div>'+
+        '<div class="sg-pr"><b>'+pr.toLocaleString()+'</b>'+
+          '<s>'+orig.toLocaleString()+'</s></div>'+
+      '</div>'+
+      '<button class="sg-add">+ '+sanitize(t('addCart'))+'</button>';
+
+    const im = c.querySelector('img');
+    im.src = safeImgSrc(it.picture, true);
+    im.dataset.full = safeImgSrc(it.picture);
+    im.onerror = function(){
+      if(this.dataset.full && this.src !== this.dataset.full){ this.src = this.dataset.full; return; }
+      this.src = PLACEHOLDER;
+    };
+
+    c.querySelector('.sg-add').addEventListener('click', function(e){
+      e.stopPropagation();
+      addToCart(it.Id, sz, orig, pr, pct);
+      c.classList.add('added');
+      const btn = c.querySelector('.sg-add');
+      btn.textContent = '✓ ' + t('cartAdded');
+      btn.disabled = true;
+      updateSuggestTotal();
+    });
+    box.appendChild(c);
+  });
+
+  updateSuggestTotal();
+  ov.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  return true;
+}
+
+function updateSuggestTotal(){
+  const el = document.getElementById('sgTot');
+  if(!el) return;
+  const sum = cartSum() + calcShip(cart);
+  el.innerHTML = '<span>'+sanitize(t('tot'))+'</span><b>'+sum.toLocaleString()+' '+sanitize(t('dinar'))+'</b>';
+}
+
+function closeSuggest(){
+  const ov = document.getElementById('sgOv');
+  if(ov) ov.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
 /* ==================== HELPERS ==================== */
 function parseSizes(s){ if(!s&&s!==0) return []; if(typeof s==='number') return [String(s)]; if(Array.isArray(s)) return s.map(x=>String(x).trim()).filter(Boolean); return String(s).split(/[-,،\s]+/).map(x=>x.trim()).filter(x=>x&&!isNaN(x)); }
 function getSzLbl(sz){ const k='s'+sz; return L[lang][k] ? sz+' ('+L[lang][k]+')' : sz; }
@@ -1639,6 +1774,25 @@ async function saveOrderToGAS(orderData) {
 document.getElementById('checkoutBtn').addEventListener('click',async()=>{
   if(!cart.length){notify(t('cartEmpty'),'w');return;}
   closeSheets();
+  /* اقتراحات آخر القطع — تُتخطّى تلقائياً إن لم توجد مطابقات */
+  if(showSuggest()) return;
+  openCheckoutForm();
+});
+
+/* زر «متابعة الطلب» في شاشة الاقتراحات */
+document.getElementById('sgGo').addEventListener('click', function(){
+  closeSuggest();
+  openCheckoutForm();
+});
+document.getElementById('sgClose').addEventListener('click', function(){
+  closeSuggest();
+  openCheckoutForm();
+});
+document.getElementById('sgOv').addEventListener('click', function(e){
+  if(e.target === e.currentTarget){ closeSuggest(); openCheckoutForm(); }
+});
+
+function openCheckoutForm(){
   ['ckTitle','ckConfirmLbl','ckNote','ckCancel'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.textContent=t({ckTitle:'ckTitle',ckConfirmLbl:'confirmOrder',ckNote:'orderNoteNew',ckCancel:'back'}[id]);
   });
@@ -1651,7 +1805,7 @@ document.getElementById('checkoutBtn').addEventListener('click',async()=>{
       metaInitiateCheckout(cart, cv+calcShip(cart));
     }
   }catch(_){}
-});
+}
 function closeCheckout(){ document.getElementById('ckOv').classList.remove('open'); document.body.style.overflow=''; }
 document.getElementById('ckCancel').addEventListener('click',closeCheckout);
 document.getElementById('ckOv').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCheckout();});
