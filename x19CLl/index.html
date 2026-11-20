@@ -228,6 +228,20 @@
   .txd.on{background:var(--brand);color:#fff}
   .txr.partial{background:#fffdf5;border-radius:8px;padding-inline:7px}
   .txr.partial .txr-l{color:#92400e}
+
+  /* ===== استعادة كلمة المرور ===== */
+  .forgot-link{display:block;width:100%;margin-top:14px;background:none;border:none;
+    color:var(--brand);font-family:inherit;font-size:13px;font-weight:600;
+    cursor:pointer;text-decoration:underline;padding:4px}
+  .recover{display:none;margin-top:16px;padding-top:16px;border-top:1.5px solid var(--line);text-align:start}
+  .recover.show{display:block}
+  .rec-head{font-size:14.5px;font-weight:700;margin-bottom:8px;color:var(--ink)}
+  .rec-note{font-size:12.5px;color:var(--ink2);line-height:1.8;margin:0 0 14px}
+  .rec-step2{display:none;margin-top:16px}
+  .rec-step2.show{display:block}
+  .rec-msg{font-size:13px;font-weight:600;margin-top:12px;text-align:center;line-height:1.7}
+  .rec-msg.ok{color:var(--ok,#15803d)}
+  .rec-msg.err{color:var(--danger)}
 </style>
 </head>
 <body>
@@ -247,6 +261,37 @@
     </label>
     <button class="btn btn-primary btn-block" id="loginBtn">دخول</button>
     <div id="loginErr" style="color:var(--danger);font-size:13px;margin-top:12px;text-align:center;font-weight:600"></div>
+    <button type="button" class="forgot-link" id="forgotBtn">نسيت كلمة المرور؟</button>
+
+    <!-- ===== الاستعادة عبر تلكرام ===== -->
+    <div class="recover" id="recoverBox">
+      <div class="rec-head">🔐 استعادة عبر تلكرام</div>
+      <p class="rec-note" id="recStep1Note">
+        سيصل رمز من ٦ أرقام إلى تلكرام صاحب المتجر وحده. لا يظهر هنا ولا في أي مكان آخر.
+      </p>
+      <button class="btn btn-ok btn-block" id="recSendBtn">📨 أرسل الرمز إلى تلكرام</button>
+
+      <div class="rec-step2" id="recStep2">
+        <div class="fld">
+          <label>الرمز الذي وصل تلكرام</label>
+          <input type="text" id="recCode" inputmode="numeric" maxlength="6"
+                 placeholder="000000" autocomplete="one-time-code"
+                 style="text-align:center;letter-spacing:7px;font-size:20px;font-weight:700">
+        </div>
+        <div class="fld">
+          <label>كلمة المرور الجديدة</label>
+          <input type="password" id="recPass1" placeholder="١٠ أحرف فأكثر، حروف وأرقام">
+        </div>
+        <div class="fld">
+          <label>أعِد كتابتها</label>
+          <input type="password" id="recPass2" placeholder="••••••••••">
+        </div>
+        <button class="btn btn-primary btn-block" id="recSetBtn">✔️ تعيين كلمة المرور</button>
+      </div>
+
+      <div class="rec-msg" id="recMsg"></div>
+      <button type="button" class="forgot-link" id="recCancel">رجوع لتسجيل الدخول</button>
+    </div>
   </div>
 </div>
 
@@ -1566,6 +1611,73 @@ async function changePass(){
     toast('✅ تغيّرت كلمة المرور — لن تُخزَّن نصاً في أي مكان','ok');
   }catch(e){ toast('❌ '+e.message,'err'); }
 }
+
+
+/* ============================================================
+   استعادة كلمة المرور عبر تلكرام
+   الرمز يصل لصاحب المتجر وحده — فالموافقة هي قراءته للرمز
+   ============================================================ */
+function recMsg(txt, kind){
+  const el = $('recMsg'); if(!el) return;
+  el.textContent = txt || '';
+  el.className = 'rec-msg' + (kind ? ' ' + kind : '');
+}
+
+$('forgotBtn').addEventListener('click', function(){
+  $('recoverBox').classList.add('show');
+  this.style.display = 'none';
+  recMsg('');
+});
+
+$('recCancel').addEventListener('click', function(){
+  $('recoverBox').classList.remove('show');
+  $('recStep2').classList.remove('show');
+  $('forgotBtn').style.display = '';
+  recMsg('');
+});
+
+$('recSendBtn').addEventListener('click', async function(){
+  const btn = this;
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> جاري الإرسال...';
+  recMsg('');
+  try{
+    const d = await apiPost({ action:'requestPassReset' });
+    if(!d.success) throw new Error(d.error || 'تعذّر الإرسال');
+    $('recStep2').classList.add('show');
+    recMsg('✅ أُرسل الرمز إلى تلكرام. يصلح ' + (d.ttl || 10) + ' دقائق.', 'ok');
+    $('recCode').focus();
+  }catch(e){
+    recMsg('❌ ' + e.message, 'err');
+  }finally{
+    btn.disabled = false; btn.innerHTML = '📨 أرسل الرمز إلى تلكرام';
+  }
+});
+
+$('recSetBtn').addEventListener('click', async function(){
+  const code = $('recCode').value.trim();
+  const p1 = $('recPass1').value, p2 = $('recPass2').value;
+  if(!/^\d{6}$/.test(code)){ recMsg('❌ الرمز ستة أرقام', 'err'); return; }
+  if(p1.length < 10){ recMsg('❌ كلمة المرور ١٠ أحرف على الأقل', 'err'); return; }
+  if(!/[a-zA-Z]/.test(p1) || !/[0-9]/.test(p1)){ recMsg('❌ يجب أن تحوي حروفاً وأرقاماً', 'err'); return; }
+  if(/^(1234|0000|jood|admin|pass|qwer)/i.test(p1)){ recMsg('❌ كلمة مرور متوقّعة — اختر غيرها', 'err'); return; }
+  if(p1 !== p2){ recMsg('❌ الكلمتان غير متطابقتين', 'err'); return; }
+
+  const btn = this;
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> جاري التعيين...';
+  try{
+    const h = await hashPass(p1);          /* الكلمة لا تغادر المتصفح */
+    const d = await apiPost({ action:'confirmPassReset', code:code, newPassHash:h });
+    if(!d.success) throw new Error(d.error || 'فشل التعيين');
+    $('recStep2').classList.remove('show');
+    $('recCode').value=''; $('recPass1').value=''; $('recPass2').value='';
+    recMsg('✅ تغيّرت كلمة المرور. سجّل الدخول بها الآن.', 'ok');
+    $('passIn').focus();
+  }catch(e){
+    recMsg('❌ ' + e.message, 'err');
+  }finally{
+    btn.disabled = false; btn.innerHTML = '✔️ تعيين كلمة المرور';
+  }
+});
 
 /* ===== الأحداث ===== */
 $('loginBtn').addEventListener('click', doLogin);
