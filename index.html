@@ -58,8 +58,11 @@ fbq('init','2514076832364278');fbq('track','PageView');
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
-  /* إصدار الملفات — يُحدَّث تلقائياً من لوحة الإدارة */
-  window.__V = (function(){ try{ return localStorage.getItem('assetV') || '1.0.9'; }catch(e){ return '1.1.0'; } })();
+  /* ===== إصدار الملفات =====
+     كان يُقرأ من localStorage، فالزائر العائد يطلب نسخة js/css
+     القديمة (المخزّنة سنة) مع صفحة جديدة — فيتعطّل المتجر عنده.
+     الصفحة لا تُخزَّن أبداً، فهي وحدها المرجع الصحيح للإصدار. */
+  window.__V = '1.1.0';   /* إصدار البناء — الصفحة نفسها لا تُخزَّن، فهي المرجع */
   document.write('<link rel="stylesheet" href="css/style.css?v='+window.__V+'">');
 </script>
 <noscript><link rel="stylesheet" href="css/style.css"></noscript>
