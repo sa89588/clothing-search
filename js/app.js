@@ -235,6 +235,13 @@ function applySettings(s){
 
 /* تطبيق النصوص القابلة للتخصيص على الصفحة */
 function applySettingsToUI(){
+  /* عدد أعمدة الشبكة — يُضبط من لوحة الإدارة
+     'auto' = حسب عرض الشاشة (الافتراضي) · أو 2 / 3 / 4 */
+  try{
+    const c = String(SETTINGS.gridCols || 'auto');
+    document.body.dataset.cols = /^[234]$/.test(c) ? c : 'auto';
+  }catch(_){}
+
   // ملاحظة الخامة
   const note = document.getElementById('fabricNote');
   if(note){
@@ -1695,7 +1702,10 @@ async function trackOrder(){
     const r = await fetch(API+'?'+qs, {cache:'no-store'});
     const d = await r.json();
     if(!d.success){
-      box.innerHTML = '<div class="tr-notfound">❌ '+t('orderNotFound')+'</div>';
+      /* البحث بالهاتف يحتاج دعماً في السكربت؛ فإن لم يُدعَم نوجّه
+         الزبون لرقم الطلب بدل أن يظن الموقع معطّلاً */
+      box.innerHTML = '<div class="tr-notfound">❌ ' +
+        sanitize(isPhone ? t('trackPhoneHint') : t('orderNotFound')) + '</div>';
       return;
     }
     renderTrackResult(d);

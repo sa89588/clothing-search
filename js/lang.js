@@ -4,6 +4,7 @@
 /* ==================== TRANSLATIONS ==================== */
 const L = {
   ar:{
+    trackPhoneHint:'لم نجد طلباً بهذا الرقم — جرّب رقم الطلب (ORD-...) أو راسلنا على واتساب',
     trustCheck:'افحص القطعة قبل الاستلام',trustReturn:'تبديل أو إرجاع مع المندوب',trustCOD:'الدفع عند الاستلام',
     szOne:'قياس متوفر',szMany:'قياسات متوفرة',
     favT:'المفضلة',navFav:'مفضلة',favAdded:'أُضيف للمفضلة ♥',favRemoved:'أُزيل من المفضلة',favEmpty:'لا مفضلة بعد — اضغط ♥ على أي منتج',
@@ -58,6 +59,7 @@ const L = {
     copyBtn:'نسخ نص الطلب',savingOrder:'جاري تسجيل طلبك...',savingSub:'لحظة من فضلك، لا تغلق الصفحة',confirmOrder:'تأكيد الطلب',orderNoteNew:'سيتم تسجيل طلبك وسنتواصل معك قريباً',orderSuccess:'تم تسجيل طلبك بنجاح! سنتواصل معك قريباً 🎉',orderSuccessOk:'حسناً',orderFail:'تعذّر تسجيل الطلب، حاول مرة أخرى',tryAgain:'إعادة المحاولة',orderPending:'📦 يتم تأكيد وصول طلبك... قد يستغرق لحظات. يمكنك التحقق من حالته عبر تتبع الطلب.',orderPendingCheck:'تتبّع طلبي الآن',notesPh:'ملاحظات للتوصيل (اختياري)...',phoneInvalid:'⚠️ رقم الهاتف يجب أن يبدأ بـ 07 ويتكوّن من 11 رقماً',freeShip:'مجاني',freeShipHint:'أضف {n} قطعة للتوصيل المجاني!',freeShipBanner:'🎉 التوصيل مجاني عند شراء 6 قطع أو أكثر',itemsRemoved:'⚠️ نفدت بعض المنتجات وحُذفت من سلتك',itemsSoldOut:'عذراً، نفدت هذه المنتجات ولم تعد متوفرة. حُذفت من سلتك:',navTrack:'تتبع طلبي',trackShTitle:'تتبع طلبي',trIntro:'أدخل رقم الطلب لمعرفة حالته',enterOrderId:'أدخل رقم الطلب',orderNotFound:'رقم الطلب غير موجود، تأكد منه',yourOrderId:'رقم طلبك',copy:'نسخ',copied:'تم النسخ',keepOrderId:'احتفظ بهذا الرقم لمتابعة طلبك من تبويب «تتبع طلبي»',stReview:'قيد المراجعة',stReviewSub:'جاري التأكيد...',stConfirmed:'تم التأكيد',stConfirmedSub:'جاري التجهيز...',stPrepared:'تم التجهيز',stPreparedSub:'في طريقه إلى محافظتك...',stCourier:'في عهدة المندوب',stCourierSub:'جاري التسليم...',stDelivered:'تم التسليم',stDeliveredSub:'شكراً لثقتك!',stCancelled:'تم إلغاء هذا الطلب'
   },
   en:{
+    trackPhoneHint:'No order found for this number — try the order number (ORD-...) or message us on WhatsApp',
     trustCheck:'Inspect before you accept',trustReturn:'Exchange or return with the courier',trustCOD:'Cash on delivery',
     szOne:'size available',szMany:'sizes available',
     favT:'Favorites',navFav:'Favorites',favAdded:'Added to favorites ♥',favRemoved:'Removed from favorites',favEmpty:'No favorites yet — tap ♥ on any product',
@@ -112,6 +114,7 @@ const L = {
     copyBtn:'Copy order text',savingOrder:'Saving your order...',savingSub:'Please wait, do not close the page',confirmOrder:'Confirm Order',orderNoteNew:'Your order will be registered and we will contact you soon',orderSuccess:'Your order registered successfully! We will contact you soon 🎉',orderSuccessOk:'OK',orderFail:'Failed to register order, please try again',tryAgain:'Try Again',orderPending:'📦 Confirming your order... this may take a moment. You can check its status via order tracking.',orderPendingCheck:'Track my order now',notesPh:'Delivery notes (optional)...',phoneInvalid:'⚠️ Phone must start with 07 and be 11 digits',freeShip:'FREE',freeShipHint:'Add {n} more item(s) for free delivery!',freeShipBanner:'🎉 Free delivery on 6 items or more',itemsRemoved:'⚠️ Some items sold out and were removed from your cart',itemsSoldOut:'Sorry, these items are sold out and no longer available. Removed from your cart:',navTrack:'Track Order',trackShTitle:'Track My Order',trIntro:'Enter your order ID to check its status',enterOrderId:'Enter order ID',orderNotFound:'Order ID not found, please check it',yourOrderId:'Your Order ID',copy:'Copy',copied:'Copied',keepOrderId:'Keep this ID to track your order from the «Track Order» tab',stReview:'Under Review',stReviewSub:'Confirming...',stConfirmed:'Confirmed',stConfirmedSub:'Preparing...',stPrepared:'Prepared',stPreparedSub:'On its way to your city...',stCourier:'With Courier',stCourierSub:'Out for delivery...',stDelivered:'Delivered',stDeliveredSub:'Thank you!',stCancelled:'This order was cancelled'
   },
   ku:{
+    trackPhoneHint:'هیچ داواکارییەک بەم ژمارەیە نەدۆزرایەوە — ژمارەی داواکاری تاقی بکەرەوە یان لە واتسئەپ پەیوەندیمان پێوە بکە',
     trustCheck:'پێش وەرگرتن پشکنینی بکە',trustReturn:'گۆڕین یان گەڕاندنەوە لەگەڵ نێردراو',trustCOD:'پارەدان لە کاتی وەرگرتن',
     szOne:'قەبارە بەردەستە',szMany:'قەبارە بەردەستن',
     favT:'دڵخوازەکان',navFav:'دڵخواز',favAdded:'زیادکرا بۆ دڵخوازەکان ♥',favRemoved:'لابرا لە دڵخوازەکان',favEmpty:'هێشتا دڵخوازت نییە — ♥ دابگرە',

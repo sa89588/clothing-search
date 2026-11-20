@@ -975,5 +975,94 @@ body.dark .pv-tr{ color:#4ade80 }
 .pcard.tappable:active{ transform:scale(.975) }
 .pcard.tappable:focus-visible{ outline:2.5px solid var(--p); outline-offset:2px }
 /* القلب والكود يبقيان قابلين للضغط وحدهما */
-.pcard .fav-btn, .pcard .cid{ cursor:pointer; position:relative; z-index:5 }
+.pcard .cid{ cursor:pointer; position:relative; z-index:5 }   /* القلب يبقى absolute */
 .pcard .cid:active{ opacity:.6 }
+
+/* ════════ المفضلة · شريط التوصيل · الشارات ════════
+   (استُعيدت — حُذفت سهواً عند إعادة بناء صفحة المنتج) */
+
+/* ===== شريط التوصيل المجاني ===== */
+.ship-bar{
+  position:fixed; inset-inline:0;
+  bottom:calc(var(--nh) + var(--sb));
+  background:var(--card); border-top:1px solid var(--bdr);
+  padding:8px 14px 9px; z-index:690;
+  transform:translateY(110%); transition:transform .3s;
+  box-shadow:0 -3px 14px rgba(0,0,0,.07);
+}
+.ship-bar.show{ transform:translateY(0) }
+.sb-txt{ font-size:12px; font-weight:700; color:var(--txt); margin-bottom:5px; text-align:center }
+.sb-track{ height:6px; border-radius:4px; background:var(--bg); overflow:hidden }
+.sb-fill{ height:100%; width:0; border-radius:4px; background:linear-gradient(90deg,#1565C0,#42A5F5); transition:width .35s }
+.ship-bar.done .sb-fill{ background:linear-gradient(90deg,#16a34a,#4ade80) }
+.ship-bar.done .sb-txt{ color:#15803d }
+body.dark .ship-bar.done .sb-txt{ color:#4ade80 }
+.ship-bar.show ~ .stbtn{ bottom:calc(var(--nh) + var(--sb) + 104px) }
+
+/* ===== زر المفضلة على البطاقة ===== */
+.fav-btn{
+  position:absolute; top:6px; inset-inline-start:6px; z-index:4;
+  width:28px; height:28px; border-radius:50%; cursor:pointer;
+  border:none; background:rgba(255,255,255,.93); backdrop-filter:blur(4px);
+  color:#c3cbd6; font-size:15px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .15s, color .15s; box-shadow:0 2px 7px rgba(0,0,0,.13);
+}
+.fav-btn:active{ transform:scale(.86) }
+.fav-btn.on{ color:#e11d48 }
+.fav-btn.on:active{ transform:scale(1.18) }
+body.dark .fav-btn{ background:rgba(30,41,59,.93); color:#64748b }
+body.dark .fav-btn.on{ color:#fb7185 }
+
+/* ===== قلب الشريط السفلي ===== */
+.bn-heart{ font-size:19px; line-height:1 }
+.bnavbtn.on .bn-heart{ color:var(--p) }
+
+/* ===== الشارات لا تتداخل مع القلب ===== */
+.cbadges{ max-width:calc(100% - 44px) }
+.cnav-wrap{ position:relative; display:inline-flex }
+.bnavbtn .cdot{ top:-4px; inset-inline-end:-8px }
+
+@media (max-width:520px){
+  .fav-btn{ width:24px; height:24px; font-size:13px; top:5px; inset-inline-start:5px }
+  .cbadges{ max-width:calc(100% - 36px) }
+}
+
+/* ════════ عدد الأعمدة — يُضبط من لوحة الإدارة ════════
+   auto = حسب عرض الشاشة (الافتراضي) */
+body[data-cols="2"] .pgrid{ grid-template-columns:repeat(2,1fr) }
+body[data-cols="3"] .pgrid{ grid-template-columns:repeat(3,1fr) }
+body[data-cols="4"] .pgrid{ grid-template-columns:repeat(4,1fr) }
+
+/* عمودان: مساحة أوسع فنكبّر النصوص */
+body[data-cols="2"] .pnew{ font-size:15px }
+body[data-cols="2"] .pold{ font-size:10.5px }
+body[data-cols="2"] .cszc{ font-size:10px }
+body[data-cols="2"] .cid{ font-size:9.5px }
+body[data-cols="2"] .fav-btn{ width:30px; height:30px; font-size:16px }
+
+/* أربعة أعمدة: نضغط أكثر */
+body[data-cols="4"] .pnew{ font-size:11.5px }
+body[data-cols="4"] .pold{ font-size:8.5px }
+body[data-cols="4"] .cszc{ font-size:8px }
+body[data-cols="4"] .cid{ font-size:7.5px }
+body[data-cols="4"] .badge{ font-size:7px; padding:1px 4px }
+body[data-cols="4"] .fav-btn{ width:21px; height:21px; font-size:11.5px }
+
+/* حدود السلامة: لا نسمح بأعمدة أضيق من أن تُقرأ،
+   مهما كان الإعداد في لوحة الإدارة */
+@media (max-width:379px){
+  body[data-cols="4"] .pgrid{ grid-template-columns:repeat(3,1fr) }
+}
+@media (max-width:340px){
+  body[data-cols="3"] .pgrid,
+  body[data-cols="4"] .pgrid{ grid-template-columns:repeat(2,1fr) }
+}
+
+/* ===== «الدفع عند الاستلام» في صفحة الطلب (استُعيد) ===== */
+.ck-pay{
+  background:rgba(22,163,74,.1); border:1px solid rgba(22,163,74,.3);
+  color:#15803d; border-radius:10px; padding:9px 12px;
+  font-size:12.5px; font-weight:600; margin-top:4px;
+}
+body.dark .ck-pay{ background:rgba(22,163,74,.14); color:#4ade80 }
