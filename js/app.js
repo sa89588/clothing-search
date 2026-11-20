@@ -652,7 +652,9 @@ document.getElementById('searchIn').addEventListener('input', function(){
 });
 document.getElementById('rstBtn').addEventListener('click',()=>{ document.getElementById('searchIn').value=''; fSea='';fTyp='';fSort=''; document.querySelectorAll('.filt-tab').forEach(b=>b.classList.toggle('on',b.dataset.v==='')); updateFltBadge(); doFilter(); });
 
-function doFilter(scrollTop=true){
+/* قائمة المنتجات كما يجب أن تظهر الآن — بلا رسم.
+   يستعملها doFilter والتحديث التلقائي معاً. */
+function filteredSorted(){
   const q=document.getElementById('searchIn').value.trim().toLowerCase();
   let f=[...allData];
   if(fSea) f=f.filter(i=>i.season===fSea);
@@ -670,7 +672,11 @@ function doFilter(scrollTop=true){
   else if(sortMode==='desc')      f.sort((a,b)=>parseFloat(b.price)-parseFloat(a.price));
   else if(sortMode==='pieces_asc')  f.sort((a,b)=>pcs(a)-pcs(b) || String(a.Id).localeCompare(String(b.Id)));
   else if(sortMode==='pieces_desc') f.sort((a,b)=>pcs(b)-pcs(a) || String(a.Id).localeCompare(String(b.Id)));
-  displayProducts(f);
+  return f;
+}
+
+function doFilter(scrollTop=true){
+  displayProducts(filteredSorted());
   if(scrollTop) window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1344,6 +1350,9 @@ function renderAll(){
   const bar = document.getElementById('offlineBar');
   if(bar) bar.classList.remove('show');
   addJsonLD(allData); updateFilterCounts(); doFilter(false);
+  /* نُثبّت بصمة البيانات هنا، وإلّا رأى التحديث التلقائي أول مرة
+     أن «كل شيء تغيّر» فأعاد الرسم بلا سبب بعد 25 ثانية من الدخول */
+  seedDataHash();
   cleanCart(false);
 }
 
@@ -1360,6 +1369,7 @@ function useCachedProducts(){
     const bar = document.getElementById('offlineBar');
     if(bar) bar.classList.add('show');
     updateFilterCounts(); doFilter(false);
+    seedDataHash();
     return true;
   }catch(_){ showError(); return false; }
 }
@@ -1382,12 +1392,12 @@ async function fetchData(){
     allData=await r.json();
     localStorage.setItem('pc',JSON.stringify({d:allData,ts:Date.now()}));
     document.getElementById('offlineBar').classList.remove('show');
-    addJsonLD(allData); updateFilterCounts(); doFilter(false);
+    addJsonLD(allData); updateFilterCounts(); doFilter(false); seedDataHash();
     cleanCart(false); // حذف ما نفد من السلة وتنبيه الزبون
   }catch(e){
     try{
       const c=localStorage.getItem('pc');
-      if(c){ const parsed=JSON.parse(c); allData=parsed.d||parsed; const age=parsed.ts?Math.round((Date.now()-parsed.ts)/60000):0; document.getElementById('offlineTxt').textContent=t('offline')+(age>0?' ('+age+' min)':''); document.getElementById('offlineBar').classList.add('show'); updateFilterCounts(); doFilter(false); }
+      if(c){ const parsed=JSON.parse(c); allData=parsed.d||parsed; const age=parsed.ts?Math.round((Date.now()-parsed.ts)/60000):0; document.getElementById('offlineTxt').textContent=t('offline')+(age>0?' ('+age+' min)':''); document.getElementById('offlineBar').classList.add('show'); updateFilterCounts(); doFilter(false); seedDataHash(); }
       else showError();
     }catch(_){ showError(); }
   }
@@ -1415,6 +1425,9 @@ function createCard(item){
   const imgSrc=safeImgSrc(item.picture, true);   /* مصغّرة للبطاقة */
   const imgFull=safeImgSrc(item.picture);        /* الأصل للتكبير */
   const card=document.createElement('div'); card.className='pcard';
+  /* بصمة البطاقة — يستعملها التحديث التلقائي ليُحدّث ما تغيّر وحده */
+  card.dataset.id  = String(item.Id);
+  card.dataset.sig = String(item.sizes||'') + '|' + String(item.price||'');
   // Badges
   const badges=document.createElement('div'); badges.className='cbadges';
   const bdis=document.createElement('span');
@@ -2199,7 +2212,7 @@ async function submitOrder(){
       if (Array.isArray(freshData) && freshData.length > 0) {
         allData = freshData;
         localStorage.setItem('pc', JSON.stringify({d:allData, ts:Date.now()}));
-        updateFilterCounts(); doFilter(false);
+        updateFilterCounts(); doFilter(false); seedDataHash();
       }
     }
   } catch(_) { /* فشل التحديث — نكمل بالبيانات الحالية */ }
@@ -2406,11 +2419,92 @@ function showTutorial(){
 }
 function initTutorial(){ if(!localStorage.getItem('tut')) showTutorial(); }
 
-/* ==================== AUTO REFRESH ==================== */
 /* ==================== التحديث التلقائي ====================
-   كل 25 ثانية: يجلب البيانات، وإن تغيّرت يعيد رسم المنتجات
-   فتختفي البطاقات النافدة (سواء حُذف المنتج أو نفدت كل قياساته) */
+   كل 25 ثانية: يجلب البيانات، وإن تغيّرت يُحدّث البطاقات.
+
+   مهم: لا يُعاد رسم الشبكة كلها. إعادة الرسم كانت تمسح البطاقات
+   وتبنيها من جديد، فيقفز الزبون إلى أعلى الصفحة وهو يتصفّح.
+   بدلاً منها نُرقّع ما تغيّر وحده: نحذف ما نفد، ونُحدّث ما تغيّر
+   سعره أو قياساته في مكانه، ونُلحق الجديد في آخر الشبكة — فلا
+   يتزحزح شيء فوق موضع الزبون، ولا يتغيّر موضع التمرير أصلاً.
+   أمّا الترتيب فيُعاد عند أي فلترة أو بحث أو فتح جديد للموقع،
+   لا أثناء التصفّح، لئلّا تتنقّل البطاقات تحت إصبع الزبون. */
+
+function dataHash(arr){
+  return arr.map(function(x){
+    return String(x.Id)+'|'+String(x.sizes||'')+'|'+String(x.price||'');
+  }).join(';');
+}
+
 let _lastDataHash = '';
+
+/* تُستدعى بعد كل رسم كامل: تجعل التحديث التالي يقارن ببيانات
+   مرسومة فعلاً، فلا يعيد الرسم إلا عند تغيّر حقيقي */
+function seedDataHash(){
+  try{ _lastDataHash = dataHash(allData); }catch(_){}
+}
+
+/* يُحدّث الشبكة في مكانها. يُرجع false إن تعذّر، فيُعاد الرسم كاملاً. */
+function patchGrid(){
+  const grid = document.querySelector('#prodCont .pgrid');
+  if(!grid) return false;              /* لا شبكة: هيكل تحميل أو خطأ أو «لا نتائج» */
+
+  const want = filteredSorted().filter(function(i){ return parseSizes(i.sizes).length > 0; });
+  if(!want.length) return false;       /* صار بلا نتائج: دع الرسم الكامل يُظهر الرسالة */
+
+  const byId = new Map();
+  want.forEach(function(p){ byId.set(String(p.Id), p); });
+
+  /* ① ما نفد: لا نحذفه الآن. حذف بطاقة يزحف بكل ما بعدها صفاً كاملاً
+     تحت إصبع الزبون. نُعلّمها «نفد» في مكانها فلا يتحرّك شيء، وتختفي
+     فعلياً عند أول فلترة أو بحث أو فتح جديد للموقع. */
+  const seen = new Set();
+  Array.from(grid.children).forEach(function(card){
+    const id = card.dataset.id;
+    if(!id) return;
+    const p = byId.get(id);
+    if(!p){
+      /* نفد فعلاً (اختفى أو خلا من القياسات)؟ نُعلّمه. أمّا لو خرج من
+         الفلتر الحالي وهو متوفر فنتركه كما هو — يصحّحه أول رسم كامل. */
+      const still = allData.find(function(x){ return String(x.Id)===id; });
+      if(!still || parseSizes(still.sizes).length===0) markSoldOut(card);
+      return;
+    }
+    seen.add(id);
+    if(card.classList.contains('soldout')) card.replaceWith(createCard(p));  /* عاد للتوفّر */
+    /* ② تحديث ما تغيّر سعره أو قياساته — في موضعه نفسه */
+    else {
+      const sig = String(p.sizes||'') + '|' + String(p.price||'');
+      if(card.dataset.sig !== sig) card.replaceWith(createCard(p));
+    }
+  });
+
+  /* ③ إلحاق الجديد في الآخر — لا يزحزح ما فوقه */
+  const add = want.filter(function(p){ return !seen.has(String(p.Id)); });
+  if(add.length){
+    const frag = document.createDocumentFragment();
+    add.forEach(function(p){ frag.appendChild(createCard(p)); });
+    grid.appendChild(frag);
+  }
+
+  /* ④ عدّاد النتائج — لا يَعُدّ ما نفد */
+  const rc = document.getElementById('rcount');
+  if(rc) rc.textContent = grid.querySelectorAll('.pcard:not(.soldout)').length + ' ' + t('res');
+  return true;
+}
+
+/* تُعلَّم البطاقة «نفد» في مكانها: لا تُفتح ولا تُشترى، ولا تزحزح جارتها */
+function markSoldOut(card){
+  if(card.classList.contains('soldout')) return;
+  card.classList.add('soldout');
+  card.removeAttribute('role');
+  card.removeAttribute('tabindex');
+  card.classList.remove('tappable');
+  const tag = document.createElement('span');
+  tag.className = 'so-tag';
+  tag.textContent = t('soldOut');
+  card.appendChild(tag);
+}
 
 setInterval(async()=>{
   try{
@@ -2420,9 +2514,7 @@ setInterval(async()=>{
     if(!Array.isArray(newData) || newData.length===0) return;
 
     /* بصمة البيانات: المعرّف + القياسات + السعر — تكشف أي تغيير */
-    const hash = newData.map(x =>
-      String(x.Id)+'|'+String(x.sizes||'')+'|'+String(x.price||'')
-    ).join(';');
+    const hash = dataHash(newData);
 
     document.getElementById('offlineBar').classList.remove('show');
     localStorage.setItem('pc', JSON.stringify({d:newData, ts:Date.now()}));
@@ -2434,11 +2526,18 @@ setInterval(async()=>{
     addJsonLD(newData);
     updateFilterCounts();
 
-    /* إعادة رسم مع الحفاظ على موضع التمرير
-       displayProducts يستبعد تلقائياً كل منتج بلا قياسات */
-    const y = window.scrollY;
-    doFilter(false);
-    window.scrollTo(0, y);
+    /* لا نلمس الشبكة ما دامت نافذة مفتوحة فوقها (منتج أو سلة أو طلب):
+       الترقيع تحتها يربك الزبون. البيانات حُدّثت، والشكل ينتظر. */
+    const busy = !!document.querySelector('.sheet.open, .dlg-ov.open')
+              || document.body.style.overflow === 'hidden';
+
+    /* ترقيع في المكان — بلا مسح الشبكة وبلا قفزة تمرير.
+       نعيد الرسم كاملاً فقط إن تعذّر الترقيع (كأن تختفي كل النتائج). */
+    if(!busy && !patchGrid()){
+      const y = window.scrollY;
+      doFilter(false);
+      window.scrollTo(0, y);
+    }
 
     /* تنظيف السلة مما نفد */
     cleanCart(false);
