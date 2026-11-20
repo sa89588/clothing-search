@@ -103,40 +103,19 @@ fbq('init','2514076832364278');fbq('track','PageView');
 <!-- OFFLINE BANNER -->
 <div class="offline-bar" id="offlineBar"><span id="offlineTxt">بيانات محفوظة</span></div>
 
-<!-- PROMO BANNER -->
-<div class="promo" id="promoBanner">
-  🎉 <b id="promoTxt">خصم 40% — و50% على آخر القطع! ينتهي خلال:</b>
-  <span class="cd"><span class="cdu" id="cdH">00</span><span class="cdsep">:</span><span class="cdu" id="cdM">00</span><span class="cdsep">:</span><span class="cdu" id="cdS">00</span></span>
-  <button class="promo-x" id="promoX">✕</button>
+<!-- ===== شارة العرض — عائمة ثابتة، لا تزاحم المنتجات ===== -->
+<div class="promo-chip" id="promoBanner">
+  <button class="pc-main" id="promoOpen">
+    <span class="pc-ico">🎉</span>
+    <span class="pc-body">
+      <span class="pc-txt" id="promoTxt">خصم يصل إلى 50%</span>
+      <span class="cd"><span class="cdu" id="cdH">00</span><span class="cdsep">:</span><span class="cdu" id="cdM">00</span><span class="cdsep">:</span><span class="cdu" id="cdS">00</span></span>
+    </span>
+  </button>
+  <button class="pc-x" id="promoX" aria-label="إخفاء">✕</button>
 </div>
 
-<!-- WELCOME -->
-<!-- ===== أقسام التسوّق ===== -->
-<div class="shop-nav">
-  <div class="cats" id="catRow">
-    <button class="cat cat-all on" data-g=""><span class="cat-ico">🛍️</span><span class="cat-lbl" id="catAll">الكل</span></button>
-    <button class="cat cat-boys"  data-g="boys"><span class="cat-ico">👦</span><span class="cat-lbl" id="catBoys">ولادي</span></button>
-    <button class="cat cat-girls" data-g="girls"><span class="cat-ico">👧</span><span class="cat-lbl" id="catGirls">بناتي</span></button>
-  </div>
-  <div class="ages" id="ageRow">
-    <button class="age on" data-a=""><span id="ageAll">كل الأعمار</span></button>
-    <button class="age" data-a="baby">👶 <span id="ageBaby">0-10 شهر</span></button>
-    <button class="age" data-a="toddler">🧸 <span id="ageToddler">1-2 سنة</span></button>
-    <button class="age" data-a="kid">🧒 <span id="ageKid">3-5 سنوات</span></button>
-    <button class="age" data-a="big">👦 <span id="ageBig">6-9 سنوات</span></button>
-    <button class="age" data-a="teen">🧑 <span id="ageTeen">10+ سنة</span></button>
-    <button class="age age-guide" id="measBtn" title="شرح القياسات">📏</button>
-  </div>
-</div>
-
-<!-- ملاحظة الخامة -->
-<div class="fabric-note" id="fabricNote">
-  <i class="fas fa-tshirt"></i>
-  <span>جميع ملابسنا <b>قطنية 100%</b> — مريحة وآمنة لبشرة طفلك 🌿</span>
-</div>
-
-
-<!-- SEARCH + FILTERS في صف واحد -->
+<!-- ===== البحث والفلاتر المجمّعة ===== -->
 <div class="srch-wrap">
   <div class="srch-row">
     <input type="search" class="srch-in" id="searchIn" placeholder="ابحث بالـ ID أو القياس...">
@@ -145,6 +124,20 @@ fbq('init','2514076832364278');fbq('track','PageView');
       <span class="flt-badge" id="fltBadge" style="display:none;">0</span>
     </button>
     <button class="srch-rst" id="rstBtn">مسح</button>
+  </div>
+
+  <div class="pick-row">
+    <button class="pk-btn" id="genBtn">
+      <span class="pk-ico">👧👦</span>
+      <span class="pk-lbl">الكل</span>
+      <span class="pk-car">▾</span>
+    </button>
+    <button class="pk-btn" id="ageBtn">
+      <span class="pk-ico">🧒</span>
+      <span class="pk-lbl">كل الأعمار</span>
+      <span class="pk-car">▾</span>
+    </button>
+    <button class="pk-ruler" id="measBtn" title="شرح القياسات">📏</button>
   </div>
 </div>
 
@@ -321,6 +314,19 @@ fbq('init','2514076832364278');fbq('track','PageView');
   </div>
 </div>
 
+
+
+<!-- ===== لوحة اختيار القسم / العمر ===== -->
+<div class="dlg-ov" id="pkOv">
+  <div class="pk-box">
+    <div class="pk-hdr">
+      <div class="pk-ttl" id="pkTitle">القسم</div>
+      <button class="pk-x" id="pkClose" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="pk-list" id="pkList"></div>
+    <button class="pk-done" id="pkDone">عرض النتائج</button>
+  </div>
+</div>
 
 <!-- ===== قد يعجبك أيضاً ===== -->
 <div class="dlg-ov" id="sgOv">

@@ -99,7 +99,10 @@ function calcShip(items){
 /* هل التوصيل مجاني؟ */
 function isFreeShip(items){ return calcShip(items) === 0; }
 let allData = [], cart = [], lang = 'ar';
-let fSea = '', fTyp = '', fSort = '', fGen = '', fAge = '', fFav = false;
+let fSea = '', fTyp = '', fSort = '', fFav = false;
+/* القسم والعمر صارا اختياراً متعدّداً (زر مجمّع يفتح لوحة اختيار) */
+let fGenSet = new Set();
+let fAgeSet = new Set();
 
 function t(k){ return (L[lang]&&L[lang][k]) ? L[lang][k] : (L.ar[k]||k); }
 
@@ -349,9 +352,7 @@ function setLang(l){
 function applyTrans(){
   const map={
     hTitle:'hTitle',hSub:'hSub',welcomeEl:'welcome',promoTxt:'promo',
-    catAll:'catAll',catBoys:'catBoys',catGirls:'catGirls',
-    ageAll:'ageAll',ageBaby:'ageBaby',ageToddler:'ageToddler',
-    ageKid:'ageKid',ageBig:'ageBig',ageTeen:'ageTeen',
+    pkDone:'pkDone',
     navFav:'navFav',prodShTitle:'prodTitle',navInstall:'navInstall',
     rstBtn:'rst',fltBtnLbl:'fltBtn',applyFltLbl:'applyFlt',resetFltLbl:'resetFlt',
     fSeaLbl:'seaLbl',fTypLbl:'typLbl',fSortLbl:'sortLbl',
@@ -377,6 +378,8 @@ function applyTrans(){
   const _g0=document.querySelector('#ckGov option[value=""]'); if(_g0) _g0.textContent=t('govPh');
   const _cp=document.querySelector('.ck-pay b'); if(_cp) _cp.textContent=t('codNote');
   const _tr=document.getElementById('trackIn'); if(_tr) _tr.placeholder=t('trackPh');
+  /* نصّا الزرّين المجمّعين يُبنيان من المجموعات، لا من خريطة ثابتة */
+  if(typeof syncPickBtns === 'function') syncPickBtns();
   { const _n=document.getElementById('ckNotes'); if(_n) _n.placeholder=t('notesPh'); }
   ['55','60','65','70','75','80','90','100','110','120','130','140','150','160','170'].forEach(s=>{
     const el=document.getElementById('s'+s); if(el) el.textContent=t('s'+s);
@@ -656,9 +659,9 @@ function doFilter(scrollTop=true){
   if(fTyp) f=f.filter(i=>i.type===fTyp);
   /* الجنس: المشترك يظهر في الفلترين */
   if(fFav) f=f.filter(i=>isFav(i.Id));
-  if(fGen) f=f.filter(i=>{ const g=genderOf(i); return g===fGen || g==='unisex'; });
-  /* العمر: الموديل يظهر إن كان فيه قياس واحد على الأقل من الفئة */
-  if(fAge) f=f.filter(i=>agesOf(i).indexOf(fAge) > -1);
+  if(fGenSet.size) f=f.filter(i=>{ const g=genderOf(i); return fGenSet.has(g) || g==='unisex'; });
+  /* العمر: الموديل يظهر إن كان فيه قياس واحد على الأقل من الفئات المختارة */
+  if(fAgeSet.size) f=f.filter(i=>agesOf(i).some(k=>fAgeSet.has(k)));
   if(q) f=f.filter(i=>String(i.Id||'').toLowerCase().includes(q)||String(i.sizes||'').toLowerCase().includes(q));
   /* الفرز: اختيار المستخدم، وإلا الافتراضي من لوحة الإدارة */
   const sortMode = fSort || SETTINGS.sortDefault || 'pieces_asc';
@@ -732,41 +735,183 @@ function sizesInAge(ageKey){
 }
 
 
-/* ==================== أزرار الأقسام والأعمار ==================== */
-function initShopNav(){
-  const catRow = document.getElementById('catRow');
-  const ageRow = document.getElementById('ageRow');
+/* ==================== شارة العرض العائمة ====================
+   كانت شريطاً بعرض الشاشة يأكل مساحة المنتجات. صارت شارة صغيرة
+   مثبّتة في زاوية، تُخفى بضغطة ويعود إظهارها بزر 🎉 صغير.
+   الإخفاء يبقى للجلسة فقط — فيرى الزائر العرض في زيارته القادمة.
+   ============================================================ */
+function initPromoChip(){
+  const chip = document.getElementById('promoBanner');
+  const x    = document.getElementById('promoX');
+  if(!chip) return;
 
-  if(catRow) catRow.addEventListener('click', function(e){
-    const b = e.target.closest('.cat'); if(!b) return;
-    fGen = b.dataset.g || '';
-    catRow.querySelectorAll('.cat').forEach(x=>x.classList.toggle('on', x===b));
-    try{ localStorage.setItem('fGen', fGen); }catch(_){}
-    updateFilterCounts(); doFilter(false);
-    window.scrollTo({top:0, behavior:'smooth'});
+  /* ارتفاع الترويسة الحقيقي — الشارة تُثبَّت تحتها بلا تراكب */
+  const hdr = document.querySelector('header');
+  const setHH = function(){
+    if(hdr) document.documentElement.style.setProperty('--hh', hdr.offsetHeight + 'px');
+  };
+  setHH();
+  window.addEventListener('resize', setHH);
+
+  /* زر إعادة الإظهار */
+  let re = document.getElementById('promoRe');
+  if(!re){
+    re = document.createElement('button');
+    re.id = 'promoRe'; re.className = 'promo-reopen';
+    re.type = 'button'; re.textContent = '🎉';
+    re.setAttribute('aria-label', 'إظهار العرض');
+    document.body.appendChild(re);
+  }
+
+  const hide = function(persist){
+    chip.classList.add('gone');
+    re.classList.add('show');
+    if(persist){ try{ sessionStorage.setItem('promoHid','1'); }catch(_){} }
+  };
+  const show = function(){
+    chip.classList.remove('gone');
+    re.classList.remove('show');
+    try{ sessionStorage.removeItem('promoHid'); }catch(_){}
+  };
+
+  if(x) x.addEventListener('click', function(){ hide(true); });
+  re.addEventListener('click', show);
+
+  let hidden = false;
+  try{ hidden = sessionStorage.getItem('promoHid') === '1'; }catch(_){}
+  if(hidden) hide(false);
+}
+
+/* ==================== الفلاتر المجمّعة ====================
+   زرّان مضغوطان: «القسم» و«العمر». الضغط يفتح لوحة اختيار
+   متعدّد، فيختار الزبون ولادي أو بناتي أو كليهما، وعمراً أو أكثر.
+   ============================================================ */
+
+const GEN_OPTS = [
+  { v:'boys',  ico:'👦', lbl:'catBoys'  },
+  { v:'girls', ico:'👧', lbl:'catGirls' }
+];
+
+/* نص الزر حسب ما اختير */
+function genLabel(){
+  if(!fGenSet.size || fGenSet.size === GEN_OPTS.length) return t('catAll');
+  const names = GEN_OPTS.filter(function(o){ return fGenSet.has(o.v); })
+                        .map(function(o){ return t(o.lbl); });
+  return names.join(' + ');
+}
+function ageLabel(){
+  if(!fAgeSet.size) return t('ageAll');
+  if(fAgeSet.size === 1){
+    const k = Array.from(fAgeSet)[0];
+    const g = AGE_GROUPS.find(function(x){ return x.key===k; });
+    return g ? t(g.lbl) : t('ageAll');
+  }
+  return fAgeSet.size + ' ' + t('ageMany');
+}
+
+function syncPickBtns(){
+  const gb = document.getElementById('genBtn');
+  const ab = document.getElementById('ageBtn');
+  if(gb){
+    const lb = gb.querySelector('.pk-lbl'); if(lb) lb.textContent = genLabel();
+    gb.classList.toggle('on', fGenSet.size > 0 && fGenSet.size < GEN_OPTS.length);
+    const ic = gb.querySelector('.pk-ico');
+    if(ic) ic.textContent = (!fGenSet.size || fGenSet.size===2) ? '👧👦'
+                          : (fGenSet.has('girls') ? '👧' : '👦');
+  }
+  if(ab){
+    const lb = ab.querySelector('.pk-lbl'); if(lb) lb.textContent = ageLabel();
+    ab.classList.toggle('on', fAgeSet.size > 0);
+  }
+}
+
+/* بناء لوحة الاختيار */
+function buildPick(kind){
+  const box = document.getElementById('pkList');
+  const ttl = document.getElementById('pkTitle');
+  if(!box) return;
+  box.innerHTML = '';
+  box.dataset.kind = kind;
+  if(ttl) ttl.textContent = t(kind === 'gen' ? 'genLbl' : 'ageLbl');
+
+  const rows = (kind === 'gen')
+    ? GEN_OPTS.map(function(o){ return { v:o.v, ico:o.ico, txt:t(o.lbl), on:fGenSet.has(o.v) }; })
+    : AGE_GROUPS.map(function(g){ return { v:g.key, ico:g.ico, txt:t(g.lbl), on:fAgeSet.has(g.key) }; });
+
+  /* خيار «الكل» = إفراغ المجموعة */
+  const allRow = document.createElement('button');
+  const isAll = (kind==='gen') ? (!fGenSet.size || fGenSet.size===GEN_OPTS.length) : !fAgeSet.size;
+  allRow.className = 'pk-row pk-all' + (isAll ? ' on' : '');
+  allRow.innerHTML = '<span class="pk-r-ico">🛍️</span><span class="pk-r-txt">' +
+                     sanitize(t(kind==='gen' ? 'catAll' : 'ageAll')) + '</span><span class="pk-chk"></span>';
+  allRow.addEventListener('click', function(){
+    if(kind === 'gen') fGenSet.clear(); else fAgeSet.clear();
+    persistPicks(); buildPick(kind); applyPicks();
   });
+  box.appendChild(allRow);
 
-  if(ageRow) ageRow.addEventListener('click', function(e){
-    const b = e.target.closest('.age'); if(!b) return;
-    if(b.id === 'measBtn') return;          /* دليل القياسات ليس فلتراً */
-    fAge = b.dataset.a || '';
-    ageRow.querySelectorAll('.age').forEach(x=>x.classList.toggle('on', x===b));
-    try{ localStorage.setItem('fAge', fAge); }catch(_){}
-    updateFilterCounts(); doFilter(false);
-    window.scrollTo({top:0, behavior:'smooth'});
+  rows.forEach(function(r){
+    const b = document.createElement('button');
+    b.className = 'pk-row' + (r.on ? ' on' : '');
+    b.innerHTML = '<span class="pk-r-ico">'+r.ico+'</span><span class="pk-r-txt">'+
+                  sanitize(r.txt)+'</span><span class="pk-chk"></span>';
+    b.addEventListener('click', function(){
+      const set = (kind === 'gen') ? fGenSet : fAgeSet;
+      if(set.has(r.v)) set.delete(r.v); else set.add(r.v);
+      /* اختيار كل الأجناس = الكل */
+      if(kind === 'gen' && fGenSet.size === GEN_OPTS.length) fGenSet.clear();
+      persistPicks(); buildPick(kind); applyPicks();
+    });
+    box.appendChild(b);
   });
 }
 
-/* استعادة اختيار الزائر السابق */
+function applyPicks(){
+  syncPickBtns(); updateFilterCounts(); doFilter(false);
+}
+
+function persistPicks(){
+  try{
+    localStorage.setItem('fGenSet', JSON.stringify(Array.from(fGenSet)));
+    localStorage.setItem('fAgeSet', JSON.stringify(Array.from(fAgeSet)));
+  }catch(_){}
+}
+
+function openPick(kind){
+  buildPick(kind);
+  const ov = document.getElementById('pkOv');
+  if(ov){ ov.classList.add('open'); document.body.style.overflow='hidden'; }
+}
+function closePick(){
+  const ov = document.getElementById('pkOv');
+  if(ov){ ov.classList.remove('open'); document.body.style.overflow=''; }
+}
+
+function initShopNav(){
+  const gb = document.getElementById('genBtn');
+  const ab = document.getElementById('ageBtn');
+  if(gb) gb.addEventListener('click', function(){ openPick('gen'); });
+  if(ab) ab.addEventListener('click', function(){ openPick('age'); });
+
+  const done = document.getElementById('pkDone');
+  if(done) done.addEventListener('click', function(){ closePick(); window.scrollTo({top:0,behavior:'smooth'}); });
+  const x = document.getElementById('pkClose');
+  if(x) x.addEventListener('click', closePick);
+  const ov = document.getElementById('pkOv');
+  if(ov) ov.addEventListener('click', function(e){ if(e.target===e.currentTarget) closePick(); });
+}
+
+/* استعادة اختيار الزائر السابق (مع ترحيل الصيغة القديمة) */
 function restoreShopNav(){
   try{
-    fGen = localStorage.getItem('fGen') || '';
-    fAge = localStorage.getItem('fAge') || '';
-  }catch(_){ fGen=''; fAge=''; }
-  const cr = document.getElementById('catRow');
-  const ar = document.getElementById('ageRow');
-  if(cr) cr.querySelectorAll('.cat').forEach(b=>b.classList.toggle('on', (b.dataset.g||'')===fGen));
-  if(ar) ar.querySelectorAll('.age').forEach(b=>b.classList.toggle('on', (b.dataset.a||'')===fAge));
+    const g = JSON.parse(localStorage.getItem('fGenSet') || 'null');
+    const a = JSON.parse(localStorage.getItem('fAgeSet') || 'null');
+    if(Array.isArray(g)) fGenSet = new Set(g);
+    else { const old = localStorage.getItem('fGen'); if(old) fGenSet = new Set([old]); }
+    if(Array.isArray(a)) fAgeSet = new Set(a);
+    else { const old = localStorage.getItem('fAge'); if(old) fAgeSet = new Set([old]); }
+  }catch(_){ fGenSet = new Set(); fAgeSet = new Set(); }
+  syncPickBtns();
 }
 
 
@@ -1338,7 +1483,8 @@ function createCard(item){
   const SZ_BUDGET = 20;   /* مُعايَرة تجريبياً: صفر قصّ من 320 إلى 430px */
 
   /* عند تفعيل فلتر العمر نُقدّم قياساته — فلا تُزاح خلف «+N» */
-  const _match = fAge ? sizesInAge(fAge) : [];
+  let _match = [];
+  if(fAgeSet.size){ fAgeSet.forEach(function(k){ _match = _match.concat(sizesInAge(k)); }); }
   const ordered = _match.length
       ? sizes.slice().sort(function(a,b){
           const ia = _match.indexOf(String(a)) > -1 ? 0 : 1;
@@ -1387,7 +1533,7 @@ function displayProducts(arr){
   const _rc = document.getElementById('rcount');
   if(_rc){
     const _q = (document.getElementById('searchIn')||{}).value || '';
-    const _active = !!(_q.trim() || fSea || fTyp || fGen || fAge || fFav);
+    const _active = !!(_q.trim() || fSea || fTyp || fGenSet.size || fAgeSet.size || fFav);
     _rc.textContent = filtered.length + ' ' + t('res');
     _rc.classList.toggle('show', _active);
   }
@@ -2330,7 +2476,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   initInAppBanner();
   initShopNav(); restoreShopNav();
   if(localStorage.getItem('dk')==='1'){ document.body.classList.add('dark'); document.getElementById('darkBtn').innerHTML='<i class="fas fa-sun"></i>'; }
-  document.getElementById('promoX').addEventListener('click',()=>document.getElementById('promoBanner').style.display='none');
+  initPromoChip();
   bootstrap().then(openProductFromURL).catch(openProductFromURL);
   setTimeout(initTutorial,500);
 });
