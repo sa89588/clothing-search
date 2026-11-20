@@ -5,7 +5,7 @@
    ويتيح فتح المتجر بلا إنترنت بالنسخة المحفوظة.
    ============================================================ */
 
-const SW_VERSION = 'v1';
+const SW_VERSION = 'v2';   /* رفعه يمسح كاش الصور القديم المتضخّم */
 const SHELL = 'shell-' + SW_VERSION;
 const IMGS  = 'imgs-'  + SW_VERSION;
 
@@ -54,18 +54,28 @@ self.addEventListener('fetch', function(e){
     return;
   }
 
-  /* الصور: من الكاش أولاً (ثابتة لا تتغيّر) */
-  if(/\.(webp|png|jpg|jpeg|svg|gif)$/i.test(url.pathname)){
+  /* الصور ======================================================
+     نُخزّن صور موقعنا وحدها. صور الـCDN (jsDelivr) تمرّ للشبكة بلا
+     اعتراض، لسببين:
+       • ردّها مُعتِم (opaque) فلا نعرف أنجح أم فشل، وتخزينه يحجز
+         من حصّة المتصفح أضعاف حجمه الحقيقي — ومع مئات الصور تمتلئ
+         الحصّة فتفشل عمليات الكاش وتختفي الصور كلها.
+       • الـCDN مخزَّن أصلاً عند المتصفح وعند الشبكة.
+     وأي خطأ في طبقة الكاش لا يجوز أن يمنع الصورة: نسقط للشبكة. */
+  if(/\.(webp|png|jpe?g|svg|gif|avif)$/i.test(url.pathname)){
+    if(url.origin !== self.location.origin) return;      /* CDN: لا نعترض */
     e.respondWith(
       caches.open(IMGS).then(function(c){
         return c.match(req).then(function(hit){
           if(hit) return hit;
           return fetch(req).then(function(res){
-            if(res && res.status === 200) c.put(req, res.clone()).catch(function(){});
+            if(res && res.status === 200 && res.type === 'basic'){
+              c.put(req, res.clone()).catch(function(){});
+            }
             return res;
-          }).catch(function(){ return hit || Response.error(); });
+          }).catch(function(){ return hit || fetch(req); });
         });
-      })
+      }).catch(function(){ return fetch(req); })       /* الكاش معطّل؟ الشبكة */
     );
     return;
   }
