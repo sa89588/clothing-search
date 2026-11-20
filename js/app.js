@@ -22,6 +22,9 @@ const SETTINGS = {
   freeShipQty:  6,
   sortDefault:  'pieces_asc',
   fabricText:   'قطني 100%',
+  storeTexts:   {},               // تجاوزات النصوص من اللوحة
+  banners:      [],               // الشارات والإعلانات المضافة من اللوحة
+  trustItems:   '',               // ضمانات الشراء
   fabricNote:   '',
   promoText:    '',
   promoEnabled: true,
@@ -99,9 +102,26 @@ function calcShip(items){
 /* هل التوصيل مجاني؟ */
 function isFreeShip(items){ return calcShip(items) === 0; }
 let allData = [], cart = [], lang = 'ar';
-let fSea = '', fTyp = '', fSort = '';
+let fSea = '', fTyp = '', fSort = '', fFav = false;
+/* القسم والعمر صارا اختياراً متعدّداً (زر مجمّع يفتح لوحة اختيار) */
+let fGenSet = new Set();
+let fAgeSet = new Set();
 
-function t(k){ return (L[lang]&&L[lang][k]) ? L[lang][k] : (L.ar[k]||k); }
+/* ===== تجاوزات النصوص من لوحة الإدارة =====
+   أيّ نص في المتجر يمكن تغييره من اللوحة بلا لمس الكود. الشكل:
+     { "hTitle":"...", "footer":"..." }            ← لكل اللغات
+     { "ar":{...}, "en":{...}, "ku":{...} }        ← لكل لغة على حدة
+   ويجوز الخلط: المفتاح الخاص باللغة يتقدّم على العام. */
+let TXT = {};
+
+function t(k){
+  if(TXT){
+    const perLang = TXT[lang];
+    if(perLang && typeof perLang === 'object' && perLang[k]) return perLang[k];
+    if(typeof TXT[k] === 'string' && TXT[k]) return TXT[k];
+  }
+  return (L[lang]&&L[lang][k]) ? L[lang][k] : (L.ar[k]||k);
+}
 
 
 /* يبحث عن عمود بمرونة: يتجاهل حالة الأحرف والمسافات */
@@ -226,6 +246,17 @@ function applySettings(s){
     if(s.promoText  !== undefined) SETTINGS.promoText  = String(s.promoText);
     if(s.promoEnabled !== undefined) SETTINGS.promoEnabled = String(s.promoEnabled)==='1' || s.promoEnabled===true;
     if(s.assetVersion) SETTINGS.assetVersion = String(s.assetVersion);
+    /* نصوص اللوحة وشاراتها */
+    if(s.storeTexts !== undefined){
+      const st = typeof s.storeTexts==='string' ? (s.storeTexts ? JSON.parse(s.storeTexts) : {}) : s.storeTexts;
+      TXT = (st && typeof st==='object') ? st : {};
+      SETTINGS.storeTexts = TXT;
+    }
+    if(s.banners !== undefined){
+      const bn = typeof s.banners==='string' ? (s.banners ? JSON.parse(s.banners) : []) : s.banners;
+      SETTINGS.banners = Array.isArray(bn) ? bn : [];
+    }
+    if(s.trustItems !== undefined) SETTINGS.trustItems = s.trustItems;
     if(s.cheapRule){
       const cr = typeof s.cheapRule==='string' ? JSON.parse(s.cheapRule) : s.cheapRule;
       if(cr && typeof cr==='object') SETTINGS.cheapRule = cr;
@@ -235,13 +266,24 @@ function applySettings(s){
 
 /* تطبيق النصوص القابلة للتخصيص على الصفحة */
 function applySettingsToUI(){
-  // ملاحظة الخامة
+  /* النصوص أولاً: applyTrans يكتب النصوص من ملف اللغات (ومن تجاوزات
+     اللوحة)، فلو جاء بعدها لمَسَح ما تضعه الإعدادات أدناه — كنصّ العرض. */
+  try{ applyTrans(); }catch(_){}
+
+  /* عدد أعمدة الشبكة — يُضبط من لوحة الإدارة
+     'auto' = حسب عرض الشاشة (الافتراضي) · أو 2 / 3 / 4 */
+  try{
+    const c = String(SETTINGS.gridCols || 'auto');
+    document.body.dataset.cols = /^[234]$/.test(c) ? c : 'auto';
+  }catch(_){}
+
+  /* ملاحظة الخامة — مخفيّة ما لم يكتب صاحب المتجر نصّاً لها */
   const note = document.getElementById('fabricNote');
   if(note){
     if(SETTINGS.fabricNote){
       const sp = note.querySelector('span');
-      if(sp) sp.innerHTML = sanitize(SETTINGS.fabricNote);
-      note.style.display = '';
+      if(sp) sp.textContent = String(SETTINGS.fabricNote);
+      note.style.display = 'flex';
     } else { note.style.display = 'none'; }
   }
   // شريط العرض
@@ -249,8 +291,13 @@ function applySettingsToUI(){
   const ptxt  = document.getElementById('promoTxt');
   if(promo){
     if(!SETTINGS.promoEnabled){ promo.style.display='none'; }
-    else if(SETTINGS.promoText && ptxt){ ptxt.textContent = SETTINGS.promoText; }
+    else {
+      promo.style.display = '';
+      if(ptxt && SETTINGS.promoText) ptxt.textContent = SETTINGS.promoText;
+    }
   }
+  /* الشارات المضافة من اللوحة */
+  renderBanners();
 }
 
 /* جلب الإعدادات — كاش محلي للسرعة ثم تحديث بالخلفية */
@@ -295,11 +342,43 @@ function checkAssetVersion(remote){
 
 /* ==================== SECURITY UTILS ==================== */
 function sanitize(str){ const d=document.createElement('div'); d.appendChild(document.createTextNode(String(str==null?'':str))); return d.innerHTML; }
-function safeImgSrc(url){ if(!url||typeof url!=='string') return PLACEHOLDER; try{ const u=new URL(url); return (u.protocol==='https:'||u.protocol==='http:') ? url : PLACEHOLDER; } catch(_){ return PLACEHOLDER; } }
+/* ===== تسريع الصور =====
+   raw.githubusercontent ليس شبكة توزيع: يُخدَم من خادم واحد بلا تخزين قريب.
+   jsDelivr يخدم نفس الملف بنفس الصيغة من أقرب خادم للزبون — مجاناً.
+   ونفضّل النسخة المصغّرة (THUMB/) للبطاقات حين تتوفر. */
+const CDN_FROM = /^https?:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/(?:refs\/heads\/)?([^/]+)\/(.+)$/;
+
+function toCDN(url){
+  try{
+    const m = String(url).match(CDN_FROM);
+    if(!m) return url;
+    return 'https://cdn.jsdelivr.net/gh/' + m[1] + '/' + m[2] + '@' + m[3] + '/' + m[4];
+  }catch(_){ return url; }
+}
+
+/* النسخة المصغّرة للبطاقة (أخف بكثير على شبكة الهاتف) */
+function thumbOf(url){
+  try{
+    const u = String(url);
+    if(u.indexOf('/THUMB/') > -1) return u;
+    return u.replace(/\/WEBP\//, '/THUMB/');
+  }catch(_){ return url; }
+}
+
+function safeImgSrc(url, wantThumb){
+  if(!url || typeof url!=='string') return PLACEHOLDER;
+  try{
+    const u = new URL(url);
+    if(u.protocol!=='https:' && u.protocol!=='http:') return PLACEHOLDER;
+    const cdn = toCDN(url);
+    return wantThumb ? thumbOf(cdn) : cdn;
+  } catch(_){ return PLACEHOLDER; }
+}
 
 /* ==================== LANGUAGE ==================== */
 function setLang(l){
   lang=l;
+  try{ localStorage.setItem('lang', l); }catch(_){}   /* يُحفظ الاختيار */
   const root=document.getElementById('htmlRoot');
   root.lang=l; root.dir=L[l].dir;
   document.querySelectorAll('.lopt').forEach(b=>b.classList.toggle('on',b.dataset.lang===l));
@@ -309,7 +388,9 @@ function setLang(l){
 }
 function applyTrans(){
   const map={
-    hTitle:'hTitle',hSub:'hSub',welcomeEl:'welcome',promoTxt:'promo',
+    hTitle:'hTitle',hSub:'hSub',welcomeEl:'welcome',
+    pkDone:'pkDone',
+    navFav:'navFav',prodShTitle:'prodTitle',navInstall:'navInstall',
     rstBtn:'rst',fltBtnLbl:'fltBtn',applyFltLbl:'applyFlt',resetFltLbl:'resetFlt',
     fSeaLbl:'seaLbl',fTypLbl:'typLbl',fSortLbl:'sortLbl',
     filterShTitle:'fltBtn',
@@ -330,7 +411,15 @@ function applyTrans(){
   document.getElementById('searchIn').placeholder=t('search');
   document.getElementById('ckName').placeholder=t('namePh');
   document.getElementById('ckPhone').placeholder=t('phonePh');
-  document.getElementById('ckAddr').placeholder=t('addrPh');
+  document.getElementById('ckAddr').placeholder=t('addrPh2')||t('addrPh');
+  const _g0=document.querySelector('#ckGov option[value=""]'); if(_g0) _g0.textContent=t('govPh');
+  const _cp=document.querySelector('.ck-pay b'); if(_cp) _cp.textContent=t('codNote');
+  const _tr=document.getElementById('trackIn'); if(_tr) _tr.placeholder=t('trackPh');
+  /* نصّ العرض: ما كتبه صاحب المتجر في اللوحة يتقدّم على نص اللغة */
+  { const _p=document.getElementById('promoTxt');
+    if(_p) _p.textContent = SETTINGS.promoText || t('promo'); }
+  /* نصّا الزرّين المجمّعين يُبنيان من المجموعات، لا من خريطة ثابتة */
+  if(typeof syncPickBtns === 'function') syncPickBtns();
   { const _n=document.getElementById('ckNotes'); if(_n) _n.placeholder=t('notesPh'); }
   ['55','60','65','70','75','80','90','100','110','120','130','140','150','160','170'].forEach(s=>{
     const el=document.getElementById('s'+s); if(el) el.textContent=t('s'+s);
@@ -379,6 +468,20 @@ function setNavActive(id){
   const el=document.getElementById(id); if(el) el.classList.add('on');
 }
 
+/* ===== المفضلة عرضٌ قائم بذاته، كالرئيسية =====
+   مفتاح واحد يضبط الحالة والزر والشبكة معاً، فلا تفترق الواجهة
+   عن المعروض: كان زر «الرئيسية» يُضيء وحده والشبكة ما زالت مفضلة. */
+function setFav(on){
+  fFav = !!on;
+  const bf = document.getElementById('bnFav');
+  if(bf) bf.classList.toggle('on', fFav);
+  setNavActive(fFav ? 'bnFav' : 'bnHome');
+  doFilter(false);
+}
+
+/* إغلاق أي نافذة يُعيد الإضاءة للعرض الحالي لا للرئيسية دائماً */
+function navRestore(){ setNavActive(fFav ? 'bnFav' : 'bnHome'); }
+
 /* ==================== COUNTDOWN ==================== */
 function startCountdown(){
   const upd=()=>{
@@ -410,7 +513,11 @@ function initPTR(){
 }
 
 /* ==================== SCROLL ==================== */
-document.getElementById('bnHome').addEventListener('click',()=>{ window.scrollTo({top:0,behavior:'smooth'}); setNavActive('bnHome'); });
+document.getElementById('bnHome').addEventListener('click',()=>{
+  /* «الرئيسية» تعني الخروج من المفضلة والعودة لكل المنتجات */
+  if(fFav) setFav(false); else setNavActive('bnHome');
+  window.scrollTo({top:0,behavior:'smooth'});
+});
 document.getElementById('bnSearch').addEventListener('click',()=>{
   const el=document.getElementById('searchIn'); el.focus();
   window.scrollTo({top:document.querySelector('.srch-wrap').offsetTop-60,behavior:'smooth'});
@@ -434,7 +541,8 @@ const _ckCopyBtn = document.getElementById('ckCopy');
 if (_ckCopyBtn) _ckCopyBtn.addEventListener('click',()=>{
   const name=document.getElementById('ckName').value.trim();
   const phone=document.getElementById('ckPhone').value.trim();
-  const addr=document.getElementById('ckAddr').value.trim();
+  const _gov=(document.getElementById('ckGov')||{}).value||'';
+  const addr=(_gov? _gov+' - ':'')+document.getElementById('ckAddr').value.trim();
   let totO=0,totD=0;
   let msg='مرحباً، أرغب بشراء المنتجات التالية:\n';
   const _st=cheapStatus();
@@ -510,10 +618,10 @@ function openSheet(id){
   if(navMap[id]) setNavActive(navMap[id]);
 }
 function closeSheets(){
-  ['cartSheet','filterSheet','contactSheet'].forEach(s=>document.getElementById(s).classList.remove('open'));
+  ['cartSheet','filterSheet','contactSheet','trackSheet','prodSheet'].forEach(s=>{const e=document.getElementById(s); if(e) e.classList.remove('open');});
   document.getElementById('shOv').classList.remove('open');
   document.body.style.overflow='';
-  setNavActive('bnHome');
+  navRestore();
 }
 document.getElementById('shOv').addEventListener('click',closeSheets);
 ['cartDrag','wishDrag','filterDrag','contactDrag','cartShClose','wishShClose','filterShClose','contactShClose'].forEach(id=>{
@@ -552,9 +660,9 @@ function updateFltBadge(){
   const badge=document.getElementById('fltBadge');
   const btn=document.getElementById('fltOpenBtn');
   const clrBtn=document.getElementById('fltClearBtn');
-  badge.textContent=cnt; badge.style.display=cnt?'inline-flex':'none';
-  btn.classList.toggle('active-filters',cnt>0);
-  clrBtn.classList.toggle('show',cnt>0);
+  if(badge){ badge.textContent=cnt; badge.style.display=cnt?'inline-flex':'none'; }
+  if(btn)   btn.classList.toggle('active-filters',cnt>0);
+  if(clrBtn) clrBtn.classList.toggle('show',cnt>0);
 }
 // Filter sheet tab clicks
 document.querySelectorAll('#fSeaTabs .filt-tab').forEach(btn=>btn.addEventListener('click',()=>{
@@ -568,7 +676,21 @@ document.querySelectorAll('#fSortTabs .filt-tab').forEach(btn=>btn.addEventListe
 }));
 document.getElementById('applyFltBtn').addEventListener('click',()=>{ closeSheets(); updateFltBadge(); doFilter(); });
 document.getElementById('resetFltBtn').addEventListener('click',()=>{ fSea='';fTyp='';fSort=''; document.querySelectorAll('.filt-tab').forEach(b=>b.classList.toggle('on',b.dataset.v==='')); updateFltBadge(); doFilter(); closeSheets(); });
-document.getElementById('fltClearBtn').addEventListener('click',()=>{ fSea='';fTyp='';fSort=''; document.querySelectorAll('.filt-tab').forEach(b=>b.classList.toggle('on',b.dataset.v==='')); updateFltBadge(); doFilter(); });
+const _bf=document.getElementById('bnFav');
+if(_bf) _bf.addEventListener('click', function(){
+  setFav(!fFav);
+  if(fFav && !favs.length){ notify(t('favEmpty'),'i'); }
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+const _ti=document.getElementById('trackIn');
+if(_ti){ try{ const lo=localStorage.getItem('lastOrder'); if(lo) _ti.value=lo; }catch(_){} }
+const _gv=document.getElementById('ckGov');
+if(_gv){
+  try{ const sv=localStorage.getItem('gov'); if(sv) _gv.value=sv; }catch(_){}
+  _gv.addEventListener('change', function(){ try{ localStorage.setItem('gov', this.value); }catch(_){} });
+}
+const _pc=document.getElementById('prodShClose'); if(_pc) _pc.addEventListener('click', closeProduct);
+const _fcb=document.getElementById('fltClearBtn'); if(_fcb) _fcb.addEventListener('click',()=>{ fSea='';fTyp='';fSort=''; document.querySelectorAll('.filt-tab').forEach(b=>b.classList.toggle('on',b.dataset.v==='')); updateFltBadge(); doFilter(); });
 document.getElementById('searchIn').addEventListener('input', doFilter);
 let _fbqSearchTimer=null;
 document.getElementById('searchIn').addEventListener('input', function(){
@@ -585,11 +707,18 @@ document.getElementById('searchIn').addEventListener('input', function(){
 });
 document.getElementById('rstBtn').addEventListener('click',()=>{ document.getElementById('searchIn').value=''; fSea='';fTyp='';fSort=''; document.querySelectorAll('.filt-tab').forEach(b=>b.classList.toggle('on',b.dataset.v==='')); updateFltBadge(); doFilter(); });
 
-function doFilter(scrollTop=true){
+/* قائمة المنتجات كما يجب أن تظهر الآن — بلا رسم.
+   يستعملها doFilter والتحديث التلقائي معاً. */
+function filteredSorted(){
   const q=document.getElementById('searchIn').value.trim().toLowerCase();
   let f=[...allData];
   if(fSea) f=f.filter(i=>i.season===fSea);
   if(fTyp) f=f.filter(i=>i.type===fTyp);
+  /* الجنس: المشترك يظهر في الفلترين */
+  if(fFav) f=f.filter(i=>isFav(i.Id));
+  if(fGenSet.size) f=f.filter(i=>{ const g=genderOf(i); return fGenSet.has(g) || g==='unisex'; });
+  /* العمر: الموديل يظهر إن كان فيه قياس واحد على الأقل من الفئات المختارة */
+  if(fAgeSet.size) f=f.filter(i=>agesOf(i).some(k=>fAgeSet.has(k)));
   if(q) f=f.filter(i=>String(i.Id||'').toLowerCase().includes(q)||String(i.sizes||'').toLowerCase().includes(q));
   /* الفرز: اختيار المستخدم، وإلا الافتراضي من لوحة الإدارة */
   const sortMode = fSort || SETTINGS.sortDefault || 'pieces_asc';
@@ -598,13 +727,728 @@ function doFilter(scrollTop=true){
   else if(sortMode==='desc')      f.sort((a,b)=>parseFloat(b.price)-parseFloat(a.price));
   else if(sortMode==='pieces_asc')  f.sort((a,b)=>pcs(a)-pcs(b) || String(a.Id).localeCompare(String(b.Id)));
   else if(sortMode==='pieces_desc') f.sort((a,b)=>pcs(b)-pcs(a) || String(a.Id).localeCompare(String(b.Id)));
-  displayProducts(f);
+  return f;
+}
+
+function doFilter(scrollTop=true){
+  displayProducts(filteredSorted());
   if(scrollTop) window.scrollTo({top:0,behavior:'smooth'});
+}
+
+
+/* ============================================================
+   الجنس والعمر — محرّك التصنيف
+   ------------------------------------------------------------
+   الجنس: من عمود gender في الشيت إن وُجد، وإلا من الحرف الأخير
+          في رقم الموديل (G = بنات، B = أولاد). ما عداه غير محدّد.
+   العمر: من القياسات. كل قياس يقابل فئة عمرية.
+   ============================================================ */
+
+/* عمود الجنس إن أضيف للشيت لاحقاً (يتقدّم على الاستنتاج) */
+function genderField(item){
+  const keys = ['gender','Gender','الجنس','النوع الجنسي','sex'];
+  for(const k of keys){
+    const v = item[k];
+    if(v===null || v===undefined || v==='') continue;
+    const s = String(v).trim().toLowerCase();
+    if(/^(g|girl|girls|f|female|بنات|بنت|بناتي|انثى|أنثى)$/.test(s)) return 'girls';
+    if(/^(b|boy|boys|m|male|اولاد|أولاد|ولد|ولادي|ذكر)$/.test(s))     return 'boys';
+    if(/^(u|uni|unisex|both|مشترك|الاثنين|للجنسين)$/.test(s))         return 'unisex';
+  }
+  return null;
+}
+
+/* استنتاج الجنس من رقم الموديل: الحرف الأخير G أو B */
+function genderOf(item){
+  const fromCol = genderField(item);
+  if(fromCol) return fromCol;
+  const id = String(item.Id || '').trim();
+  /* نتجاهل أي لاحقة بين قوسين مثل SS-4740B(4) */
+  const core = id.replace(/\([^)]*\)\s*$/, '').trim();
+  const last = core.slice(-1).toUpperCase();
+  if(last === 'G') return 'girls';
+  if(last === 'B') return 'boys';
+  return '';          /* غير محدّد */
+}
+
+/* الفئات العمرية — القياس هو المرجع */
+const AGE_GROUPS = [
+  { key:'baby',    sizes:[55,60,65,70,75],      ico:'👶', lbl:'ageBaby'    },  /* 0-10 شهر */
+  { key:'toddler', sizes:[80,90],               ico:'🧸', lbl:'ageToddler' },  /* 1-2 سنة  */
+  { key:'kid',     sizes:[100,110,120],         ico:'🧒', lbl:'ageKid'     },  /* 3-5 سنوات */
+  { key:'big',     sizes:[130,140],             ico:'👦', lbl:'ageBig'     },  /* 6-9 سنوات */
+  { key:'teen',    sizes:[150,160,170],         ico:'🧑', lbl:'ageTeen'    }   /* 10+ سنة  */
+];
+
+function agesOf(item){
+  const sizes = parseSizes(item.sizes).map(Number);
+  const out = [];
+  AGE_GROUPS.forEach(function(g){
+    if(sizes.some(function(s){ return g.sizes.indexOf(s) > -1; })) out.push(g.key);
+  });
+  return out;
+}
+
+/* القياسات التي تقع ضمن فئة عمرية (لتصفية الأزرار داخل البطاقة) */
+function sizesInAge(ageKey){
+  const g = AGE_GROUPS.find(function(x){ return x.key===ageKey; });
+  return g ? g.sizes.map(String) : [];
+}
+
+
+/* خطوات الشرح — تمرّ على تجاوزات اللوحة (المفاتيح tut0 … tut6)
+   فيستطيع صاحب المتجر تغيير نصّ كل خطوة بلغاتها الثلاث */
+function tutSteps(){
+  const base = (L[lang] && L[lang].tut) || L.ar.tut || [];
+  return base.map(function(s, i){
+    const key = 'tut' + i;
+    const o = t(key);
+    return (o && o !== key) ? o : s;
+  });
+}
+
+/* ==================== الشارات والإعلانات ====================
+   يضيفها صاحب المتجر من اللوحة بلا تعديل الكود. كل شارة:
+     { txt, ico, style, place, on, from, to, link }
+   المكان (place):  top = شريط أعلى المنتجات
+                    float = شارة عائمة في الزاوية
+                    prod  = سطر داخل صفحة المنتج
+   from/to: تاريخان اختياريان (YYYY-MM-DD) — خارجهما لا تظهر.
+   ============================================================ */
+
+function activeBanners(place){
+  const all = SETTINGS.banners;
+  if(!Array.isArray(all) || !all.length) return [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  return all.filter(function(b){
+    if(!b || b.on === false || b.on === '0') return false;
+    if(!String(b.txt||'').trim()) return false;
+    if(String(b.place||'top') !== place) return false;
+    if(b.from){ const d=new Date(b.from); if(!isNaN(d) && today < d.setHours(0,0,0,0)) return false; }
+    if(b.to){   const d=new Date(b.to);   if(!isNaN(d) && today > d.setHours(0,0,0,0)) return false; }
+    return true;
+  });
+}
+
+function buildBanner(b){
+  const hasLink = !!String(b.link||'').trim();
+  const el = document.createElement(hasLink ? 'a' : 'div');
+  el.className = 'ubanner u-' + (String(b.style||'yellow').replace(/[^a-z]/g,'') || 'yellow');
+  if(hasLink){ el.href = String(b.link); el.target = '_blank'; el.rel = 'noopener noreferrer'; }
+  const ic = document.createElement('span'); ic.className='ub-ico'; ic.textContent = String(b.ico||'🎁');
+  const tx = document.createElement('span'); tx.className='ub-txt'; tx.textContent = String(b.txt||'');
+  el.appendChild(ic); el.appendChild(tx);
+  return el;
+}
+
+/* الشريط أعلى المنتجات */
+function renderTopBanners(){
+  const host = document.getElementById('uBanners');
+  if(!host) return;
+  host.innerHTML = '';
+  activeBanners('top').forEach(function(b){ host.appendChild(buildBanner(b)); });
+}
+
+/* الشارات العائمة — تُرصّ فوق شارة العرض */
+function renderFloatBanners(){
+  let host = document.getElementById('uFloat');
+  const list = activeBanners('float');
+  if(!list.length){ if(host) host.remove(); return; }
+  if(!host){
+    host = document.createElement('div');
+    host.id = 'uFloat'; host.className = 'ufloat';
+    document.body.appendChild(host);
+  }
+  host.innerHTML = '';
+  list.forEach(function(b){
+    const el = buildBanner(b);
+    el.classList.add('ub-float');
+    const x = document.createElement('button');
+    x.className = 'ub-x'; x.type='button'; x.textContent='✕';
+    x.setAttribute('aria-label', t('hide')||'إخفاء');
+    x.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); el.remove();
+      if(!host.children.length) host.remove(); });
+    el.appendChild(x);
+    host.appendChild(el);
+  });
+}
+
+function renderBanners(){
+  try{ renderTopBanners(); renderFloatBanners(); }catch(_){}
+}
+
+/* ==================== شارة العرض العائمة ====================
+   كانت شريطاً بعرض الشاشة يأكل مساحة المنتجات. صارت شارة صغيرة
+   مثبّتة في زاوية، تُخفى بضغطة ويعود إظهارها بزر 🎉 صغير.
+   الإخفاء يبقى للجلسة فقط — فيرى الزائر العرض في زيارته القادمة.
+   ============================================================ */
+function initPromoChip(){
+  const chip = document.getElementById('promoBanner');
+  const x    = document.getElementById('promoX');
+  if(!chip) return;
+
+  /* ارتفاع الترويسة الحقيقي — الشارة تُثبَّت تحتها بلا تراكب */
+  const hdr = document.querySelector('header');
+  const setHH = function(){
+    if(hdr) document.documentElement.style.setProperty('--hh', hdr.offsetHeight + 'px');
+  };
+  setHH();
+  window.addEventListener('resize', setHH);
+
+  /* الإخفاء نهائي لهذه الجلسة — بلا زر عائم يبقى على الشاشة.
+     تعود الشارة عند فتح الموقع من جديد. */
+  const hide = function(persist){
+    chip.classList.add('gone');
+    if(persist){ try{ sessionStorage.setItem('promoHid','1'); }catch(_){} }
+  };
+
+  if(x) x.addEventListener('click', function(){ hide(true); });
+
+  let hidden = false;
+  try{ hidden = sessionStorage.getItem('promoHid') === '1'; }catch(_){}
+  if(hidden) hide(false);
+}
+
+/* ==================== الفلاتر المجمّعة ====================
+   زرّان مضغوطان: «القسم» و«العمر». الضغط يفتح لوحة اختيار
+   متعدّد، فيختار الزبون ولادي أو بناتي أو كليهما، وعمراً أو أكثر.
+   ============================================================ */
+
+const GEN_OPTS = [
+  { v:'boys',  ico:'👦', lbl:'catBoys'  },
+  { v:'girls', ico:'👧', lbl:'catGirls' }
+];
+
+/* نص الزر حسب ما اختير */
+function genLabel(){
+  if(!fGenSet.size || fGenSet.size === GEN_OPTS.length) return t('catAll');
+  const names = GEN_OPTS.filter(function(o){ return fGenSet.has(o.v); })
+                        .map(function(o){ return t(o.lbl); });
+  return names.join(' + ');
+}
+function ageLabel(){
+  if(!fAgeSet.size) return t('ageAll');
+  if(fAgeSet.size === 1){
+    const k = Array.from(fAgeSet)[0];
+    const g = AGE_GROUPS.find(function(x){ return x.key===k; });
+    return g ? t(g.lbl) : t('ageAll');
+  }
+  return fAgeSet.size + ' ' + t('ageMany');
+}
+
+function syncPickBtns(){
+  const gb = document.getElementById('genBtn');
+  const ab = document.getElementById('ageBtn');
+  if(gb){
+    const lb = gb.querySelector('.pk-lbl'); if(lb) lb.textContent = genLabel();
+    gb.classList.toggle('on', fGenSet.size > 0 && fGenSet.size < GEN_OPTS.length);
+    const ic = gb.querySelector('.pk-ico');
+    if(ic) ic.textContent = (!fGenSet.size || fGenSet.size===2) ? '👧👦'
+                          : (fGenSet.has('girls') ? '👧' : '👦');
+  }
+  if(ab){
+    const lb = ab.querySelector('.pk-lbl'); if(lb) lb.textContent = ageLabel();
+    ab.classList.toggle('on', fAgeSet.size > 0);
+  }
+}
+
+/* بناء لوحة الاختيار */
+function buildPick(kind){
+  const box = document.getElementById('pkList');
+  const ttl = document.getElementById('pkTitle');
+  if(!box) return;
+  box.innerHTML = '';
+  box.dataset.kind = kind;
+  if(ttl) ttl.textContent = t(kind === 'gen' ? 'genLbl' : 'ageLbl');
+
+  const rows = (kind === 'gen')
+    ? GEN_OPTS.map(function(o){ return { v:o.v, ico:o.ico, txt:t(o.lbl), on:fGenSet.has(o.v) }; })
+    : AGE_GROUPS.map(function(g){ return { v:g.key, ico:g.ico, txt:t(g.lbl), on:fAgeSet.has(g.key) }; });
+
+  /* خيار «الكل» = إفراغ المجموعة */
+  const allRow = document.createElement('button');
+  const isAll = (kind==='gen') ? (!fGenSet.size || fGenSet.size===GEN_OPTS.length) : !fAgeSet.size;
+  allRow.className = 'pk-row pk-all' + (isAll ? ' on' : '');
+  allRow.innerHTML = '<span class="pk-r-ico">🛍️</span><span class="pk-r-txt">' +
+                     sanitize(t(kind==='gen' ? 'catAll' : 'ageAll')) + '</span><span class="pk-chk"></span>';
+  allRow.addEventListener('click', function(){
+    if(kind === 'gen') fGenSet.clear(); else fAgeSet.clear();
+    persistPicks(); buildPick(kind); applyPicks();
+  });
+  box.appendChild(allRow);
+
+  rows.forEach(function(r){
+    const b = document.createElement('button');
+    b.className = 'pk-row' + (r.on ? ' on' : '');
+    b.innerHTML = '<span class="pk-r-ico">'+r.ico+'</span><span class="pk-r-txt">'+
+                  sanitize(r.txt)+'</span><span class="pk-chk"></span>';
+    b.addEventListener('click', function(){
+      const set = (kind === 'gen') ? fGenSet : fAgeSet;
+      if(set.has(r.v)) set.delete(r.v); else set.add(r.v);
+      /* اختيار كل الأجناس = الكل */
+      if(kind === 'gen' && fGenSet.size === GEN_OPTS.length) fGenSet.clear();
+      persistPicks(); buildPick(kind); applyPicks();
+    });
+    box.appendChild(b);
+  });
+}
+
+function applyPicks(){
+  syncPickBtns(); updateFilterCounts(); doFilter(false);
+}
+
+function persistPicks(){
+  try{
+    localStorage.setItem('fGenSet', JSON.stringify(Array.from(fGenSet)));
+    localStorage.setItem('fAgeSet', JSON.stringify(Array.from(fAgeSet)));
+  }catch(_){}
+}
+
+function openPick(kind){
+  buildPick(kind);
+  const ov = document.getElementById('pkOv');
+  if(ov){ ov.classList.add('open'); document.body.style.overflow='hidden'; }
+}
+function closePick(){
+  const ov = document.getElementById('pkOv');
+  if(ov){ ov.classList.remove('open'); document.body.style.overflow=''; }
+}
+
+function initShopNav(){
+  const gb = document.getElementById('genBtn');
+  const ab = document.getElementById('ageBtn');
+  if(gb) gb.addEventListener('click', function(){ openPick('gen'); });
+  if(ab) ab.addEventListener('click', function(){ openPick('age'); });
+
+  const done = document.getElementById('pkDone');
+  if(done) done.addEventListener('click', function(){ closePick(); window.scrollTo({top:0,behavior:'smooth'}); });
+  const x = document.getElementById('pkClose');
+  if(x) x.addEventListener('click', closePick);
+  const ov = document.getElementById('pkOv');
+  if(ov) ov.addEventListener('click', function(e){ if(e.target===e.currentTarget) closePick(); });
+}
+
+/* استعادة اختيار الزائر السابق (مع ترحيل الصيغة القديمة) */
+function restoreShopNav(){
+  try{
+    const g = JSON.parse(localStorage.getItem('fGenSet') || 'null');
+    const a = JSON.parse(localStorage.getItem('fAgeSet') || 'null');
+    if(Array.isArray(g)) fGenSet = new Set(g);
+    else { const old = localStorage.getItem('fGen'); if(old) fGenSet = new Set([old]); }
+    if(Array.isArray(a)) fAgeSet = new Set(a);
+    else { const old = localStorage.getItem('fAge'); if(old) fAgeSet = new Set([old]); }
+  }catch(_){ fGenSet = new Set(); fAgeSet = new Set(); }
+  syncPickBtns();
+}
+
+
+/* ============================================================
+   صفحة المنتج — رابط خاص لكل موديل  (?id=SSP-1058G)
+   ------------------------------------------------------------
+   يوصل إعلان ميتا الزبون للمنتج نفسه بدل الصفحة الرئيسية.
+   ============================================================ */
+
+function productURL(id){
+  return location.origin + location.pathname + '?id=' + encodeURIComponent(String(id));
+}
+
+function openProduct(id, push){
+  const item = allData.find(function(x){ return String(x.Id)===String(id); });
+  if(!item){ notify(t('noRes'),'w'); return; }
+
+  const sizes = parseSizes(item.sizes);
+  const orig  = parseFloat(item.price);
+  const rng   = itemPctRange(item);
+  const g     = genderOf(item);
+
+  const body = document.getElementById('prodBody');
+  if(!body) return;
+  body.innerHTML = '';
+
+  /* الصورة */
+  const ph = document.createElement('div'); ph.className='pv-img';
+  const im = document.createElement('img');
+  im.src = safeImgSrc(item.picture); im.alt = String(item.Id);
+  im.addEventListener('click', function(){ openLB(im.src, item.Id, discPrice(orig, rng.max)); });
+  ph.appendChild(im);
+
+  /* شارات */
+  const bd = document.createElement('div'); bd.className='pv-badges';
+  const b1 = document.createElement('span'); b1.className='badge bdis';
+  b1.textContent = t('discPrefix')+' '+(rng.min!==rng.max ? rng.min+'-'+rng.max+'%' : rng.max+'%');
+  bd.appendChild(b1);
+  if(sizes.length===1){ const b2=document.createElement('span'); b2.className='badge blast'; b2.textContent=t('lastSize'); bd.appendChild(b2); }
+  if(g==='girls'||g==='boys'){
+    const b3=document.createElement('span'); b3.className='badge bgen '+(g==='girls'?'bgen-g':'bgen-b');
+    b3.textContent=(g==='girls'?'👧 ':'👦 ')+t(g==='girls'?'catGirls':'catBoys'); bd.appendChild(b3);
+  }
+  ph.appendChild(bd);
+
+  /* ===== العمود الجانبي: السعر والتفاصيل بجانب الصورة ===== */
+  const side = document.createElement('div'); side.className='pv-side';
+
+  const pr = document.createElement('div'); pr.className='pv-prices';
+  const lo = discPrice(orig, rng.max), hi = discPrice(orig, rng.min);
+  pr.innerHTML = '<span class="pv-new">'+(rng.min!==rng.max
+        ? lo.toLocaleString()+' – '+hi.toLocaleString()
+        : lo.toLocaleString())+'</span>'+
+     '<span class="pv-cur">'+sanitize(t('dinar'))+'</span>'+
+     '<span class="pv-old">'+orig.toLocaleString()+'</span>';
+
+  const meta = document.createElement('div'); meta.className='pv-meta';
+  const rows = [
+    ['🧵', t('fabricLbl')||'الخامة', getFabric(item)],
+    ['🌤️', t('seaLbl'),  String(item.season||'—')],
+    ['👕', t('typLbl'),  String(item.type||'—')],
+    ['🏷️', 'ID',         String(item.Id)]
+  ];
+  meta.innerHTML = rows.map(function(r){
+    const ltr = (r[1]==='ID') ? ' dir="ltr"' : '';
+    return '<div class="pv-row"><span class="pv-k">'+r[0]+' '+sanitize(r[1])+'</span>'+
+           '<b class="pv-v"'+ltr+'>'+sanitize(r[2])+'</b></div>';
+  }).join('');
+
+  side.appendChild(pr); side.appendChild(meta);
+
+  /* الصورة والعمود جنباً إلى جنب */
+  const top = document.createElement('div'); top.className='pv-top';
+  top.appendChild(ph); top.appendChild(side);
+
+  /* ===== القياسات ===== */
+  const info = document.createElement('div'); info.className='pv-info';
+
+  const szl = document.createElement('div'); szl.className='pv-szlbl';
+  szl.textContent = t('tapSizeToAdd');
+  const szs = document.createElement('div'); szs.className='pv-sizes';
+  sizes.forEach(function(sz){
+    const pct = discPctFor(item, sz), price = discPrice(orig, pct);
+    const age = L[lang]['s'+sz] || '';
+    const bn = document.createElement('button'); bn.className='pv-sz';
+    bn.innerHTML = '<span class="pv-sz-n">'+sanitize(String(sz))+'</span>'+
+                   (age ? '<span class="pv-sz-a">'+sanitize(age)+'</span>' : '')+
+                   '<span class="pv-sz-p">'+price.toLocaleString()+'</span>';
+    bn.addEventListener('click', function(){ addToCart(item.Id, sz, orig, price, pct); });
+    szs.appendChild(bn);
+  });
+
+  /* ===== ضمانات تطمئن الزبون ===== */
+  const trust = document.createElement('div'); trust.className='pv-trust';
+  trustItems().forEach(function(x){
+    const d = document.createElement('div'); d.className='pv-tr';
+    d.innerHTML = '<span class="pv-tr-i">'+x.i+'</span><span>'+sanitize(x.t)+'</span>';
+    trust.appendChild(d);
+  });
+
+  /* إعلانات صاحب المتجر المخصّصة لصفحة المنتج */
+  const pvb = document.createElement('div'); pvb.className='pv-banners';
+  activeBanners('prod').forEach(function(b){ pvb.appendChild(buildBanner(b)); });
+
+  /* ===== مشاركة واستفسار ===== */
+  const acts = document.createElement('div'); acts.className='pv-acts';
+  const sh = document.createElement('button'); sh.className='pv-share';
+  sh.innerHTML = '🔗 <span>'+sanitize(t('share'))+'</span>';
+  sh.addEventListener('click', function(){ shareOneProduct(item); });
+  const wa = document.createElement('a'); wa.className='pv-wa'; wa.target='_blank'; wa.rel='noopener';
+  wa.href = 'https://wa.me/9647766142936?text=' + encodeURIComponent(
+      t('askAbout') + ' #' + item.Id + '\n' + productURL(item.Id));
+  wa.innerHTML = '💬 <span>'+sanitize(t('askBtn'))+'</span>';
+  acts.appendChild(sh); acts.appendChild(wa);
+
+  info.appendChild(szl); info.appendChild(szs);
+  info.appendChild(trust); info.appendChild(pvb); info.appendChild(acts);
+  body.appendChild(top); body.appendChild(info);
+
+  /* عنوان النافذة والرابط */
+  const ttl = document.getElementById('prodShTitle');
+  if(ttl) ttl.textContent = '#' + item.Id;
+
+  openSheet('prodSheet');
+  if(push !== false){
+    try{ history.pushState({pid:item.Id}, '', productURL(item.Id)); }catch(_){}
+  }
+  try{ if(typeof metaViewContent==='function') metaViewContent(item.Id, lo, item.season, item.type); }catch(_){}
+}
+
+function closeProduct(){
+  const s = document.getElementById('prodSheet');
+  if(s) s.classList.remove('open');
+  const ov = document.getElementById('shOv'); if(ov) ov.classList.remove('open');
+  document.body.style.overflow='';
+  /* نُنظّف الرابط */
+  try{
+    if(location.search.indexOf('id=') > -1){
+      history.replaceState({}, '', location.origin + location.pathname);
+    }
+  }catch(_){}
+}
+
+function shareOneProduct(item){
+  const rng = itemPctRange(item);
+  const lo  = discPrice(parseFloat(item.price), rng.max);
+  const txt = '🛍️ ' + t('hTitle') + '\n#' + item.Id + ' — ' + lo.toLocaleString() + ' ' + t('dinar') + '\n' + productURL(item.Id);
+  if(navigator.share){
+    navigator.share({ title: t('hTitle') + ' #' + item.Id, text: txt, url: productURL(item.Id) }).catch(function(){});
+  } else {
+    if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(function(){ notify(t('linkCopied'),'i'); }).catch(function(){}); }
+    else window.open('https://wa.me/?text='+encodeURIComponent(txt), '_blank');
+  }
+}
+
+/* فتح المنتج تلقائياً إن كان الرابط يحمل ?id= */
+function openProductFromURL(){
+  try{
+    const id = new URLSearchParams(location.search).get('id');
+    if(id) setTimeout(function(){ openProduct(id, false); }, 150);
+  }catch(_){}
+}
+
+/* زر الرجوع في المتصفح */
+window.addEventListener('popstate', function(e){
+  const s = document.getElementById('prodSheet');
+  if(e.state && e.state.pid) openProduct(e.state.pid, false);
+  else if(s && s.classList.contains('open')) closeProduct();
+});
+
+
+/* ============================================================
+   شريط التوصيل المجاني — يظهر دائماً لا داخل السلة فقط
+   ============================================================ */
+function updateShipBar(){
+  const el = document.getElementById('shipBar');
+  if(!el) return;
+  const need = freeShipQty() - cart.length;
+  if(freeShipQty() <= 0 || shipCost() <= 0){ el.classList.remove('show'); return; }
+
+  if(cart.length === 0){ el.classList.remove('show'); return; }
+
+  const pctv = Math.min(100, Math.round(cart.length / freeShipQty() * 100));
+  const fill = el.querySelector('.sb-fill');
+  const txt  = el.querySelector('.sb-txt');
+  if(fill) fill.style.width = pctv + '%';
+
+  if(need <= 0){
+    el.classList.add('done');
+    if(txt) txt.textContent = '🎉 ' + t('freeShipWon');
+  } else {
+    el.classList.remove('done');
+    if(txt) txt.textContent = '🚚 ' + t('freeShipNeed').replace('{n}', need);
+  }
+  el.classList.add('show');
+}
+
+
+/* ============================================================
+   المفضلة — يحفظها الزبون ويعود إليها
+   ============================================================ */
+let favs = [];
+function loadFavs(){ try{ favs = JSON.parse(localStorage.getItem('favs')||'[]'); if(!Array.isArray(favs)) favs=[]; }catch(_){ favs=[]; } }
+function saveFavs(){ try{ localStorage.setItem('favs', JSON.stringify(favs)); }catch(_){} }
+function isFav(id){ return favs.indexOf(String(id)) > -1; }
+
+function toggleFav(id, btn){
+  const s = String(id), i = favs.indexOf(s);
+  if(i > -1){ favs.splice(i,1); notify(t('favRemoved'),'i'); }
+  else { favs.push(s); notify(t('favAdded'),'s'); }
+  saveFavs(); updateFavBadge();
+  if(btn) btn.classList.toggle('on', isFav(s));
+  /* لو كنّا داخل عرض المفضلة نُعيد الرسم */
+  if(fFav) doFilter(false);
+}
+
+function updateFavBadge(){
+  const b = document.getElementById('fdot');
+  if(!b) return;
+  b.textContent = favs.length;
+  b.style.display = favs.length ? 'flex' : 'none';
+}
+
+/* زر القلب على البطاقة */
+function makeFavBtn(id){
+  const b = document.createElement('button');
+  b.className = 'fav-btn' + (isFav(id) ? ' on' : '');
+  b.type = 'button';
+  b.title = t('favT');
+  b.setAttribute('aria-label', t('favT'));
+  b.textContent = '♥';
+  b.addEventListener('click', function(e){ e.stopPropagation(); toggleFav(id, b); });
+  return b;
+}
+
+
+/* تسجيل Service Worker — يلزم لتثبيت التطبيق على أندرويد */
+function registerSW(){
+  if(!('serviceWorker' in navigator)) return;
+  if(location.protocol !== 'https:' && location.hostname !== 'localhost') return;
+  try{
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  }catch(_){}
+}
+
+
+/* ============================================================
+   ضمانات الشراء — تطمئن الزبون قبل الطلب
+   ------------------------------------------------------------
+   تُقرأ من ورقة Settings (مفتاح trustItems) إن وُجدت،
+   وإلا تُستخدم الافتراضية من ملف اللغة.
+   الصيغة في الشيت: JSON مثل [{"i":"🛡️","t":"نص"}]
+   ============================================================ */
+function trustItems(){
+  try{
+    const raw = SETTINGS.trustItems;
+    if(raw){
+      const arr = (typeof raw === 'string') ? JSON.parse(raw) : raw;
+      if(Array.isArray(arr) && arr.length){
+        return arr.slice(0,4).map(function(x){
+          return { i: String(x.i || '✅'), t: String(x.t || '') };
+        }).filter(function(x){ return x.t; });
+      }
+    }
+  }catch(_){}
+  return [
+    { i:'🔍', t: t('trustCheck') },
+    { i:'🔄', t: t('trustReturn') },
+    { i:'💵', t: t('trustCOD') }
+  ];
+}
+
+
+/* ============================================================
+   «قد يعجبك أيضاً» — اقتراح آخر القطع بقياسات السلة
+   ------------------------------------------------------------
+   تظهر بعد الضغط على «إتمام الشراء» وقبل نافذة البيانات،
+   ولا تظهر إطلاقاً إن لم توجد مطابقات — فلا احتكاك بلا فائدة.
+   ============================================================ */
+
+/* القياسات الموجودة في السلة */
+function cartSizes(){
+  const s = new Set();
+  cart.forEach(function(i){ if(i.size) s.add(String(i.size)); });
+  return s;
+}
+
+/* الفئات العمرية التي تغطيها السلة */
+function cartAgeKeys(){
+  const szs = cartSizes();
+  const out = new Set();
+  AGE_GROUPS.forEach(function(g){
+    if(g.sizes.some(function(s){ return szs.has(String(s)); })) out.add(g.key);
+  });
+  return out;
+}
+
+function suggestions(limit){
+  const max   = limit || 6;
+  const szs   = cartSizes();
+  const ages  = cartAgeKeys();
+  const inCart = new Set(cart.map(function(i){ return String(i.id); }));
+
+  /* المرشّحون: آخر قطعة فقط، وليست في السلة، ومتوفرة */
+  const pool = allData.filter(function(it){
+    if(inCart.has(String(it.Id))) return false;
+    const s = parseSizes(it.sizes);
+    return s.length === 1;
+  });
+
+  /* الأولى: مطابقة القياس تماماً */
+  const exact = pool.filter(function(it){
+    return szs.has(String(parseSizes(it.sizes)[0]));
+  });
+
+  /* الثانية (تكملة فقط): نفس الفئة العمرية */
+  const near = pool.filter(function(it){
+    if(exact.indexOf(it) > -1) return false;
+    return agesOf(it).some(function(k){ return ages.has(k); });
+  });
+
+  const byPrice = function(a,b){
+    return discPrice(parseFloat(a.price), itemPctRange(a).max) -
+           discPrice(parseFloat(b.price), itemPctRange(b).max);
+  };
+  exact.sort(byPrice); near.sort(byPrice);
+
+  return exact.concat(near).slice(0, max).map(function(it){
+    return { item: it, exact: exact.indexOf(it) > -1 };
+  });
+}
+
+/* بناء الشاشة وفتحها — تُرجع true إن ظهرت */
+function showSuggest(){
+  const list = suggestions(6);
+  if(!list.length) return false;
+
+  const box = document.getElementById('sgList');
+  const ov  = document.getElementById('sgOv');
+  if(!box || !ov) return false;
+
+  const ttl = document.getElementById('sgTitle');
+  const sub = document.getElementById('sgSub');
+  const go  = document.getElementById('sgGo');
+  if(ttl) ttl.textContent = t('sgTitle');
+  if(sub) sub.textContent = t('sgSub');
+  if(go)  go.textContent  = t('sgGo');
+
+  box.innerHTML = '';
+  list.forEach(function(x){
+    const it   = x.item;
+    const sz   = parseSizes(it.sizes)[0];
+    const orig = parseFloat(it.price);
+    const pct  = discPctFor(it, sz);
+    const pr   = discPrice(orig, pct);
+    const age  = L[lang]['s'+sz] || '';
+
+    const c = document.createElement('div'); c.className = 'sg-card';
+    c.innerHTML =
+      '<div class="sg-img"><img loading="lazy" decoding="async" alt="'+sanitize(String(it.Id))+'">'+
+        '<span class="sg-last">'+sanitize(t('lastSize'))+'</span></div>'+
+      '<div class="sg-body">'+
+        '<div class="sg-sz">'+sanitize(String(sz))+(age ? ' · '+sanitize(age) : '')+'</div>'+
+        '<div class="sg-pr"><b>'+pr.toLocaleString()+'</b>'+
+          '<s>'+orig.toLocaleString()+'</s></div>'+
+      '</div>'+
+      '<button class="sg-add">+ '+sanitize(t('addCart'))+'</button>';
+
+    const im = c.querySelector('img');
+    im.src = safeImgSrc(it.picture, true);
+    im.dataset.full = safeImgSrc(it.picture);
+    im.onerror = function(){
+      if(this.dataset.full && this.src !== this.dataset.full){ this.src = this.dataset.full; return; }
+      this.src = PLACEHOLDER;
+    };
+
+    c.querySelector('.sg-add').addEventListener('click', function(e){
+      e.stopPropagation();
+      addToCart(it.Id, sz, orig, pr, pct);
+      c.classList.add('added');
+      const btn = c.querySelector('.sg-add');
+      btn.textContent = '✓ ' + t('cartAdded');
+      btn.disabled = true;
+      updateSuggestTotal();
+    });
+    box.appendChild(c);
+  });
+
+  updateSuggestTotal();
+  ov.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  return true;
+}
+
+function updateSuggestTotal(){
+  const el = document.getElementById('sgTot');
+  if(!el) return;
+  const sum = cartSum() + calcShip(cart);
+  el.innerHTML = '<span>'+sanitize(t('tot'))+'</span><b>'+sum.toLocaleString()+' '+sanitize(t('dinar'))+'</b>';
+}
+
+function closeSuggest(){
+  const ov = document.getElementById('sgOv');
+  if(ov) ov.classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 /* ==================== HELPERS ==================== */
 function parseSizes(s){ if(!s&&s!==0) return []; if(typeof s==='number') return [String(s)]; if(Array.isArray(s)) return s.map(x=>String(x).trim()).filter(Boolean); return String(s).split(/[-,،\s]+/).map(x=>x.trim()).filter(x=>x&&!isNaN(x)); }
-function getSzLbl(sz){ const k='s'+sz; return L[lang][k] ? sz+'('+L[lang][k]+')' : sz; }
+function getSzLbl(sz){ const k='s'+sz; return L[lang][k] ? sz+' ('+L[lang][k]+')' : sz; }
 
 /* ==================== SWIPE TO DELETE ==================== */
 function addSwipe(el,onDelete){
@@ -646,6 +1490,9 @@ function renderAll(){
   const bar = document.getElementById('offlineBar');
   if(bar) bar.classList.remove('show');
   addJsonLD(allData); updateFilterCounts(); doFilter(false);
+  /* نُثبّت بصمة البيانات هنا، وإلّا رأى التحديث التلقائي أول مرة
+     أن «كل شيء تغيّر» فأعاد الرسم بلا سبب بعد 25 ثانية من الدخول */
+  seedDataHash();
   cleanCart(false);
 }
 
@@ -662,6 +1509,7 @@ function useCachedProducts(){
     const bar = document.getElementById('offlineBar');
     if(bar) bar.classList.add('show');
     updateFilterCounts(); doFilter(false);
+    seedDataHash();
     return true;
   }catch(_){ showError(); return false; }
 }
@@ -684,12 +1532,12 @@ async function fetchData(){
     allData=await r.json();
     localStorage.setItem('pc',JSON.stringify({d:allData,ts:Date.now()}));
     document.getElementById('offlineBar').classList.remove('show');
-    addJsonLD(allData); updateFilterCounts(); doFilter(false);
+    addJsonLD(allData); updateFilterCounts(); doFilter(false); seedDataHash();
     cleanCart(false); // حذف ما نفد من السلة وتنبيه الزبون
   }catch(e){
     try{
       const c=localStorage.getItem('pc');
-      if(c){ const parsed=JSON.parse(c); allData=parsed.d||parsed; const age=parsed.ts?Math.round((Date.now()-parsed.ts)/60000):0; document.getElementById('offlineTxt').textContent=t('offline')+(age>0?' ('+age+' min)':''); document.getElementById('offlineBar').classList.add('show'); updateFilterCounts(); doFilter(false); }
+      if(c){ const parsed=JSON.parse(c); allData=parsed.d||parsed; const age=parsed.ts?Math.round((Date.now()-parsed.ts)/60000):0; document.getElementById('offlineTxt').textContent=t('offline')+(age>0?' ('+age+' min)':''); document.getElementById('offlineBar').classList.add('show'); updateFilterCounts(); doFilter(false); seedDataHash(); }
       else showError();
     }catch(_){ showError(); }
   }
@@ -714,8 +1562,12 @@ function createCard(item){
   const mixed=rng.min!==rng.max;                  // تختلف الأسعار داخل الموديل؟
   const disc=priceLo;
   const clear=isClearance(item);
-  const imgSrc=safeImgSrc(item.picture);
+  const imgSrc=safeImgSrc(item.picture, true);   /* مصغّرة للبطاقة */
+  const imgFull=safeImgSrc(item.picture);        /* الأصل للتكبير */
   const card=document.createElement('div'); card.className='pcard';
+  /* بصمة البطاقة — يستعملها التحديث التلقائي ليُحدّث ما تغيّر وحده */
+  card.dataset.id  = String(item.Id);
+  card.dataset.sig = String(item.sizes||'') + '|' + String(item.price||'');
   // Badges
   const badges=document.createElement('div'); badges.className='cbadges';
   const bdis=document.createElement('span');
@@ -726,10 +1578,24 @@ function createCard(item){
   badges.appendChild(bdis);
   if(isLast){ const bl=document.createElement('span'); bl.className='badge blast'; bl.textContent=t('lastSize'); badges.appendChild(bl); }
   if(isCheapItem(item)){ const bs=document.createElement('span'); bs.className='badge bspecial'; bs.textContent='⭐ '+t('specialTag'); badges.appendChild(bs); }
+  /* شارة الجنس — تساعد الأم على التمييز بنظرة */
+  const _g = genderOf(item);
+  if(_g==='girls' || _g==='boys'){
+    const bg=document.createElement('span');
+    bg.className='badge bgen '+(_g==='girls'?'bgen-g':'bgen-b');
+    bg.textContent=(_g==='girls'?'👧 ':'👦 ')+t(_g==='girls'?'catGirls':'catBoys');
+    badges.appendChild(bg);
+  }
   // Wish
   // Image
   const iw=document.createElement('div'); iw.className='cimg-w'; iw.appendChild(badges);
-  const img=document.createElement('img'); img.className='cimg'; img.src=imgSrc; img.alt=String(item.Id); img.loading='lazy'; img.decoding='async'; img.fetchPriority='low'; img.onerror=function(){this.src=PLACEHOLDER;}; img.addEventListener('click',function(){openLB(this.src, item.Id, disc);}); iw.appendChild(img);
+  iw.appendChild(makeFavBtn(item.Id));
+  const img=document.createElement('img'); img.className='cimg'; img.src=imgSrc; img.alt=String(item.Id); img.loading='lazy'; img.decoding='async'; img.fetchPriority='low'; img.dataset.full = imgFull;
+  img.onerror = function(){
+    /* المصغّرة غير موجودة؟ نعود للأصل، ثم للصورة البديلة */
+    if(this.dataset.full && this.src !== this.dataset.full){ this.src = this.dataset.full; return; }
+    this.src = PLACEHOLDER;
+  }; iw.appendChild(img);   /* الضغط تتولاه البطاقة كلها */
   // Body
   const body=document.createElement('div'); body.className='cbody';
   // ID + copy
@@ -737,7 +1603,7 @@ function createCard(item){
   const idSpan=document.createElement('span'); idSpan.textContent='# '+item.Id;
   const cpIco=document.createElement('i'); cpIco.className='far fa-copy cid-icon';
   idEl.appendChild(idSpan); idEl.appendChild(cpIco);
-  idEl.addEventListener('click',function(){ const txt=String(item.Id); if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(()=>notify(t('copyId')+': '+txt,'i')).catch(()=>{}); } else{ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');notify(t('copyId')+': '+txt,'i');}catch(_){} document.body.removeChild(ta); } });
+  idEl.addEventListener('click',function(e){ e.stopPropagation(); const txt=String(item.Id); if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(()=>notify(t('copyId')+': '+txt,'i')).catch(()=>{}); } else{ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');notify(t('copyId')+': '+txt,'i');}catch(_){} document.body.removeChild(ta); } });
   // Prices
   const pr=document.createElement('div'); pr.className='cprices';
   const op=document.createElement('span'); op.className='pold'; op.textContent=orig.toLocaleString()+' '+t('dinar');
@@ -747,39 +1613,68 @@ function createCard(item){
     : (disc.toLocaleString()+' '+t('dinar'));
   pr.appendChild(op); pr.appendChild(np);
   // Savings
-  const sv=document.createElement('div'); sv.className='savings'; sv.textContent=t('saved')+' '+t('upTo')+' '+(orig-priceLo).toLocaleString()+' '+t('dinar')+' 💚';
-  // Size pills
-  // تسمية توضيحية فوق الحبوب
-  const pillsLbl=document.createElement('div');
-  pillsLbl.className='sz-pills-lbl';
-  pillsLbl.textContent='👇 ' + t('tapSizeToAdd');
-  const pills=document.createElement('div'); pills.className='sz-pills';
-  sizes.forEach(sz=>{
-    const szPct=discPctFor(item,sz), szPrice=discPrice(orig,szPct);
-    const p=document.createElement('button');
-    p.className='sz-pill'+(mixed && szPct>rng.min ? ' sz-best' : '');
-    if(mixed){
-      p.innerHTML='<span class="szp-lbl">'+sanitize(getSzLbl(sz))+'</span>'+
-                  '<span class="szp-price">'+szPrice.toLocaleString()+'</span>';
-    } else {
-      p.textContent=getSzLbl(sz);
-    }
-    p.addEventListener('click',()=>addToCart(item.Id,sz,orig,szPrice,szPct));
-    pills.appendChild(p);
+  /* القياسات المتوفرة بأرقامها — الأم تعرف قياس طفلها فتوفّر فتح البطاقة.
+     البطاقة ضيّقة، فنعرض أول أربعة ونختصر الباقي بـ«+N». */
+  const szc=document.createElement('div'); szc.className='cszc';
+  /* ميزانية حروف بدل عدد ثابت: الأرقام الثلاثية (100+) أعرض من
+     الثنائية، فلو ثبّتنا العدد انقصّ الصف على الشاشات الضيّقة. */
+  const SZ_BUDGET = 20;   /* مُعايَرة تجريبياً: صفر قصّ من 320 إلى 430px */
+
+  /* عند تفعيل فلتر العمر نُقدّم قياساته — فلا تُزاح خلف «+N» */
+  let _match = [];
+  if(fAgeSet.size){ fAgeSet.forEach(function(k){ _match = _match.concat(sizesInAge(k)); }); }
+  const ordered = _match.length
+      ? sizes.slice().sort(function(a,b){
+          const ia = _match.indexOf(String(a)) > -1 ? 0 : 1;
+          const ib = _match.indexOf(String(b)) > -1 ? 0 : 1;
+          return ia - ib;   /* المطابق أولاً، والترتيب الأصلي محفوظ داخل كل مجموعة */
+        })
+      : sizes;
+
+  let shown = [], used = 0;
+  for(let k = 0; k < ordered.length; k++){
+    const s = ordered[k];
+    const add = String(s).length + (shown.length ? 3 : 0);   // 3 = ' · '
+    /* نحجز مكان «+N» حين يبقى غيرُه، وإلا نزل لسطر ثانٍ وأطال البطاقة */
+    const tail = (k < ordered.length - 1) ? 3 : 0;
+    if(used + add + tail > SZ_BUDGET && shown.length) break;
+    shown.push(s); used += add;
+  }
+  const rest = ordered.length - shown.length;
+
+  /* الأرقام والزائد بـdir=ltr وإلا عُرض «+2» كـ«2+» في العربية */
+  const html = shown.map(function(s){
+    const on = _match.indexOf(String(s)) > -1;
+    return on ? '<b class="szhit">' + sanitize(String(s)) + '</b>' : sanitize(String(s));
+  }).join(' · ');
+  szc.innerHTML = '<span class="szl" dir="ltr">' + html + '</span>' +
+      (rest > 0 ? '<span class="szmore" dir="ltr">+' + rest + '</span>' : '');
+  szc.title = t('sizes') + ': ' + sizes.join(' · ');
+  body.appendChild(pr); body.appendChild(szc); body.appendChild(idEl);
+  /* البطاقة كلها تفتح صفحة المنتج — لا الصورة وحدها.
+     القلب ونسخ الكود يوقفان الانتشار بأنفسهما. */
+  card.classList.add('tappable');
+  card.setAttribute('role','button');
+  card.setAttribute('tabindex','0');
+  card.addEventListener('click', function(){ openProduct(item.Id); });
+  card.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openProduct(item.Id); }
   });
-  // زر إضافة للسلة الواضح - يفتح نافذة اختيار القياس
-  // Share button removed - card actions limited to size pills only
-  /* خامة القماش */
-  const fab=document.createElement('div'); fab.className='cfabric';
-  fab.innerHTML='<i class="fas fa-tshirt"></i> <span>'+sanitize(getFabric(item))+'</span>';
-  body.appendChild(idEl); body.appendChild(fab); body.appendChild(pr); body.appendChild(sv); body.appendChild(pillsLbl); body.appendChild(pills);
+
   card.appendChild(iw); card.appendChild(body);
   return card;
 }
 function displayProducts(arr){
   const cont=document.getElementById('prodCont');
   const filtered=arr.filter(i=>parseSizes(i.sizes).length>0);
-  document.getElementById('rcount').textContent=filtered.length+' '+t('res');
+  /* العداد يظهر فقط عند وجود فلتر أو بحث — وإلا فهو ضجيج */
+  const _rc = document.getElementById('rcount');
+  if(_rc){
+    const _q = (document.getElementById('searchIn')||{}).value || '';
+    const _active = !!(_q.trim() || fSea || fTyp || fGenSet.size || fAgeSet.size || fFav);
+    _rc.textContent = filtered.length + ' ' + t('res');
+    _rc.classList.toggle('show', _active);
+  }
   cont.innerHTML='';
   if(!filtered.length){ const n=document.createElement('div'); n.className='nores'; n.innerHTML='<i class="fas fa-search"></i>'; n.appendChild(document.createTextNode(t('noRes'))); cont.appendChild(n); return; }
   const grid=document.createElement('div'); grid.className='pgrid';
@@ -800,7 +1695,8 @@ if(_ckCopyLblEl) _ckCopyLblEl.textContent=t('copyBtn');
 /* ==================== CART ==================== */
 function loadCart(){ cart=JSON.parse(localStorage.getItem('ct')||'[]'); updateCartBadge(); }
 function saveCart(){ localStorage.setItem('ct',JSON.stringify(cart)); }
-function updateCartBadge(){ const dot=document.getElementById('cdot'); dot.textContent=cart.length; dot.classList.toggle('show',cart.length>0); }
+function updateCartBadge(){
+  try{ updateShipBar(); }catch(_){} const dot=document.getElementById('cdot'); dot.textContent=cart.length; dot.classList.toggle('show',cart.length>0); }
 function bounceCart(){ const w=document.querySelector('#bnCart .cnav-wrap'); if(w){w.classList.remove('cart-bounce');void w.offsetWidth;w.classList.add('cart-bounce');} }
 
 
@@ -867,7 +1763,7 @@ function renderCart(){
     const prod=allData.find(p=>String(p.Id)===String(item.id));
     const available = isItemAvailable(item);
     const div=document.createElement('div'); div.className='ci' + (available ? '' : ' ci-unavailable');
-    const img=document.createElement('img'); img.className='ci-img'; img.loading='lazy'; img.decoding='async'; img.src=safeImgSrc(prod&&prod.picture?prod.picture:''); img.alt='';
+    const img=document.createElement('img'); img.className='ci-img'; img.loading='lazy'; img.decoding='async'; img.src=safeImgSrc(prod&&prod.picture?prod.picture:'', true); img.alt='';
     const info=document.createElement('div'); info.className='ci-info';
     const ciId=document.createElement('div'); ciId.className='ci-id'; ciId.textContent='# '+item.id;
     const ciSz=document.createElement('div'); ciSz.className='ci-sz'; ciSz.textContent='Q: '+item.size;
@@ -1162,6 +2058,25 @@ async function saveOrderToGAS(orderData) {
 document.getElementById('checkoutBtn').addEventListener('click',async()=>{
   if(!cart.length){notify(t('cartEmpty'),'w');return;}
   closeSheets();
+  /* اقتراحات آخر القطع — تُتخطّى تلقائياً إن لم توجد مطابقات */
+  if(showSuggest()) return;
+  openCheckoutForm();
+});
+
+/* زر «متابعة الطلب» في شاشة الاقتراحات */
+document.getElementById('sgGo').addEventListener('click', function(){
+  closeSuggest();
+  openCheckoutForm();
+});
+document.getElementById('sgClose').addEventListener('click', function(){
+  closeSuggest();
+  openCheckoutForm();
+});
+document.getElementById('sgOv').addEventListener('click', function(e){
+  if(e.target === e.currentTarget){ closeSuggest(); openCheckoutForm(); }
+});
+
+function openCheckoutForm(){
   ['ckTitle','ckConfirmLbl','ckNote','ckCancel'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.textContent=t({ckTitle:'ckTitle',ckConfirmLbl:'confirmOrder',ckNote:'orderNoteNew',ckCancel:'back'}[id]);
   });
@@ -1174,7 +2089,7 @@ document.getElementById('checkoutBtn').addEventListener('click',async()=>{
       metaInitiateCheckout(cart, cv+calcShip(cart));
     }
   }catch(_){}
-});
+}
 function closeCheckout(){ document.getElementById('ckOv').classList.remove('open'); document.body.style.overflow=''; }
 document.getElementById('ckCancel').addEventListener('click',closeCheckout);
 document.getElementById('ckOv').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCheckout();});
@@ -1203,22 +2118,32 @@ function closeTrack(){
   document.getElementById('trackSheet').classList.remove('open');
   document.getElementById('shOv').classList.remove('open');
   document.body.style.overflow='';
-  setNavActive('bnHome');
+  navRestore();
 }
 
 async function trackOrder(){
   const inp = document.getElementById('trackIn');
   const box = document.getElementById('trackResult');
   if(!inp || !box) return;
-  const oid = inp.value.trim();
+  let oid = inp.value.trim();
   if(!oid){ notify(t('enterOrderId'),'w'); return; }
+
+  /* الزبون قد يكتب رقم هاتفه بدل رقم الطلب الطويل */
+  const digits = oid.replace(/[٠-٩]/g, n=>'٠١٢٣٤٥٦٧٨٩'.indexOf(n)).replace(/[^\d]/g,'');
+  const isPhone = /^(07\d{9}|7\d{9}|9647\d{9})$/.test(digits);
+  const qs = isPhone
+      ? 'action=trackOrder&phone=' + encodeURIComponent(digits)
+      : 'action=trackOrder&orderId=' + encodeURIComponent(oid);
 
   box.innerHTML = '<div class="tr-loading">🔄 '+t('loading')+'</div>';
   try{
-    const r = await fetch(API+'?action=trackOrder&orderId='+encodeURIComponent(oid), {cache:'no-store'});
+    const r = await fetch(API+'?'+qs, {cache:'no-store'});
     const d = await r.json();
     if(!d.success){
-      box.innerHTML = '<div class="tr-notfound">❌ '+t('orderNotFound')+'</div>';
+      /* البحث بالهاتف يحتاج دعماً في السكربت؛ فإن لم يُدعَم نوجّه
+         الزبون لرقم الطلب بدل أن يظن الموقع معطّلاً */
+      box.innerHTML = '<div class="tr-notfound">❌ ' +
+        sanitize(isPhone ? t('trackPhoneHint') : t('orderNotFound')) + '</div>';
       return;
     }
     renderTrackResult(d);
@@ -1294,6 +2219,8 @@ if(_trackIn) _trackIn.addEventListener('keydown', e=>{ if(e.key==='Enter') track
 /* ==================== ORDER SUCCESS + TRACKING ==================== */
 /* نافذة نجاح الطلب — تعرض رقم الطلب وتنسخه تلقائياً */
 function showOrderSuccess(orderId){
+  /* نحفظه ليملأ خانة التتبّع تلقائياً في الزيارة القادمة */
+  try{ if(orderId) localStorage.setItem('lastOrder', String(orderId)); }catch(_){}
   // محاولة نسخ تلقائي (قد تفشل في بعض المتصفحات — لدينا زر يدوي)
   copyOrderId(orderId, true);
 
@@ -1379,7 +2306,8 @@ async function submitOrder(){
   const orderId = 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2,6).toUpperCase();
   const name=document.getElementById('ckName').value.trim().slice(0,80);
   const phone=normalizeIraqiPhone(document.getElementById('ckPhone').value);
-  const addr=document.getElementById('ckAddr').value.trim().slice(0,300);
+  const _gov2=(document.getElementById('ckGov')||{}).value||'';
+  const addr=((_gov2? _gov2+' - ':'')+document.getElementById('ckAddr').value.trim()).slice(0,300);
   const notesEl=document.getElementById('ckNotes');
   const notes=notesEl ? notesEl.value.trim().slice(0,200) : '';
   if(!name){notify(t('namePh')+' '+t('no'),'w');return;}
@@ -1424,7 +2352,7 @@ async function submitOrder(){
       if (Array.isArray(freshData) && freshData.length > 0) {
         allData = freshData;
         localStorage.setItem('pc', JSON.stringify({d:allData, ts:Date.now()}));
-        updateFilterCounts(); doFilter(false);
+        updateFilterCounts(); doFilter(false); seedDataHash();
       }
     }
   } catch(_) { /* فشل التحديث — نكمل بالبيانات الحالية */ }
@@ -1536,9 +2464,7 @@ document.getElementById('ckConfirm').addEventListener('click',()=>submitOrder())
 
 /* ==================== PWA ==================== */
 function setupPWA(){
-  const m={name:'متجر جود العباس',short_name:'جود العباس',start_url:'./',display:'standalone',background_color:'#1565C0',theme_color:'#1565C0',lang:'ar',icons:[{src:'https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png',sizes:'192x192',type:'image/png'},{src:'https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png',sizes:'512x512',type:'image/png'}]};
-  const blob=new Blob([JSON.stringify(m)],{type:'application/json'});
-  document.getElementById('pwaManifest').href=URL.createObjectURL(blob);
+  /* الـmanifest صار ملفاً ثابتاً (/manifest.json) — blob لا يعمل على أندرويد */
 }
 let _pwaEvt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();_pwaEvt=e;});
@@ -1606,7 +2532,7 @@ function showPWAInstallModal(){
 function closePWAModal(){
   document.getElementById('pwaInstallModal').classList.remove('open');
   document.body.style.overflow='';
-  setNavActive('bnHome');
+  navRestore();
 }
 document.getElementById('pwaModalClose').addEventListener('click',closePWAModal);
 document.getElementById('pwaInstallModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePWAModal();});
@@ -1620,9 +2546,11 @@ function showTutorial(){
   const next=document.getElementById('tutNext');
   const skip=document.getElementById('tutSkip');
   const dotsEl=document.getElementById('tutDots');
-  const steps=()=>L[lang].tut;
+  const steps=tutSteps;
   function buildDots(){ dotsEl.innerHTML=''; steps().forEach((_,i)=>{const d=document.createElement('div');d.className='tut-dot'+(i===step?' on':'');dotsEl.appendChild(d);}); }
-  function show(s){ step=s; document.getElementById('tutTxt').innerHTML=steps()[s]; document.getElementById('tutStep').textContent=(s+1)+' / '+steps().length; next.textContent=s<steps().length-1?'التالي':t('fpClose'); buildDots(); }
+  /* نُعيد الاستعلام عن الزر: النسخة الأصلية تُستبدل بنسخة منها أدناه
+     لإزالة المستمعين، فالكتابة على المتغيّر القديم لا تظهر للزبون */
+  function show(s){ step=s; document.getElementById('tutTxt').innerHTML=steps()[s]; document.getElementById('tutStep').textContent=(s+1)+' / '+steps().length; const nb=document.getElementById('tutNext'); if(nb) nb.textContent=s<steps().length-1?t('tutNext'):t('fpClose'); buildDots(); }
   // Reset listeners by cloning
   const newNext=next.cloneNode(true); next.parentNode.replaceChild(newNext,next);
   const newSkip=skip.cloneNode(true); skip.parentNode.replaceChild(newSkip,skip);
@@ -1633,11 +2561,92 @@ function showTutorial(){
 }
 function initTutorial(){ if(!localStorage.getItem('tut')) showTutorial(); }
 
-/* ==================== AUTO REFRESH ==================== */
 /* ==================== التحديث التلقائي ====================
-   كل 25 ثانية: يجلب البيانات، وإن تغيّرت يعيد رسم المنتجات
-   فتختفي البطاقات النافدة (سواء حُذف المنتج أو نفدت كل قياساته) */
+   كل 25 ثانية: يجلب البيانات، وإن تغيّرت يُحدّث البطاقات.
+
+   مهم: لا يُعاد رسم الشبكة كلها. إعادة الرسم كانت تمسح البطاقات
+   وتبنيها من جديد، فيقفز الزبون إلى أعلى الصفحة وهو يتصفّح.
+   بدلاً منها نُرقّع ما تغيّر وحده: نحذف ما نفد، ونُحدّث ما تغيّر
+   سعره أو قياساته في مكانه، ونُلحق الجديد في آخر الشبكة — فلا
+   يتزحزح شيء فوق موضع الزبون، ولا يتغيّر موضع التمرير أصلاً.
+   أمّا الترتيب فيُعاد عند أي فلترة أو بحث أو فتح جديد للموقع،
+   لا أثناء التصفّح، لئلّا تتنقّل البطاقات تحت إصبع الزبون. */
+
+function dataHash(arr){
+  return arr.map(function(x){
+    return String(x.Id)+'|'+String(x.sizes||'')+'|'+String(x.price||'');
+  }).join(';');
+}
+
 let _lastDataHash = '';
+
+/* تُستدعى بعد كل رسم كامل: تجعل التحديث التالي يقارن ببيانات
+   مرسومة فعلاً، فلا يعيد الرسم إلا عند تغيّر حقيقي */
+function seedDataHash(){
+  try{ _lastDataHash = dataHash(allData); }catch(_){}
+}
+
+/* يُحدّث الشبكة في مكانها. يُرجع false إن تعذّر، فيُعاد الرسم كاملاً. */
+function patchGrid(){
+  const grid = document.querySelector('#prodCont .pgrid');
+  if(!grid) return false;              /* لا شبكة: هيكل تحميل أو خطأ أو «لا نتائج» */
+
+  const want = filteredSorted().filter(function(i){ return parseSizes(i.sizes).length > 0; });
+  if(!want.length) return false;       /* صار بلا نتائج: دع الرسم الكامل يُظهر الرسالة */
+
+  const byId = new Map();
+  want.forEach(function(p){ byId.set(String(p.Id), p); });
+
+  /* ① ما نفد: لا نحذفه الآن. حذف بطاقة يزحف بكل ما بعدها صفاً كاملاً
+     تحت إصبع الزبون. نُعلّمها «نفد» في مكانها فلا يتحرّك شيء، وتختفي
+     فعلياً عند أول فلترة أو بحث أو فتح جديد للموقع. */
+  const seen = new Set();
+  Array.from(grid.children).forEach(function(card){
+    const id = card.dataset.id;
+    if(!id) return;
+    const p = byId.get(id);
+    if(!p){
+      /* نفد فعلاً (اختفى أو خلا من القياسات)؟ نُعلّمه. أمّا لو خرج من
+         الفلتر الحالي وهو متوفر فنتركه كما هو — يصحّحه أول رسم كامل. */
+      const still = allData.find(function(x){ return String(x.Id)===id; });
+      if(!still || parseSizes(still.sizes).length===0) markSoldOut(card);
+      return;
+    }
+    seen.add(id);
+    if(card.classList.contains('soldout')) card.replaceWith(createCard(p));  /* عاد للتوفّر */
+    /* ② تحديث ما تغيّر سعره أو قياساته — في موضعه نفسه */
+    else {
+      const sig = String(p.sizes||'') + '|' + String(p.price||'');
+      if(card.dataset.sig !== sig) card.replaceWith(createCard(p));
+    }
+  });
+
+  /* ③ إلحاق الجديد في الآخر — لا يزحزح ما فوقه */
+  const add = want.filter(function(p){ return !seen.has(String(p.Id)); });
+  if(add.length){
+    const frag = document.createDocumentFragment();
+    add.forEach(function(p){ frag.appendChild(createCard(p)); });
+    grid.appendChild(frag);
+  }
+
+  /* ④ عدّاد النتائج — لا يَعُدّ ما نفد */
+  const rc = document.getElementById('rcount');
+  if(rc) rc.textContent = grid.querySelectorAll('.pcard:not(.soldout)').length + ' ' + t('res');
+  return true;
+}
+
+/* تُعلَّم البطاقة «نفد» في مكانها: لا تُفتح ولا تُشترى، ولا تزحزح جارتها */
+function markSoldOut(card){
+  if(card.classList.contains('soldout')) return;
+  card.classList.add('soldout');
+  card.removeAttribute('role');
+  card.removeAttribute('tabindex');
+  card.classList.remove('tappable');
+  const tag = document.createElement('span');
+  tag.className = 'so-tag';
+  tag.textContent = t('soldOut');
+  card.appendChild(tag);
+}
 
 setInterval(async()=>{
   try{
@@ -1647,9 +2656,7 @@ setInterval(async()=>{
     if(!Array.isArray(newData) || newData.length===0) return;
 
     /* بصمة البيانات: المعرّف + القياسات + السعر — تكشف أي تغيير */
-    const hash = newData.map(x =>
-      String(x.Id)+'|'+String(x.sizes||'')+'|'+String(x.price||'')
-    ).join(';');
+    const hash = dataHash(newData);
 
     document.getElementById('offlineBar').classList.remove('show');
     localStorage.setItem('pc', JSON.stringify({d:newData, ts:Date.now()}));
@@ -1661,11 +2668,18 @@ setInterval(async()=>{
     addJsonLD(newData);
     updateFilterCounts();
 
-    /* إعادة رسم مع الحفاظ على موضع التمرير
-       displayProducts يستبعد تلقائياً كل منتج بلا قياسات */
-    const y = window.scrollY;
-    doFilter(false);
-    window.scrollTo(0, y);
+    /* لا نلمس الشبكة ما دامت نافذة مفتوحة فوقها (منتج أو سلة أو طلب):
+       الترقيع تحتها يربك الزبون. البيانات حُدّثت، والشكل ينتظر. */
+    const busy = !!document.querySelector('.sheet.open, .dlg-ov.open')
+              || document.body.style.overflow === 'hidden';
+
+    /* ترقيع في المكان — بلا مسح الشبكة وبلا قفزة تمرير.
+       نعيد الرسم كاملاً فقط إن تعذّر الترقيع (كأن تختفي كل النتائج). */
+    if(!busy && !patchGrid()){
+      const y = window.scrollY;
+      doFilter(false);
+      window.scrollTo(0, y);
+    }
 
     /* تنظيف السلة مما نفد */
     cleanCart(false);
@@ -1680,10 +2694,15 @@ document.addEventListener('keydown',e=>{
 
 /* ==================== INIT ==================== */
 document.addEventListener('DOMContentLoaded',()=>{
+  /* اللغة المحفوظة من زيارة سابقة */
+  try{ const _l=localStorage.getItem('lang'); if(_l && L[_l]) setLang(_l); }catch(_){}
+  registerSW();
+  loadFavs(); updateFavBadge();
   setupPWA(); startCountdown(); loadCart(); initPTR();
   initInAppBanner();
+  initShopNav(); restoreShopNav();
   if(localStorage.getItem('dk')==='1'){ document.body.classList.add('dark'); document.getElementById('darkBtn').innerHTML='<i class="fas fa-sun"></i>'; }
-  document.getElementById('promoX').addEventListener('click',()=>document.getElementById('promoBanner').style.display='none');
-  bootstrap();
+  initPromoChip();
+  bootstrap().then(openProductFromURL).catch(openProductFromURL);
   setTimeout(initTutorial,500);
 });

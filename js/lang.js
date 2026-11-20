@@ -4,6 +4,16 @@
 /* ==================== TRANSLATIONS ==================== */
 const L = {
   ar:{
+    ageMany:'أعمار',pkDone:'عرض النتائج',soldOut:'نفد',hide:'إخفاء',tutNext:'التالي',
+    sgTitle:'قد يعجبك أيضاً ✨',sgSub:'آخر القطع المتوفرة بنفس قياسات سلتك',sgGo:'متابعة الطلب ←',
+    trackPhoneHint:'لم نجد طلباً بهذا الرقم — جرّب رقم الطلب (ORD-...) أو راسلنا على واتساب',
+    trustCheck:'افحص القطعة قبل الاستلام',trustReturn:'تبديل أو إرجاع مع المندوب',trustCOD:'الدفع عند الاستلام',
+    szOne:'قياس متوفر',szMany:'قياسات متوفرة',
+    favT:'المفضلة',navFav:'مفضلة',favAdded:'أُضيف للمفضلة ♥',favRemoved:'أُزيل من المفضلة',favEmpty:'لا مفضلة بعد — اضغط ♥ على أي منتج',
+    freeShipNeed:'أضف {n} قطعة وتحصل على التوصيل المجاني!',freeShipWon:'حصلت على التوصيل المجاني!',
+    trackPh:'رقم هاتفك أو رقم الطلب',govPh:'— اختر المحافظة —',addrPh2:'المنطقة وأقرب نقطة دالة...',codNote:'الدفع عند الاستلام',
+    fabricLbl:'الخامة',askAbout:'استفسار عن الموديل',askBtn:'استفسر',linkCopied:'نُسخ الرابط ✅',prodTitle:'المنتج',
+    catAll:'الكل',catBoys:'ولادي',catGirls:'بناتي',ageAll:'كل الأعمار',ageBaby:'0-10 شهر',ageToddler:'1-2 سنة',ageKid:'3-5 سنوات',ageBig:'6-9 سنوات',ageTeen:'10+ سنة',genLbl:'القسم',ageLbl:'عمر الطفل',
     dir:'rtl',
     specialTag:'مميزة',specialOn:'خصم مميز مُفعّل',specialOff:'الخصم غير مُفعّل',specialWon:'حصلت على الخصم المميز!',specialWonSub:'{n} قطعة مميزة بأفضل سعر',specialAlmost:'أضف {n} قطعة من الموديلات الأخرى',specialSave:'لتوفير {amt} دينار على القطع المميزة ⭐',
     hTitle:'متجر جود العباس',hSub:'Jood ALabbas Store',
@@ -31,7 +41,7 @@ const L = {
     yes:'نعم',no:'إلغاء',
     sentQ:'هل تم إرسال رسالة الطلب بنجاح؟',sentY:'نعم، تم الإرسال',sentN:'لم يتم الإرسال',
     clrAfQ:'هل تريد تفريغ السلة الآن؟',clrAY:'نعم، أفرغها',clrAN:'لا، أبقِها',
-    footer:'© 2025 متجر جود العباس — جميع الحقوق محفوظة',
+    footer:'© 2026 متجر جود العباس — جميع الحقوق محفوظة',
     navHome:'رئيسية',navSearch:'بحث',navCart:'سلتي',navWish:'مفضلة',navContact:'تواصل',
     fpTitle:'📏 شرح القياسات',fpClose:'إغلاق',
     pwaTxt:'📲 ثبّت التطبيق على هاتفك!',pwaInst:'تثبيت',pwaSkip:'لاحقاً',
@@ -40,10 +50,10 @@ const L = {
     s80:'1 سنة',s90:'2 سنة',s100:'3 سنوات',s110:'4 سنوات',s120:'4-5 سنوات',
     s130:'6-7 سنوات',s140:'8-9 سنوات',s150:'10-11 سنة',s160:'12-13 سنة',s170:'14-15 سنة',
     tut:[
-'📏 شرح القياسات\nاضغط على زر المسطرة الأحمر 📐 في أسفل يمين الشاشة لفتح جدول القياسات ومعرفة المقاس الصحيح لعمر طفلك.',
+'👧👦 الأقسام والأعمار\nاختر «ولادي» أو «بناتي» من البطاقات أعلى الصفحة، ثم عمر طفلك من شريط الأعمار — فتظهر الموديلات المتوفرة بقياسه فقط. وزر 📏 في آخر الشريط يفتح جدول القياسات الكامل.',
 '🔍 البحث عن منتج\nاكتب رقم المنتج (ID) أو رقم القياس في مربع البحث. يمكنك أيضاً الضغط مباشرةً على رقم # أي منتج لنسخه.',
 '⚙️ الفلاتر\nاضغط زر "الفلاتر" لتصفية المنتجات حسب الموسم (صيفي / شتوي / بهاري) أو النوع (طلعة / منزلي) أو ترتيبها حسب السعر. الرقم على الزر يُظهر عدد الفلاتر النشطة.',
-'🛒 إضافة منتج للسلة\nكل منتج يُعرض قياساته كأزرار ملونة مباشرةً. اضغط على القياس المطلوب لإضافته للسلة فوراً بضغطة واحدة — بدون خطوات إضافية!',
+'🛒 إضافة منتج للسلة\nاضغط على صورة المنتج لتفتح صفحته: صورة أكبر، والخامة والموسم، وكل قياس بسعره. ثم اضغط القياس المطلوب ليُضاف للسلة. وزر ♥ يحفظ المنتج لترجع له لاحقاً.',
 '🛍️ السلة والدفع\nاضغط زر السلة 🛒 في الشريط السفلي لمراجعة طلبك.\n• اسحب أي منتج يميناً لحذفه\n• اضغط "إتمام الشراء"، أدخل اسمك ورقمك وعنوانك، ثم اضغط تأكيد الطلب.',
 '📞 التواصل\nللتواصل وعرض شبكات التواصل الاجتماعي اضغط على "تواصل" في الشريط اسفل الشاشة .',
 '🌙 الإعدادات\n• غيّر اللغة (عربي / English / کوردی) من أزرار اللغة في الهيدر\n• فعّل الوضع الداكن 🌙 من الزر بجانب اللغة\n• اسحب الصفحة للأسفل لتحديث المنتجات\n• يمكن تثبيت المتجر كتطبيق على هاتفك!'
@@ -51,6 +61,16 @@ const L = {
     copyBtn:'نسخ نص الطلب',savingOrder:'جاري تسجيل طلبك...',savingSub:'لحظة من فضلك، لا تغلق الصفحة',confirmOrder:'تأكيد الطلب',orderNoteNew:'سيتم تسجيل طلبك وسنتواصل معك قريباً',orderSuccess:'تم تسجيل طلبك بنجاح! سنتواصل معك قريباً 🎉',orderSuccessOk:'حسناً',orderFail:'تعذّر تسجيل الطلب، حاول مرة أخرى',tryAgain:'إعادة المحاولة',orderPending:'📦 يتم تأكيد وصول طلبك... قد يستغرق لحظات. يمكنك التحقق من حالته عبر تتبع الطلب.',orderPendingCheck:'تتبّع طلبي الآن',notesPh:'ملاحظات للتوصيل (اختياري)...',phoneInvalid:'⚠️ رقم الهاتف يجب أن يبدأ بـ 07 ويتكوّن من 11 رقماً',freeShip:'مجاني',freeShipHint:'أضف {n} قطعة للتوصيل المجاني!',freeShipBanner:'🎉 التوصيل مجاني عند شراء 6 قطع أو أكثر',itemsRemoved:'⚠️ نفدت بعض المنتجات وحُذفت من سلتك',itemsSoldOut:'عذراً، نفدت هذه المنتجات ولم تعد متوفرة. حُذفت من سلتك:',navTrack:'تتبع طلبي',trackShTitle:'تتبع طلبي',trIntro:'أدخل رقم الطلب لمعرفة حالته',enterOrderId:'أدخل رقم الطلب',orderNotFound:'رقم الطلب غير موجود، تأكد منه',yourOrderId:'رقم طلبك',copy:'نسخ',copied:'تم النسخ',keepOrderId:'احتفظ بهذا الرقم لمتابعة طلبك من تبويب «تتبع طلبي»',stReview:'قيد المراجعة',stReviewSub:'جاري التأكيد...',stConfirmed:'تم التأكيد',stConfirmedSub:'جاري التجهيز...',stPrepared:'تم التجهيز',stPreparedSub:'في طريقه إلى محافظتك...',stCourier:'في عهدة المندوب',stCourierSub:'جاري التسليم...',stDelivered:'تم التسليم',stDeliveredSub:'شكراً لثقتك!',stCancelled:'تم إلغاء هذا الطلب'
   },
   en:{
+    ageMany:'ages',pkDone:'Show results',soldOut:'Sold out',hide:'Hide',tutNext:'Next',
+    sgTitle:'You may also like ✨',sgSub:'Last pieces in the sizes already in your cart',sgGo:'Continue to order →',
+    trackPhoneHint:'No order found for this number — try the order number (ORD-...) or message us on WhatsApp',
+    trustCheck:'Inspect before you accept',trustReturn:'Exchange or return with the courier',trustCOD:'Cash on delivery',
+    szOne:'size available',szMany:'sizes available',
+    favT:'Favorites',navFav:'Favorites',favAdded:'Added to favorites ♥',favRemoved:'Removed from favorites',favEmpty:'No favorites yet — tap ♥ on any product',
+    freeShipNeed:'Add {n} more items for free delivery!',freeShipWon:'You got free delivery!',
+    trackPh:'Your phone or order number',govPh:'— Select province —',addrPh2:'Area and nearest landmark...',codNote:'Cash on delivery',
+    fabricLbl:'Fabric',askAbout:'Question about model',askBtn:'Ask us',linkCopied:'Link copied ✅',prodTitle:'Product',
+    catAll:'All',catBoys:'Boys',catGirls:'Girls',ageAll:'All ages',ageBaby:'0-10 mo',ageToddler:'1-2 yr',ageKid:'3-5 yr',ageBig:'6-9 yr',ageTeen:'10+ yr',genLbl:'Category',ageLbl:'Child age',
     dir:'ltr',
     specialTag:'Special',specialOn:'Special price active',specialOff:'Special price inactive',specialWon:'Special discount unlocked!',specialWonSub:'{n} special item(s) at best price',specialAlmost:'Add {n} item(s) from other models',specialSave:'to save {amt} IQD on special items ⭐',
     hTitle:'Jood ALabbas Store',hSub:'متجر جود العباس',
@@ -78,7 +98,7 @@ const L = {
     yes:'Yes',no:'Cancel',
     sentQ:'Was the order message sent successfully?',sentY:'Yes, sent',sentN:'Not sent',
     clrAfQ:'Empty the cart now?',clrAY:'Yes, empty it',clrAN:'No, keep it',
-    footer:'© 2025 Jood ALabbas Store — All rights reserved',
+    footer:'© 2026 Jood ALabbas Store — All rights reserved',
     navHome:'Home',navSearch:'Search',navCart:'Cart',navWish:'Wishlist',navContact:'Contact',
     fpTitle:'📏 Size Guide',fpClose:'Close',
     pwaTxt:'📲 Install the app on your phone!',pwaInst:'Install',pwaSkip:'Later',
@@ -87,10 +107,10 @@ const L = {
     s80:'1 year',s90:'2 years',s100:'3 years',s110:'4 years',s120:'4-5 years',
     s130:'6-7 years',s140:'8-9 years',s150:'10-11 years',s160:'12-13 years',s170:'14-15 years',
     tut:[
-'📏 Size Guide\nTap the red ruler button 📐 at the bottom-left of the screen to open the size chart and find the right size for your child\'s age.',
+'👧👦 Categories & ages\nTap Boys or Girls at the top, then your child\'s age in the age bar — only models available in that size will show. The 📏 button at the end of the bar opens the full size chart.',
 '🔍 Find a Product\nType the product ID or size number in the search box. You can also tap any product\'s # number directly to copy it.',
 '⚙️ Filters\nTap the "Filters" button to filter products by season (Summer / Winter / Spring), type (Outdoor / Home), or sort by price. The number on the button shows active filters.',
-'🛒 Add to Cart\nEach product shows its sizes as colored buttons directly. Tap the size you want to add it to the cart instantly with one tap — no extra steps!',
+'🛒 Add to Cart\nTap a product image to open its page: a larger photo, fabric and season, and every size with its price. Then tap the size you want to add it to the cart. The ♥ button saves it for later.',
 '🛍️ Cart & Checkout\nTap the cart button 🛒 in the bottom bar to review your order.\n• Swipe any item left to remove it\n• Tap "Checkout", enter your name, number, and address, then tap Confirm Order.',
 '📞 Contact\nTo get in touch and view our social networks, tap "Contact" in the bottom bar.',
 '🌙 Settings\n• Change the language (عربي / English / کوردی) from the language buttons in the header\n• Enable dark mode 🌙 from the button next to the language\n• Pull the page down to refresh products\n• You can install the store as an app on your phone!'
@@ -98,6 +118,16 @@ const L = {
     copyBtn:'Copy order text',savingOrder:'Saving your order...',savingSub:'Please wait, do not close the page',confirmOrder:'Confirm Order',orderNoteNew:'Your order will be registered and we will contact you soon',orderSuccess:'Your order registered successfully! We will contact you soon 🎉',orderSuccessOk:'OK',orderFail:'Failed to register order, please try again',tryAgain:'Try Again',orderPending:'📦 Confirming your order... this may take a moment. You can check its status via order tracking.',orderPendingCheck:'Track my order now',notesPh:'Delivery notes (optional)...',phoneInvalid:'⚠️ Phone must start with 07 and be 11 digits',freeShip:'FREE',freeShipHint:'Add {n} more item(s) for free delivery!',freeShipBanner:'🎉 Free delivery on 6 items or more',itemsRemoved:'⚠️ Some items sold out and were removed from your cart',itemsSoldOut:'Sorry, these items are sold out and no longer available. Removed from your cart:',navTrack:'Track Order',trackShTitle:'Track My Order',trIntro:'Enter your order ID to check its status',enterOrderId:'Enter order ID',orderNotFound:'Order ID not found, please check it',yourOrderId:'Your Order ID',copy:'Copy',copied:'Copied',keepOrderId:'Keep this ID to track your order from the «Track Order» tab',stReview:'Under Review',stReviewSub:'Confirming...',stConfirmed:'Confirmed',stConfirmedSub:'Preparing...',stPrepared:'Prepared',stPreparedSub:'On its way to your city...',stCourier:'With Courier',stCourierSub:'Out for delivery...',stDelivered:'Delivered',stDeliveredSub:'Thank you!',stCancelled:'This order was cancelled'
   },
   ku:{
+    ageMany:'تەمەن',pkDone:'پیشاندانی ئەنجامەکان',soldOut:'تەواو بوو',hide:'شاردنەوە',tutNext:'دواتر',
+    sgTitle:'لەوانەیە حەزت لێبێت ✨',sgSub:'دوا دانەکان بە هەمان قەبارەی سەبەتەکەت',sgGo:'بەردەوامبوون ←',
+    trackPhoneHint:'هیچ داواکارییەک بەم ژمارەیە نەدۆزرایەوە — ژمارەی داواکاری تاقی بکەرەوە یان لە واتسئەپ پەیوەندیمان پێوە بکە',
+    trustCheck:'پێش وەرگرتن پشکنینی بکە',trustReturn:'گۆڕین یان گەڕاندنەوە لەگەڵ نێردراو',trustCOD:'پارەدان لە کاتی وەرگرتن',
+    szOne:'قەبارە بەردەستە',szMany:'قەبارە بەردەستن',
+    favT:'دڵخوازەکان',navFav:'دڵخواز',favAdded:'زیادکرا بۆ دڵخوازەکان ♥',favRemoved:'لابرا لە دڵخوازەکان',favEmpty:'هێشتا دڵخوازت نییە — ♥ دابگرە',
+    freeShipNeed:'{n} دانەی تر زیاد بکە بۆ گەیاندنی بێبەرامبەر!',freeShipWon:'گەیاندنی بێبەرامبەرت بەدەستهێنا!',
+    trackPh:'ژمارەی مۆبایل یان ژمارەی داواکاری',govPh:'— پارێزگا هەڵبژێرە —',addrPh2:'ناوچە و نزیکترین نیشانە...',codNote:'پارەدان لە کاتی وەرگرتن',
+    fabricLbl:'جۆری قوماش',askAbout:'پرسیار دەربارەی مۆدێل',askBtn:'پرسیار',linkCopied:'لینک کۆپی کرا ✅',prodTitle:'بەرهەم',
+    catAll:'هەموو',catBoys:'کوڕان',catGirls:'کچان',ageAll:'هەموو تەمەنەکان',ageBaby:'٠-١٠ مانگ',ageToddler:'١-٢ ساڵ',ageKid:'٣-٥ ساڵ',ageBig:'٦-٩ ساڵ',ageTeen:'١٠+ ساڵ',genLbl:'بەش',ageLbl:'تەمەنی منداڵ',
     dir:'rtl',
     specialTag:'تایبەت',specialOn:'داشکاندنی تایبەت چالاکە',specialOff:'داشکاندن ناچالاکە',specialWon:'داشکاندنی تایبەتت وەرگرت!',specialWonSub:'{n} دانەی تایبەت بە باشترین نرخ',specialAlmost:'{n} دانە لە مۆدێلەکانی تر زیاد بکە',specialSave:'بۆ پاشەکەوتکردنی {amt} دینار ⭐',
     hTitle:'فرۆشگای جود العباس',hSub:'Jood ALabbas Store',
@@ -134,10 +164,10 @@ const L = {
     s80:'١ ساڵ',s90:'٢ ساڵ',s100:'٣ ساڵ',s110:'٤ ساڵ',s120:'٤-٥ ساڵ',
     s130:'٦-٧ ساڵ',s140:'٨-٩ ساڵ',s150:'١٠-١١ ساڵ',s160:'١٢-١٣ ساڵ',s170:'١٤-١٥ ساڵ',
     tut:[
-'📏 ڕێنمایی قەبارە\nکرتە لە دوگمەی ڕەشبەڵەکی سوور 📐 لە خوارەوەی ڕاستی شاشە بکە بۆ کردنەوەی خشتەی قەبارەکان و زانینی قەبارەی دروست بۆ تەمەنی منداڵەکەت.',
+'👧👦 بەشەکان و تەمەنەکان\nلە سەرەوە «کوڕان» یان «کچان» هەڵبژێرە، پاشان تەمەنی منداڵەکەت لە شریتی تەمەنەکان — تەنها ئەو مۆدێلانە دەردەکەون کە قەبارەکەیان هەیە. دوگمەی 📏 لە کۆتایی شریتەکە خشتەی تەواو دەکاتەوە.',
 '🔍 گەڕان بۆ کاڵا\nژمارەی کاڵا (ID) یان ژمارەی قەبارە لە خانەی گەڕاندا بنووسە. هەروەها دەتوانیت ڕاستەوخۆ کرتە لە ژمارەی # هەر کاڵایەک بکەیت بۆ کۆپیکردنی.',
 '⚙️ فلتەرەکان\nکرتە لە دوگمەی "فلتەرەکان" بکە بۆ فلتەرکردنی کاڵاکان بەپێی وەرز (هاوین / زستان / بەھار) یان جۆر (دەرەوە / ماڵەوە) یان ڕیزکردنیان بەپێی نرخ. ژمارەکە لەسەر دوگمەکە ژمارەی فلتەرە چالاکەکان پیشان دەدات.',
-'🛒 زیادکردنی کاڵا بۆ سەبەتە\nهەر کاڵایەک قەبارەکانی وەک دوگمەی ڕەنگاوڕەنگ ڕاستەوخۆ پیشان دەدرێت. کرتە لە قەبارەی پێویست بکە بۆ زیادکردنی خێرا بۆ سەبەتە بە یەک کرتە — بەبێ هەنگاوی زیادە!',
+'🛒 زیادکردنی کاڵا بۆ سەبەتە\nکرتە لە وێنەی کاڵا بکە بۆ کردنەوەی لاپەڕەکەی: وێنەی گەورەتر، جۆری قوماش و وەرز، و هەر قەبارەیەک بە نرخەکەی. پاشان کرتە لە قەبارەی پێویست بکە. دوگمەی ♥ بۆ دواتر هەڵیدەگرێت.',
 '🛍️ سەبەتە و پارەدان\nکرتە لە دوگمەی سەبەتە 🛒 لە شریتی خوارەوە بکە بۆ پێداچوونەوەی داواکارییەکەت.\n• هەر کاڵایەک بەرەو ڕاست بیکێشە بۆ سڕینەوەی\n• کرتە لە "تەواوکردنی کڕین" بکە، ناو و ژمارە و ناونیشانت بنووسە، دواتر کرتە لە پشتڕاستکردنەوەی داواکاری بکە.',
 '📞 پەیوەندی\nبۆ پەیوەندیکردن و بینینی تۆڕە کۆمەڵایەتییەکان کرتە لە "پەیوەندی" لە شریتی خوارەوەی شاشە بکە.',
 '🌙 ڕێکخستنەکان\n• زمان بگۆڕە (عربي / English / کوردی) لە دوگمەکانی زمان لە سەرەوە\n• دۆخی تاریک چالاک بکە 🌙 لە دوگمەکە تەنیشت زمان\n• پەڕەکە بەرەو خوارەوە بکێشە بۆ نوێکردنەوەی کاڵاکان\n• دەتوانیت فرۆشگا وەک ئەپ لەسەر مۆبایلەکەت دابمەزرێنیت!'

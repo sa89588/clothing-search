@@ -8,13 +8,47 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="جود العباس">
-<meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta http-equiv="X-XSS-Protection" content="1; mode=block">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>متجر جود العباس</title>
-<link rel="icon" href="https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/sa89588/clothing-search/refs/heads/main/kids-clothing-store.png">
-<link rel="manifest" id="pwaManifest">
+<title>متجر جود العباس — ملابس أطفال</title>
+<!-- ===== معاينة الرابط عند المشاركة (واتساب · فيسبوك · تليجرام) ===== -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="متجر جود العباس">
+<meta property="og:locale" content="ar_IQ">
+<meta property="og:title" content="متجر جود العباس — ملابس أطفال">
+<meta property="og:description" content="ملابس أطفال قطنية 100% بأسعار مميزة · الدفع عند الاستلام · توصيل لكل العراق">
+<meta property="og:image" content="https://jasotre.com/icons/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:url" content="https://jasotre.com/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="متجر جود العباس — ملابس أطفال">
+<meta name="twitter:description" content="ملابس أطفال قطنية 100% بأسعار مميزة · الدفع عند الاستلام">
+<meta name="twitter:image" content="https://jasotre.com/icons/icon-512.png">
+<link rel="canonical" href="https://jasotre.com/">
+
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<link rel="manifest" href="/manifest.json">
+<script>
+/* ===== حارس المعاينة =====
+   يعطّل بكسل ميتا على أي نطاق غير نطاق المتجر الحقيقي،
+   فلا تتلوّث بيانات إعلاناتك من نسخ التجربة. */
+(function(){
+  var isProd = /(^|\.)jasotre\.com$/i.test(location.hostname);
+  if(isProd) return;
+  window.__PREVIEW__ = true;
+  window.fbq = function(){};            /* استدعاءات البكسل تصبح بلا أثر */
+  window._fbq = window.fbq;
+  document.addEventListener('DOMContentLoaded', function(){
+    var b = document.createElement('div');
+    b.textContent = '🧪 نسخة تجريبية — البكسل معطّل';
+    b.style.cssText = 'position:fixed;bottom:0;inset-inline-start:0;z-index:99999;'+
+      'background:#7c3aed;color:#fff;font:700 10.5px/1 system-ui,sans-serif;'+
+      'padding:5px 9px;border-start-end-radius:8px;opacity:.9;pointer-events:none';
+    document.body.appendChild(b);
+  });
+})();
+</script>
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','2514076832364278');fbq('track','PageView');
@@ -69,47 +103,64 @@ fbq('init','2514076832364278');fbq('track','PageView');
 <!-- OFFLINE BANNER -->
 <div class="offline-bar" id="offlineBar"><span id="offlineTxt">بيانات محفوظة</span></div>
 
-<!-- PROMO BANNER -->
-<div class="promo" id="promoBanner">
-  🎉 <b id="promoTxt">خصم 40% — و50% على آخر القطع! ينتهي خلال:</b>
-  <span class="cd"><span class="cdu" id="cdH">00</span><span class="cdsep">:</span><span class="cdu" id="cdM">00</span><span class="cdsep">:</span><span class="cdu" id="cdS">00</span></span>
-  <button class="promo-x" id="promoX">✕</button>
+<!-- ===== شارة العرض — عائمة ثابتة، لا تزاحم المنتجات ===== -->
+<div class="promo-chip" id="promoBanner">
+  <button class="pc-main" id="promoOpen">
+    <span class="pc-ico">🎉</span>
+    <span class="pc-body">
+      <span class="pc-txt" id="promoTxt">خصم يصل إلى 50%</span>
+      <span class="cd"><span class="cdu" id="cdH">00</span><span class="cdsep">:</span><span class="cdu" id="cdM">00</span><span class="cdsep">:</span><span class="cdu" id="cdS">00</span></span>
+    </span>
+  </button>
+  <button class="pc-x" id="promoX" aria-label="إخفاء">✕</button>
 </div>
 
-<!-- WELCOME -->
-<div class="welcome" id="welcomeEl">أهلاً بكم في متجر جود العباس! تسوق سعيد 🌟</div>
-
-<!-- ملاحظة الخامة -->
-<div class="fabric-note" id="fabricNote">
-  <i class="fas fa-tshirt"></i>
-  <span>جميع ملابسنا <b>قطنية 100%</b> — مريحة وآمنة لبشرة طفلك 🌿</span>
-</div>
-
-
-<!-- SEARCH -->
+<!-- ===== البحث والفلاتر المجمّعة ===== -->
 <div class="srch-wrap">
   <div class="srch-row">
     <input type="search" class="srch-in" id="searchIn" placeholder="ابحث بالـ ID أو القياس...">
+    <button class="flt-btn" id="fltOpenBtn" title="الفلاتر" aria-label="الفلاتر">
+      <span class="flt-ico">⚙</span>
+      <span class="flt-badge" id="fltBadge" style="display:none;">0</span>
+    </button>
     <button class="srch-rst" id="rstBtn">مسح</button>
+  </div>
+
+  <div class="pick-row">
+    <button class="pk-btn" id="genBtn">
+      <span class="pk-ico">👧👦</span>
+      <span class="pk-lbl">الكل</span>
+      <span class="pk-car">▾</span>
+    </button>
+    <button class="pk-btn" id="ageBtn">
+      <span class="pk-ico">🧒</span>
+      <span class="pk-lbl">كل الأعمار</span>
+      <span class="pk-car">▾</span>
+    </button>
+    <button class="pk-ruler" id="measBtn" title="شرح القياسات">📏</button>
   </div>
 </div>
 
-<!-- FILTER BUTTON ROW -->
-<div class="flt-row">
-  <button class="flt-btn" id="fltOpenBtn">
-    <i class="fas fa-sliders-h"></i>
-    <span id="fltBtnLbl">الفلاتر</span>
-    <span class="flt-badge" id="fltBadge" style="display:none;">0</span>
-  </button>
-  <button class="flt-clear" id="fltClearBtn" title="مسح الفلاتر"><i class="fas fa-times"></i></button>
+<!-- ملاحظة الخامة — تظهر فقط إن كتب لها صاحب المتجر نصاً في اللوحة -->
+<div class="fabric-note" id="fabricNote" style="display:none">
+  <i class="fas fa-tshirt"></i><span></span>
 </div>
+
+<!-- الشارات والإعلانات المضافة من لوحة الإدارة -->
+<div class="ubanners" id="uBanners"></div>
 
 <div class="rcount" id="rcount"></div>
 <div id="prodCont"></div>
 
-<footer id="footerEl">© 2025 متجر جود العباس — جميع الحقوق محفوظة</footer>
+<footer id="footerEl">© 2026 متجر جود العباس — جميع الحقوق محفوظة</footer>
 
 <!-- BOTTOM NAV -->
+<!-- ===== شريط التوصيل المجاني ===== -->
+<div class="ship-bar" id="shipBar">
+  <div class="sb-txt"></div>
+  <div class="sb-track"><div class="sb-fill"></div></div>
+</div>
+
 <nav class="bnav">
   <div class="bnav-inner">
     <button class="bnavbtn on" id="bnHome"><i class="fas fa-home"></i><span id="navHome">رئيسية</span></button>
@@ -119,12 +170,14 @@ fbq('init','2514076832364278');fbq('track','PageView');
       <span id="navCart">سلتي</span>
     </button>
     <button class="bnavbtn" id="bnTrack"><i class="fas fa-map-marker-alt"></i><span id="navTrack">تتبع طلبي</span></button>
-    <button class="bnavbtn" id="bnInstall"><i class="fas fa-download"></i><span id="navInstall">تثبيت</span></button>
+    <button class="bnavbtn" id="bnFav">
+      <span class="cnav-wrap"><span class="bn-heart">♥</span><span class="cdot" id="fdot" style="display:none">0</span></span>
+      <span id="navFav">مفضلة</span>
+    </button>
     <button class="bnavbtn" id="bnContact"><i class="fas fa-comments"></i><span id="navContact">تواصل</span></button>
   </div>
 </nav>
 
-<button class="measbtn" id="measBtn"><i class="fas fa-ruler"></i></button>
 <button class="stbtn" id="stBtn"><i class="fas fa-chevron-up"></i></button>
 
 <!-- MEASUREMENTS PANEL -->
@@ -189,6 +242,17 @@ fbq('init','2514076832364278');fbq('track','PageView');
   </div>
 </div>
 
+
+<!-- ===== صفحة المنتج ===== -->
+<div class="sheet sheet-tall" id="prodSheet">
+  <div class="sh-drag" id="prodDrag"><div class="sh-handle"></div></div>
+  <div class="sh-hdr">
+    <div class="sh-title"><span id="prodShTitle">المنتج</span></div>
+    <button class="sh-close" id="prodShClose">✕</button>
+  </div>
+  <div class="sh-body" id="prodBody"></div>
+</div>
+
 <!-- CART SHEET -->
 <div class="sheet" id="cartSheet">
   <div class="sh-drag" id="cartDrag"><div class="sh-handle"></div></div>
@@ -199,7 +263,7 @@ fbq('init','2514076832364278');fbq('track','PageView');
   <div class="sh-body" id="cartBody"></div>
   <div class="sh-foot">
     <div class="ctotrow" id="cartTot"></div>
-    <button class="shbtn shbtn-go" id="checkoutBtn"><i class="fab fa-whatsapp"></i><span id="checkoutLbl">إتمام الشراء</span></button>
+    <button class="shbtn shbtn-go" id="checkoutBtn"><i class="fas fa-bag-shopping"></i><span id="checkoutLbl">إتمام الشراء</span></button>
     <button class="shbtn shbtn-del" id="clearCartBtn"><i class="fas fa-trash"></i><span id="clearCartLbl">إفراغ السلة</span></button>
   </div>
 </div>
@@ -215,7 +279,7 @@ fbq('init','2514076832364278');fbq('track','PageView');
   <div class="sh-body">
     <div class="tr-intro" id="trIntro">أدخل رقم الطلب لمعرفة حالته</div>
     <div class="tr-input-row">
-      <input class="tr-in" type="text" id="trackIn" placeholder="ORD-..." autocomplete="off" dir="ltr">
+      <input class="tr-in" type="text" id="trackIn" placeholder="رقم هاتفك أو رقم الطلب" autocomplete="off" dir="auto" inputmode="tel">
       <button class="tr-btn" id="trackBtn"><i class="fas fa-search"></i></button>
     </div>
     <div id="trackResult"></div>
@@ -235,6 +299,7 @@ fbq('init','2514076832364278');fbq('track','PageView');
       <a href="https://t.me/jaiq19" class="contact-sheet-link" style="color:#2196F3;" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram"></i><span>تليجرام</span></a>
       <a href="https://www.instagram.com/jaiq19_/" class="contact-sheet-link" style="color:#E91E63;" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i><span>انستقرام</span></a>
       <a href="https://www.facebook.com/profile.php?id=61573593535175" class="contact-sheet-link" style="color:#1976D2;" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook"></i><span>فيسبوك</span></a>
+      <button class="contact-sheet-link" id="bnInstall" style="color:#16a34a;background:none;border:none;font-family:inherit;cursor:pointer"><span style="font-size:22px">📲</span><span id="navInstall">تثبيت التطبيق</span></button>
     </div>
   </div>
 </div>
@@ -257,6 +322,36 @@ fbq('init','2514076832364278');fbq('track','PageView');
   </div>
 </div>
 
+
+
+<!-- ===== لوحة اختيار القسم / العمر ===== -->
+<div class="dlg-ov" id="pkOv">
+  <div class="pk-box">
+    <div class="pk-hdr">
+      <div class="pk-ttl" id="pkTitle">القسم</div>
+      <button class="pk-x" id="pkClose" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="pk-list" id="pkList"></div>
+    <button class="pk-done" id="pkDone">عرض النتائج</button>
+  </div>
+</div>
+
+<!-- ===== قد يعجبك أيضاً ===== -->
+<div class="dlg-ov" id="sgOv">
+  <div class="sg-box">
+    <button class="sg-x" id="sgClose" aria-label="تخطّي">✕</button>
+    <div class="sg-hdr">
+      <div class="sg-ttl" id="sgTitle">قد يعجبك أيضاً</div>
+      <div class="sg-sub" id="sgSub">آخر القطع بنفس قياسات سلتك</div>
+    </div>
+    <div class="sg-list" id="sgList"></div>
+    <div class="sg-foot">
+      <div class="sg-tot" id="sgTot"></div>
+      <button class="sg-go" id="sgGo">متابعة الطلب ←</button>
+    </div>
+  </div>
+</div>
+
 <!-- CHECKOUT DIALOG -->
 <div class="dlg-ov" id="ckOv">
   <div class="dlg-box" style="max-width:420px;text-align:right;">
@@ -264,7 +359,17 @@ fbq('init','2514076832364278');fbq('track','PageView');
     <div class="ck-fields">
       <input class="ck-in" type="text" id="ckName" placeholder="الاسم الكامل" maxlength="80" autocomplete="name">
       <input class="ck-in" type="tel" id="ckPhone" inputmode="numeric" dir="ltr" placeholder="رقم الهاتف" maxlength="15" autocomplete="off">
-      <textarea class="ck-in" id="ckAddr" placeholder="العنوان..." rows="2" maxlength="300"></textarea>
+      <select class="ck-in" id="ckGov">
+        <option value="">— اختر المحافظة —</option>
+        <option>بغداد</option><option>النجف</option><option>كربلاء</option>
+        <option>بابل</option><option>الديوانية</option><option>واسط</option>
+        <option>ذي قار</option><option>المثنى</option><option>البصرة</option>
+        <option>ميسان</option><option>الأنبار</option><option>صلاح الدين</option>
+        <option>ديالى</option><option>كركوك</option><option>نينوى</option>
+        <option>أربيل</option><option>السليمانية</option><option>دهوك</option>
+      </select>
+      <textarea class="ck-in" id="ckAddr" placeholder="المنطقة وأقرب نقطة دالة..." rows="2" maxlength="300"></textarea>
+      <div class="ck-pay">💵 <b>الدفع عند الاستلام</b> — تدفع بعد وصول الطلب</div>
       <textarea class="ck-in" id="ckNotes" placeholder="ملاحظات للتوصيل (اختياري)..." rows="2" maxlength="200"></textarea>
     </div>
     <button class="ck-confirm" id="ckConfirm"><i class="fas fa-check-circle"></i> <span id="ckConfirmLbl">تأكيد الطلب</span></button>
@@ -279,7 +384,7 @@ fbq('init','2514076832364278');fbq('track','PageView');
 <!-- TUTORIAL -->
 <div id="tutPnl">
   <div id="tutBox">
-    <div class="tut-step" id="tutStep">1 / 8</div>
+    <div class="tut-step" id="tutStep">1 / 7</div>
     <div class="tut-dots" id="tutDots"></div>
     <div id="tutTxt"></div>
     <div class="tut-acts">

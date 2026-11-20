@@ -41,6 +41,9 @@
   .tabs::-webkit-scrollbar{display:none}
   .tab{padding:8px 15px;border:1.5px solid var(--line);border-radius:20px;background:var(--card);color:var(--ink2);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s}
   .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  /* تسعة تبويبات: تلتفّ على الشاشات الواسعة وتنزلق على الضيّقة */
+  @media(min-width:700px){ .tabs{flex-wrap:wrap;overflow-x:visible;row-gap:7px} }
+  @media(max-width:699px){ .tab{padding:8px 12px;font-size:12.5px} }
 
   .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
   .panel-head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
@@ -125,6 +128,120 @@
   body.dark .add-tool{background:#1e293b}
   @media(max-width:520px){ .add-tool-grid{grid-template-columns:80px 1fr} }
   @media(max-width:620px){ .grid2{grid-template-columns:1fr} }
+
+.pw-meter{margin:10px 0 4px;font-size:12px;color:var(--ink2)}
+.pw-bar{height:5px;border-radius:4px;background:var(--line);overflow:hidden;margin-bottom:5px}
+.pw-bar i{display:block;height:100%;width:0;border-radius:4px;transition:width .25s,background .25s}
+.pw-w0 i{width:18%;background:#dc2626}.pw-w1 i{width:42%;background:#f59e0b}
+.pw-w2 i{width:70%;background:#eab308}.pw-w3 i{width:100%;background:#16a34a}
+
+/* اختيار عدد الأعمدة */
+.cols-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.colbtn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 7px;
+  border:2px solid var(--line);border-radius:13px;background:var(--card);cursor:pointer;
+  font-family:inherit;color:inherit;transition:all .16s}
+.colbtn:hover{border-color:var(--brand)}
+.colbtn.on{border-color:var(--brand);background:rgba(21,101,192,.07)}
+.colbtn b{font-size:12.5px;font-weight:700}
+.colbtn small{font-size:10px;color:var(--ink2)}
+.colprev{display:flex;gap:2.5px;width:100%;max-width:52px;height:30px}
+.colprev i{flex:1;background:var(--line);border-radius:3px;display:block}
+.colbtn.on .colprev i{background:var(--brand);opacity:.65}
+@media(max-width:520px){ .cols-pick{grid-template-columns:repeat(2,1fr)} }
+
+  /* ===== محرّر النصوص ===== */
+  .txg{border:1.5px solid var(--line);border-radius:11px;margin-bottom:9px;overflow:hidden}
+  .txg-h{width:100%;display:flex;align-items:center;gap:9px;padding:12px 14px;border:none;
+         background:#fafbfc;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:700;
+         color:var(--ink);text-align:start}
+  .txg-h span:first-child{flex:1}
+  .txg-n{background:var(--line);color:var(--ink2);border-radius:20px;padding:1px 9px;font-size:11px;font-weight:700}
+  .txg-car{transition:transform .2s;font-size:11px;color:var(--ink3)}
+  .txg-h.open .txg-car{transform:rotate(180deg)}
+  .txg-b{display:none;padding:10px 12px;border-top:1.5px solid var(--line)}
+  .txg-b.open{display:block}
+  .txr{display:grid;grid-template-columns:1fr auto;gap:6px 9px;padding:9px 0;
+       border-bottom:1px dashed var(--line);align-items:center}
+  .txr .txr-i{grid-column:1}
+  .txr .txr-r{grid-column:2;width:34px;height:34px}
+  .txr:last-child{border-bottom:none}
+  .txr-l{grid-column:1;font-size:11.5px;color:var(--ink3);line-height:1.5;
+         overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .txr-i{padding:9px 11px;border:1.5px solid var(--line);border-radius:9px;
+         font-size:13.5px;font-family:inherit;background:var(--card);color:var(--ink);
+         outline:none;resize:vertical;min-width:0}
+  .txr-i:focus{border-color:var(--brand)}
+  .txr.edited .txr-i{border-color:var(--brand);background:#f0f7ff}
+  .txr.edited .txr-l{color:var(--brand);font-weight:600}
+  .txr-r{border:none;background:var(--line);color:var(--ink2);border-radius:9px;
+         cursor:pointer;font-size:15px}
+  .txr-r:active{background:var(--ink3);color:#fff}
+
+  /* ===== الشارات ===== */
+  .bnr{border:1.5px solid var(--line);border-radius:12px;padding:13px;margin-bottom:11px;background:#fafbfc}
+  .bnr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .bnr-on{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink)}
+  .bnr-grid{display:grid;grid-template-columns:80px 1fr;gap:10px}
+  .bnr-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .bnr-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .bnr .fld{margin-bottom:10px}
+  .bnr .b-del{width:32px;height:32px}
+  @media(max-width:560px){ .bnr-grid3,.bnr-grid2{grid-template-columns:1fr} }
+
+  /* معاينة الشارات */
+  .bnr-pv-h{font-size:11.5px;font-weight:700;color:var(--ink3);margin:12px 0 6px}
+  .bnr-pv-h:first-child{margin-top:0}
+  .bnr-pv-empty{font-size:13px;color:var(--ink3);text-align:center;padding:18px}
+  .bnr-pv .ubanner{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;
+                   font-size:12.5px;font-weight:800;margin-bottom:6px;border:1px solid transparent}
+  .bnr-pv .ub-ico{font-size:15px}
+  .bnr-pv-off{margin-inline-start:auto;font-size:10.5px;font-weight:600;opacity:.8}
+  .u-yellow{background:linear-gradient(135deg,#FFF3CD,#FFE69C);color:#7A5B00;border-color:#FFD54F}
+  .u-green {background:linear-gradient(135deg,#f0fdf4,#dcfce7);color:#15803d;border-color:#86efac}
+  .u-red   {background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#b91c1c;border-color:#fca5a5}
+  .u-blue  {background:linear-gradient(135deg,#eff6ff,#dbeafe);color:#1d4ed8;border-color:#93c5fd}
+  .u-dark  {background:linear-gradient(135deg,#1f2937,#111827);color:#fff;border-color:#374151}
+
+  /* صفّا الضمانات */
+  #trustList .rule .t-ico{width:60px;text-align:center;padding:8px;border:1.5px solid var(--line);
+                          border-radius:8px;font-size:16px;outline:none}
+  #trustList .rule .t-txt{flex:1;min-width:120px;padding:8px 11px;border:1.5px solid var(--line);
+                          border-radius:8px;font-size:13.5px;outline:none}
+
+  /* تبويبات اللغة داخل محرّر النصوص */
+  .lgbar{display:flex;gap:7px;margin-bottom:12px}
+  .lgb{flex:1;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;
+       background:var(--card);color:var(--ink2);font-family:inherit;font-size:13.5px;
+       font-weight:700;cursor:pointer;transition:all .15s}
+  .lgb.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .miss-badge{font-size:12.5px;font-weight:700;padding:9px 13px;border-radius:9px;margin-bottom:13px}
+  .miss-badge.ok{background:#f0fdf4;color:#15803d;border:1px solid #86efac}
+  .miss-badge.warn{background:#fffbeb;color:#92400e;border:1px solid #fcd34d}
+  .only-miss{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
+             color:var(--ink2);margin-top:9px;cursor:pointer}
+  .only-miss input{width:auto}
+  /* نقاط اللغات */
+  .txr-d{display:flex;gap:3px;align-items:center}
+  .txd{font-style:normal;font-size:9px;font-weight:800;line-height:1;
+       padding:3px 5px;border-radius:5px;background:var(--line);color:var(--ink3);
+       text-transform:uppercase}
+  .txd.on{background:var(--brand);color:#fff}
+  .txr.partial{background:#fffdf5;border-radius:8px;padding-inline:7px}
+  .txr.partial .txr-l{color:#92400e}
+
+  /* ===== استعادة كلمة المرور ===== */
+  .forgot-link{display:block;width:100%;margin-top:14px;background:none;border:none;
+    color:var(--brand);font-family:inherit;font-size:13px;font-weight:600;
+    cursor:pointer;text-decoration:underline;padding:4px}
+  .recover{display:none;margin-top:16px;padding-top:16px;border-top:1.5px solid var(--line);text-align:start}
+  .recover.show{display:block}
+  .rec-head{font-size:14.5px;font-weight:700;margin-bottom:8px;color:var(--ink)}
+  .rec-note{font-size:12.5px;color:var(--ink2);line-height:1.8;margin:0 0 14px}
+  .rec-step2{display:none;margin-top:16px}
+  .rec-step2.show{display:block}
+  .rec-msg{font-size:13px;font-weight:600;margin-top:12px;text-align:center;line-height:1.7}
+  .rec-msg.ok{color:var(--ok,#15803d)}
+  .rec-msg.err{color:var(--danger)}
 </style>
 </head>
 <body>
@@ -144,6 +261,37 @@
     </label>
     <button class="btn btn-primary btn-block" id="loginBtn">دخول</button>
     <div id="loginErr" style="color:var(--danger);font-size:13px;margin-top:12px;text-align:center;font-weight:600"></div>
+    <button type="button" class="forgot-link" id="forgotBtn">نسيت كلمة المرور؟</button>
+
+    <!-- ===== الاستعادة عبر تلكرام ===== -->
+    <div class="recover" id="recoverBox">
+      <div class="rec-head">🔐 استعادة عبر تلكرام</div>
+      <p class="rec-note" id="recStep1Note">
+        سيصل رمز من ٦ أرقام إلى تلكرام صاحب المتجر وحده. لا يظهر هنا ولا في أي مكان آخر.
+      </p>
+      <button class="btn btn-ok btn-block" id="recSendBtn">📨 أرسل الرمز إلى تلكرام</button>
+
+      <div class="rec-step2" id="recStep2">
+        <div class="fld">
+          <label>الرمز الذي وصل تلكرام</label>
+          <input type="text" id="recCode" inputmode="numeric" maxlength="6"
+                 placeholder="000000" autocomplete="one-time-code"
+                 style="text-align:center;letter-spacing:7px;font-size:20px;font-weight:700">
+        </div>
+        <div class="fld">
+          <label>كلمة المرور الجديدة</label>
+          <input type="password" id="recPass1" placeholder="١٠ أحرف فأكثر، حروف وأرقام">
+        </div>
+        <div class="fld">
+          <label>أعِد كتابتها</label>
+          <input type="password" id="recPass2" placeholder="••••••••••">
+        </div>
+        <button class="btn btn-primary btn-block" id="recSetBtn">✔️ تعيين كلمة المرور</button>
+      </div>
+
+      <div class="rec-msg" id="recMsg"></div>
+      <button type="button" class="forgot-link" id="recCancel">رجوع لتسجيل الدخول</button>
+    </div>
   </div>
 </div>
 
@@ -165,7 +313,9 @@
       <button class="tab" data-p="disc">💰 الخصومات</button>
       <button class="tab" data-p="cheap">⭐ القطع المميزة</button>
       <button class="tab" data-p="ship">🚚 التوصيل</button>
-      <button class="tab" data-p="disp">🎨 العرض والنصوص</button>
+      <button class="tab" data-p="disp">🎨 العرض</button>
+      <button class="tab" data-p="txt">✏️ النصوص</button>
+      <button class="tab" data-p="bnr">🎁 الشارات والعروض</button>
       <button class="tab" data-p="ver">📦 إصدار الملفات</button>
       <button class="tab" data-p="sec">🔑 الأمان</button>
     </div>
@@ -381,6 +531,36 @@
       </div>
     </div>
     <div class="panel">
+      <div class="panel-head">
+        <h2>🔲 شكل الشبكة</h2>
+        <span class="desc">عدد المنتجات في الصف على الهاتف</span>
+      </div>
+      <div class="panel-body">
+        <div class="cols-pick" id="colsPick">
+          <button class="colbtn" data-c="auto">
+            <span class="colprev"><i></i><i></i><i></i></span>
+            <b>تلقائي</b><small>حسب الشاشة</small>
+          </button>
+          <button class="colbtn" data-c="2">
+            <span class="colprev c2"><i></i><i></i></span>
+            <b>عمودان</b><small>صور أكبر</small>
+          </button>
+          <button class="colbtn" data-c="3">
+            <span class="colprev c3"><i></i><i></i><i></i></span>
+            <b>ثلاثة</b><small>تصفّح أسرع</small>
+          </button>
+          <button class="colbtn" data-c="4">
+            <span class="colprev c4"><i></i><i></i><i></i><i></i></span>
+            <b>أربعة</b><small>مضغوط جداً</small>
+          </button>
+        </div>
+        <div class="hint" style="margin-top:11px">
+          💡 «تلقائي» يختار العدد حسب عرض الشاشة. تحت 340px تُعرض عمودان دائماً.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
       <div class="panel-head"><h2>✏️ النصوص</h2></div>
       <div class="panel-body">
         <div class="fld">
@@ -401,6 +581,66 @@
           <div class="hint">يظهر على كل بطاقة — إلا الموديلات التي لها عمود fabric خاص</div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ===== كل نصوص المتجر ===== -->
+  <div class="page" id="page-txt">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>✏️ نصوص المتجر</h2>
+        <span class="desc">كل كلمة يراها الزبون — غيّرها من هنا بلا لمس الكود</span>
+      </div>
+      <div class="panel-body">
+        <div class="lgbar" id="txtLangs"></div>
+        <div class="miss-badge ok" id="txtMiss"></div>
+        <div class="fld">
+          <input type="search" id="txtSearch" placeholder="🔎 ابحث عن نص… (مثلاً: التوصيل، الطلب، السلة)">
+          <label class="only-miss">
+            <input type="checkbox" id="txtOnlyMiss"> أظهر ما ينقصه ترجمة فقط
+          </label>
+          <div class="hint">
+            كل نص له ثلاث لغات. غيّر العربية ثم بدّل التبويب لتكتب الإنجليزية والكردية.
+            النقاط <i class="txd on">ع</i> بجانب كل نص تريك اللغات التي كتبتها.
+            الحقل الفارغ يعني «اترك النص الأصلي» — وهو مترجَم أصلاً.
+          </div>
+        </div>
+        <div id="txtGroups"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>🛡️ ضمانات الشراء</h2>
+        <span class="desc">تظهر داخل صفحة المنتج لتطمئن الزبون قبل الطلب</span>
+      </div>
+      <div class="panel-body">
+        <div id="trustList"></div>
+        <button class="btn btn-ghost btn-sm" id="addTrustBtn">➕ إضافة ضمان</button>
+        <div class="hint" style="margin-top:8px">أربعة كحدّ أقصى. احذف الكل لتعود الضمانات الافتراضية.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== الشارات والعروض ===== -->
+  <div class="page" id="page-bnr">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>🎁 الشارات والعروض</h2>
+        <span class="desc">أضف أي إعلان جديد يظهر للزبون — بلا انتظار تعديل برمجي</span>
+      </div>
+      <div class="panel-body">
+        <div id="bnrList"></div>
+        <button class="btn btn-ghost btn-sm" id="addBnrBtn">➕ إضافة شارة جديدة</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>🔍 معاينة</h2>
+        <span class="desc">كما ستظهر للزبون</span>
+      </div>
+      <div class="panel-body"><div id="bnrPreview" class="bnr-pv"></div></div>
     </div>
   </div>
 
@@ -439,13 +679,14 @@
         <div class="grid2">
           <div class="fld">
             <label>كلمة المرور الجديدة</label>
-            <input type="password" id="newPass" placeholder="4 أحرف على الأقل" autocomplete="new-password">
+            <input type="password" id="newPass" placeholder="10 أحرف على الأقل" autocomplete="new-password">
           </div>
           <div class="fld">
             <label>تأكيد كلمة المرور</label>
             <input type="password" id="newPass2" placeholder="أعد كتابتها" autocomplete="new-password">
           </div>
         </div>
+        <div class="pw-meter" id="pwMeter"><div class="pw-bar"><i></i></div><span>اكتب كلمة مرور قوية</span></div>
         <button class="btn btn-ok" id="changePassBtn">💾 تغيير كلمة المرور</button>
         <div class="hint" style="margin-top:14px">
         </div>
@@ -467,6 +708,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="../js/lang.js"></script>
 <script>
 /* ============================================================
    لوحة إدارة متجر جود العباس
@@ -596,12 +838,22 @@ function fillForm(){
   $('shipCost').value    = S.shipCost || 0;
   $('freeShipQty').value = S.freeShipQty || 0;
   $('sortDefault').value = S.sortDefault || 'pieces_asc';
+  /* عدد الأعمدة */
+  const _cv = String(S.gridCols || 'auto');
+  document.querySelectorAll('#colsPick .colbtn').forEach(function(b){
+    b.classList.toggle('on', b.dataset.c === _cv);
+  });
   $('promoText').value   = S.promoText || '';
   $('promoEnabled').checked = String(S.promoEnabled)==='1';
   $('fabricNote').value  = S.fabricNote || '';
   $('fabricText').value  = S.fabricText || '';
   $('verCur').textContent = S.assetVersion || '—';
   fillCheap();
+  loadTexts();
+  renderLangTabs();
+  renderTextGroups();
+  renderTrust();
+  renderBanners();
   renderTools();
   renderToolPaths();
   updatePreview();
@@ -905,6 +1157,386 @@ function updateCheapPreview(){
 }
 
 /* ===== الحفظ ===== */
+
+/* ============================================================
+   نصوص المتجر — كل كلمة يراها الزبون قابلة للتغيير من هنا
+   المصدر: js/lang.js المحمّل أعلاه، فلا تكرار ولا تعارض.
+   ============================================================ */
+
+const TXT_GROUPS = [
+  { t:'🏠 الترويسة والتذييل', k:['hTitle','hSub','welcome','footer'] },
+  { t:'🎉 العرض والخصم', k:['promo','discount','discPrefix','upTo','lastSize','soldOut',
+      'specialTag','specialOn','specialOff','specialWon','specialWonSub','specialAlmost','specialSave'] },
+  { t:'🔍 البحث والفلاتر', k:['search','rst','fltBtn','applyFlt','resetFlt','seaLbl','typLbl','sortLbl',
+      'all','sum','win','spr','out','hom','sortDef','sortAsc','sortDesc','res','noRes',
+      'genLbl','ageLbl','catAll','catBoys','catGirls','ageAll','ageBaby','ageToddler','ageKid','ageBig','ageTeen','ageMany','pkDone'] },
+  { t:'🛍️ البطاقة وصفحة المنتج', k:['prodTitle','sizes','szOne','szMany','dinar','share','copyId','linkCopied',
+      'fabricLbl','askAbout','askBtn','tapSizeToAdd','addCart','szTitle'] },
+  { t:'🛡️ ضمانات الشراء (الافتراضية)', k:['trustCheck','trustReturn','trustCOD'] },
+  { t:'♥ المفضلة', k:['favT','navFav','favAdded','favRemoved','favEmpty'] },
+  { t:'🛒 السلة والتوصيل', k:['cartT','checkout','clearCart','cartEmpty','sub','ship','tot','subDisc',
+      'cartAdded','already','delQ','clrQ','yes','no','freeShip','freeShipHint','freeShipBanner',
+      'freeShipNeed','freeShipWon','itemsRemoved','itemsSoldOut'] },
+  { t:'📦 إتمام الطلب', k:['ckTitle','namePh','phonePh','addrPh','addrPh2','govPh','notesPh','codNote',
+      'confirmOrder','orderNoteNew','savingOrder','savingSub','orderSuccess','orderSuccessOk','orderFail',
+      'tryAgain','orderPending','orderPendingCheck','phoneInvalid','copyBtn','yourOrderId','keepOrderId',
+      'copy','copied','cancel','back'] },
+  { t:'🚚 تتبّع الطلب', k:['navTrack','trackShTitle','trIntro','trackPh','enterOrderId','orderNotFound','trackPhoneHint',
+      'stReview','stReviewSub','stConfirmed','stConfirmedSub','stPrepared','stPreparedSub',
+      'stCourier','stCourierSub','stDelivered','stDeliveredSub','stCancelled'] },
+  { t:'✨ قد يعجبك أيضاً', k:['sgTitle','sgSub','sgGo'] },
+  { t:'📱 الشريط السفلي', k:['navHome','navSearch','navCart','navWish','navContact','navInstall'] },
+  { t:'⬇️ التثبيت على الهاتف', k:['pwaTxt','pwaInst','pwaSkip','appInstalled','alreadyInstalled',
+      'androidInstallDesc','installNow','iosStep1','iosStep2','iosStep3','iosStep4',
+      'desktopStep1','desktopStep2','desktopStep3','swipeHint'] },
+  { t:'📏 دليل القياسات', k:['fpTitle','fpClose','s55','s60','s65','s70','s75','s80','s90',
+      's100','s110','s120','s130','s140','s150','s160','s170'] },
+  { t:'💬 رسائل الحالة', k:['loading','errMsg','retry','offline','ptrTxt','saved','hide'] },
+  { t:'🧭 نوافذ أخرى', k:['wishT','contactT','shareCart'] },
+  { t:'🎓 شرح الموقع (7 خطوات)', k:['tut0','tut1','tut2','tut3','tut4','tut5','tut6','tutNext'] }
+];
+
+/* ===== اللغات الثلاث ===== */
+const LANGS = [
+  { v:'ar', t:'العربية' },
+  { v:'en', t:'English' },
+  { v:'ku', t:'کوردی' }
+];
+let txtLang = 'ar';                 /* اللغة التي نحرّرها الآن */
+let TXTEDIT = { ar:{}, en:{}, ku:{} };   /* التعديلات قبل الحفظ */
+
+/* النص الأصلي من ملف اللغات للّغة المطلوبة */
+function defTxt(k, lg){
+  lg = lg || 'ar';
+  try{
+    /* خطوات الشرح مصفوفة في ملف اللغات: tut0 … tut6 */
+    const m = /^tut(\d+)$/.exec(k);
+    if(m){
+      const arr = (L && L[lg] && L[lg].tut) || (L && L.ar && L.ar.tut) || [];
+      return arr[Number(m[1])] != null ? String(arr[Number(m[1])]) : '';
+    }
+    const v = (L && L[lg]) ? L[lg][k] : undefined;
+    if(v != null && typeof v === 'string') return v;
+    const a = (L && L.ar) ? L.ar[k] : undefined;
+    return (a != null && typeof a === 'string') ? a : '';
+  }catch(_){ return ''; }
+}
+
+/* قراءة المحفوظ: يقبل الشكل القديم المسطّح والجديد المفصّل باللغة */
+function loadTexts(){
+  TXTEDIT = { ar:{}, en:{}, ku:{} };
+  let o = {};
+  try{
+    const raw = S.storeTexts;
+    o = !raw ? {} : (typeof raw === 'string' ? JSON.parse(raw) : raw);
+    if(!o || typeof o !== 'object') o = {};
+  }catch(_){ o = {}; }
+  Object.keys(o).forEach(function(k){
+    const v = o[k];
+    if(v && typeof v === 'object'){
+      /* { ar:{...}, en:{...} } */
+      if(TXTEDIT[k]) Object.keys(v).forEach(function(kk){ TXTEDIT[k][kk] = String(v[kk]); });
+    } else if(typeof v === 'string' && v){
+      /* الشكل القديم: نص واحد لكل اللغات → نضعه في الثلاثة */
+      LANGS.forEach(function(l){ TXTEDIT[l.v][k] = v; });
+    }
+  });
+}
+
+/* كم لغة بقيت بلا ترجمة لهذا المفتاح؟ */
+function txtDots(k){
+  return LANGS.map(function(l){
+    return '<i class="txd' + (TXTEDIT[l.v][k] ? ' on' : '') + '" title="' + l.t + '">' + l.v + '</i>';
+  }).join('');
+}
+
+/* المفاتيح الناقصة: عُدّلت في لغة ولم تُعدَّل في أخرى */
+function missingKeys(){
+  const out = [];
+  TXT_GROUPS.forEach(function(g){
+    g.k.forEach(function(k){
+      if(!defTxt(k,'ar')) return;
+      const n = LANGS.filter(function(l){ return !!TXTEDIT[l.v][k]; }).length;
+      if(n > 0 && n < LANGS.length) out.push(k);
+    });
+  });
+  return out;
+}
+
+function updateMissBadge(){
+  const el = $('txtMiss'); if(!el) return;
+  const m = missingKeys().length;
+  el.textContent = m ? ('⚠️ ' + m + ' نصاً غيّرته بلغة ولم تُترجمه للباقي') : '✅ كل ما غيّرته مترجَم للغات الثلاث';
+  el.className = 'miss-badge' + (m ? ' warn' : ' ok');
+}
+
+function renderLangTabs(){
+  const host = $('txtLangs'); if(!host) return;
+  host.innerHTML = '';
+  LANGS.forEach(function(l){
+    const b = document.createElement('button');
+    b.className = 'lgb' + (l.v === txtLang ? ' on' : '');
+    b.type = 'button'; b.textContent = l.t;
+    b.addEventListener('click', function(){
+      txtLang = l.v;
+      renderLangTabs();
+      renderTextGroups();
+      filterTexts($('txtSearch').value, $('txtOnlyMiss').checked);
+    });
+    host.appendChild(b);
+  });
+}
+
+function renderTextGroups(){
+  const host = $('txtGroups'); if(!host) return;
+  const openNow = {};
+  host.querySelectorAll('.txg').forEach(function(sec,i){
+    openNow[i] = sec.querySelector('.txg-b').classList.contains('open');
+  });
+  host.innerHTML = '';
+  host.dir = (txtLang === 'en') ? 'ltr' : 'rtl';
+
+  TXT_GROUPS.forEach(function(g, gi){
+    const sec = document.createElement('div'); sec.className = 'txg';
+    const isOpen = (openNow[gi] !== undefined) ? openNow[gi] : (gi === 0);
+    const head = document.createElement('button');
+    head.className = 'txg-h' + (isOpen ? ' open' : '');
+    head.type = 'button'; head.dir = 'rtl';
+    head.innerHTML = '<span>'+esc(g.t)+'</span><span class="txg-n">'+g.k.length+'</span><span class="txg-car">▾</span>';
+    const body = document.createElement('div');
+    body.className = 'txg-b' + (isOpen ? ' open' : '');
+    head.addEventListener('click', function(){
+      head.classList.toggle('open'); body.classList.toggle('open');
+    });
+
+    g.k.forEach(function(k){
+      const d = defTxt(k, txtLang);
+      if(!defTxt(k,'ar')) return;                      /* مفتاح غير موجود */
+      const row = document.createElement('div');
+      row.className = 'txr'; row.dataset.k = k;
+      row.dataset.s = (k + ' ' + d + ' ' + defTxt(k,'ar')).toLowerCase();
+
+      const lbl = document.createElement('div'); lbl.className='txr-l';
+      lbl.textContent = d;
+      lbl.dir = (txtLang === 'en') ? 'ltr' : 'rtl';
+
+      const dots = document.createElement('div'); dots.className='txr-d';
+      dots.innerHTML = txtDots(k);
+
+      const long = d.length > 60;
+      const inp = document.createElement(long ? 'textarea' : 'input');
+      inp.className = 'txr-i'; if(long) inp.rows = 2; else inp.type = 'text';
+      inp.placeholder = d;
+      inp.dir = (txtLang === 'en') ? 'ltr' : 'rtl';
+      inp.value = TXTEDIT[txtLang][k] || '';
+      if(inp.value) row.classList.add('edited');
+
+      inp.addEventListener('input', function(){
+        const v = inp.value.trim();
+        if(v) TXTEDIT[txtLang][k] = v; else delete TXTEDIT[txtLang][k];
+        row.classList.toggle('edited', !!v);
+        dots.innerHTML = txtDots(k);
+        row.classList.toggle('partial', (function(){
+          const n = LANGS.filter(function(l){ return !!TXTEDIT[l.v][k]; }).length;
+          return n > 0 && n < LANGS.length;
+        })());
+        updateMissBadge(); markDirty();
+      });
+
+      const rst = document.createElement('button');
+      rst.className='txr-r'; rst.type='button'; rst.title='إرجاع النص الأصلي'; rst.textContent='↺';
+      rst.addEventListener('click', function(){
+        inp.value=''; delete TXTEDIT[txtLang][k];
+        row.classList.remove('edited');
+        dots.innerHTML = txtDots(k);
+        updateMissBadge(); markDirty();
+      });
+
+      const n0 = LANGS.filter(function(l){ return !!TXTEDIT[l.v][k]; }).length;
+      if(n0 > 0 && n0 < LANGS.length) row.classList.add('partial');
+
+      row.appendChild(lbl); row.appendChild(dots);
+      row.appendChild(inp); row.appendChild(rst);
+      body.appendChild(row);
+    });
+
+    sec.appendChild(head); sec.appendChild(body);
+    host.appendChild(sec);
+  });
+  updateMissBadge();
+}
+
+function filterTexts(q, onlyMiss){
+  q = String(q||'').trim().toLowerCase();
+  const miss = onlyMiss ? missingKeys() : null;
+  document.querySelectorAll('#txtGroups .txg').forEach(function(sec){
+    let hits = 0;
+    sec.querySelectorAll('.txr').forEach(function(r){
+      let ok = !q || r.dataset.s.indexOf(q) > -1;
+      if(ok && miss) ok = miss.indexOf(r.dataset.k) > -1;
+      r.style.display = ok ? '' : 'none';
+      if(ok) hits++;
+    });
+    sec.style.display = hits ? '' : 'none';
+    if((q || onlyMiss) && hits){
+      sec.querySelector('.txg-h').classList.add('open');
+      sec.querySelector('.txg-b').classList.add('open');
+    }
+  });
+}
+
+/* يُحفظ مفصّلاً باللغة: { ar:{...}, en:{...}, ku:{...} } */
+function collectTexts(){
+  const o = {};
+  LANGS.forEach(function(l){
+    const g = {};
+    Object.keys(TXTEDIT[l.v]).forEach(function(k){
+      const v = String(TXTEDIT[l.v][k]||'').trim();
+      if(v) g[k] = v;
+    });
+    if(Object.keys(g).length) o[l.v] = g;
+  });
+  return o;
+}
+
+/* ===================== ضمانات الشراء ===================== */
+function parseTrust(){
+  try{
+    const raw = S.trustItems;
+    if(!raw) return null;
+    const a = (typeof raw === 'string') ? JSON.parse(raw) : raw;
+    return Array.isArray(a) ? a : null;
+  }catch(_){ return null; }
+}
+
+function trustRow(it){
+  const d = document.createElement('div'); d.className = 'rule';
+  d.innerHTML =
+    '<input type="text" class="t-ico" maxlength="4" value="'+esc(it && it.i || '✅')+'" title="رمز">' +
+    '<input type="text" class="t-txt" value="'+esc(it && it.t || '')+'" placeholder="مثلاً: الفحص قبل الاستلام">' +
+    '<button class="r-del" title="حذف">🗑</button>';
+  d.querySelector('.r-del').addEventListener('click', function(){ d.remove(); markDirty(); });
+  d.querySelectorAll('input').forEach(function(i){ i.addEventListener('input', markDirty); });
+  return d;
+}
+
+function renderTrust(){
+  const box = $('trustList'); if(!box) return;
+  box.innerHTML = '';
+  const arr = parseTrust() || [
+    { i:'🔍', t: defTxt('trustCheck') },
+    { i:'🔄', t: defTxt('trustReturn') },
+    { i:'💵', t: defTxt('trustCOD') }
+  ];
+  arr.slice(0,4).forEach(function(it){ box.appendChild(trustRow(it)); });
+}
+
+function collectTrust(){
+  return [...document.querySelectorAll('#trustList .rule')].map(function(d){
+    return { i: d.querySelector('.t-ico').value.trim() || '✅',
+             t: d.querySelector('.t-txt').value.trim() };
+  }).filter(function(x){ return x.t; }).slice(0,4);
+}
+
+/* ===================== الشارات والعروض ===================== */
+const BNR_PLACES = [
+  { v:'top',   t:'شريط أعلى المنتجات' },
+  { v:'float', t:'شارة عائمة في الزاوية' },
+  { v:'prod',  t:'داخل صفحة المنتج' }
+];
+const BNR_STYLES = [
+  { v:'yellow', t:'أصفر' }, { v:'green', t:'أخضر' },
+  { v:'red', t:'أحمر' },    { v:'blue', t:'أزرق' }, { v:'dark', t:'داكن' }
+];
+
+function parseBanners(){
+  try{
+    const raw = S.banners;
+    if(!raw) return [];
+    const a = (typeof raw === 'string') ? JSON.parse(raw) : raw;
+    return Array.isArray(a) ? a : [];
+  }catch(_){ return []; }
+}
+
+function bnrRow(b){
+  b = b || {};
+  const d = document.createElement('div'); d.className = 'bnr';
+  d.innerHTML =
+    '<div class="bnr-top">' +
+      '<label class="bnr-on"><input type="checkbox" class="b-on"' + (b.on === false ? '' : ' checked') + '> ظاهرة</label>' +
+      '<button class="r-del b-del" title="حذف">🗑</button>' +
+    '</div>' +
+    '<div class="bnr-grid">' +
+      '<div class="fld"><label>الرمز</label><input type="text" class="b-ico" maxlength="4" value="'+esc(b.ico||'🎁')+'"></div>' +
+      '<div class="fld"><label>النص</label><input type="text" class="b-txt" value="'+esc(b.txt||'')+'" placeholder="مثلاً: توصيل مجاني لبغداد هذا الأسبوع"></div>' +
+    '</div>' +
+    '<div class="bnr-grid3">' +
+      '<div class="fld"><label>المكان</label><select class="b-place">' +
+        BNR_PLACES.map(function(p){ return '<option value="'+p.v+'"'+((b.place||'top')===p.v?' selected':'')+'>'+esc(p.t)+'</option>'; }).join('') +
+      '</select></div>' +
+      '<div class="fld"><label>اللون</label><select class="b-style">' +
+        BNR_STYLES.map(function(p){ return '<option value="'+p.v+'"'+((b.style||'yellow')===p.v?' selected':'')+'>'+esc(p.t)+'</option>'; }).join('') +
+      '</select></div>' +
+      '<div class="fld"><label>رابط (اختياري)</label><input type="url" class="b-link" value="'+esc(b.link||'')+'" placeholder="https://"></div>' +
+    '</div>' +
+    '<div class="bnr-grid2">' +
+      '<div class="fld"><label>تبدأ من (اختياري)</label><input type="date" class="b-from" value="'+esc(b.from||'')+'"></div>' +
+      '<div class="fld"><label>تنتهي في (اختياري)</label><input type="date" class="b-to" value="'+esc(b.to||'')+'"></div>' +
+    '</div>';
+  d.querySelector('.b-del').addEventListener('click', function(){ d.remove(); markDirty(); renderBnrPreview(); });
+  d.querySelectorAll('input,select').forEach(function(i){
+    i.addEventListener('input', function(){ markDirty(); renderBnrPreview(); });
+    i.addEventListener('change', function(){ markDirty(); renderBnrPreview(); });
+  });
+  return d;
+}
+
+function renderBanners(){
+  const box = $('bnrList'); if(!box) return;
+  box.innerHTML = '';
+  parseBanners().forEach(function(b){ box.appendChild(bnrRow(b)); });
+  renderBnrPreview();
+}
+
+function collectBanners(){
+  return [...document.querySelectorAll('#bnrList .bnr')].map(function(d){
+    return {
+      on:    d.querySelector('.b-on').checked,
+      ico:   d.querySelector('.b-ico').value.trim() || '🎁',
+      txt:   d.querySelector('.b-txt').value.trim(),
+      place: d.querySelector('.b-place').value,
+      style: d.querySelector('.b-style').value,
+      link:  d.querySelector('.b-link').value.trim(),
+      from:  d.querySelector('.b-from').value,
+      to:    d.querySelector('.b-to').value
+    };
+  }).filter(function(b){ return b.txt; });
+}
+
+function renderBnrPreview(){
+  const pv = $('bnrPreview'); if(!pv) return;
+  const list = collectBanners().filter(function(b){ return b.on; });
+  pv.innerHTML = '';
+  if(!list.length){ pv.innerHTML = '<div class="bnr-pv-empty">لا توجد شارات ظاهرة</div>'; return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+  BNR_PLACES.forEach(function(pl){
+    const here = list.filter(function(b){ return (b.place||'top') === pl.v; });
+    if(!here.length) return;
+    const h = document.createElement('div'); h.className='bnr-pv-h'; h.textContent = pl.t;
+    pv.appendChild(h);
+    here.forEach(function(b){
+      const el = document.createElement('div');
+      el.className = 'ubanner u-' + b.style;
+      el.innerHTML = '<span class="ub-ico">'+esc(b.ico)+'</span><span class="ub-txt">'+esc(b.txt)+'</span>';
+      let off = '';
+      if(b.from && new Date(b.from) > today) off = 'تبدأ ' + b.from;
+      if(b.to   && new Date(b.to)   < today) off = 'انتهت ' + b.to;
+      if(off){ el.style.opacity = '.4'; const n=document.createElement('span'); n.className='bnr-pv-off'; n.textContent='('+off+')'; el.appendChild(n); }
+      pv.appendChild(el);
+    });
+  });
+}
+
 async function saveAll(){
   const btn=$('saveBtn'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span> جاري الحفظ...';
   try{
@@ -918,16 +1550,32 @@ async function saveAll(){
       shipCost:     String(Number($('shipCost').value)||0),
       freeShipQty:  String(Number($('freeShipQty').value)||0),
       sortDefault:  $('sortDefault').value,
+      gridCols:     (document.querySelector('#colsPick .colbtn.on')||{dataset:{}}).dataset.c || 'auto',
       promoText:    $('promoText').value.trim(),
       promoEnabled: $('promoEnabled').checked ? '1' : '0',
       fabricNote:   $('fabricNote').value.trim(),
       fabricText:   $('fabricText').value.trim(),
-      cheapRule:    JSON.stringify(collectCheap())
+      cheapRule:    JSON.stringify(collectCheap()),
+      storeTexts:   JSON.stringify(collectTexts()),
+      banners:      JSON.stringify(collectBanners()),
+      trustItems:   JSON.stringify(collectTrust())
     };
     const d = await apiPost({ action:'saveSettings', data:JSON.stringify(data) });
     if(!d.success) throw new Error(d.error||'فشل الحفظ');
     S = d.settings;
     clearDirty();
+
+    /* تحقّق أن السكربت قَبِل المفاتيح الجديدة فعلاً.
+       لو كان saveSettings يسمح بقائمة مفاتيح محدّدة، تُحفظ القديمة
+       وتُهمَل الجديدة بصمت — فنُخبر صاحب المتجر بدل أن يظن أنها حُفظت. */
+    const dropped = ['storeTexts','banners','trustItems'].filter(function(k){
+      return data[k] && data[k] !== '{}' && data[k] !== '[]' && !S[k];
+    });
+    if(dropped.length){
+      toast('⚠️ حُفظ الباقي، لكن السكربت لم يقبل: ' + dropped.join('، ') +
+            ' — يحتاج saveSettings في GAS أن يقبل أي مفتاح', 'err');
+      return;
+    }
     toast('✅ حُفظت التغييرات — ستظهر للزبائن فوراً','ok');
   }catch(e){
     toast('❌ '+e.message,'err');
@@ -951,7 +1599,9 @@ async function bumpVersion(part){
 /* ===== تغيير كلمة المرور ===== */
 async function changePass(){
   const p1=$('newPass').value, p2=$('newPass2').value;
-  if(p1.length<4){ toast('كلمة المرور 4 أحرف على الأقل','warn'); return; }
+  if(p1.length<10){ toast('كلمة المرور 10 أحرف على الأقل','warn'); return; }
+  if(!/[a-zA-Z]/.test(p1) || !/[0-9]/.test(p1)){ toast('يجب أن تحوي حروفاً وأرقاماً','warn'); return; }
+  if(/^(1234|0000|jood|admin|pass|qwer)/i.test(p1)){ toast('كلمة مرور متوقّعة — اختر غيرها','warn'); return; }
   if(p1!==p2){ toast('الكلمتان غير متطابقتين','warn'); return; }
   try{
     const h = await hashPass(p1);                       // تُشفَّر قبل المغادرة
@@ -961,6 +1611,73 @@ async function changePass(){
     toast('✅ تغيّرت كلمة المرور — لن تُخزَّن نصاً في أي مكان','ok');
   }catch(e){ toast('❌ '+e.message,'err'); }
 }
+
+
+/* ============================================================
+   استعادة كلمة المرور عبر تلكرام
+   الرمز يصل لصاحب المتجر وحده — فالموافقة هي قراءته للرمز
+   ============================================================ */
+function recMsg(txt, kind){
+  const el = $('recMsg'); if(!el) return;
+  el.textContent = txt || '';
+  el.className = 'rec-msg' + (kind ? ' ' + kind : '');
+}
+
+$('forgotBtn').addEventListener('click', function(){
+  $('recoverBox').classList.add('show');
+  this.style.display = 'none';
+  recMsg('');
+});
+
+$('recCancel').addEventListener('click', function(){
+  $('recoverBox').classList.remove('show');
+  $('recStep2').classList.remove('show');
+  $('forgotBtn').style.display = '';
+  recMsg('');
+});
+
+$('recSendBtn').addEventListener('click', async function(){
+  const btn = this;
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> جاري الإرسال...';
+  recMsg('');
+  try{
+    const d = await apiPost({ action:'requestPassReset' });
+    if(!d.success) throw new Error(d.error || 'تعذّر الإرسال');
+    $('recStep2').classList.add('show');
+    recMsg('✅ أُرسل الرمز إلى تلكرام. يصلح ' + (d.ttl || 10) + ' دقائق.', 'ok');
+    $('recCode').focus();
+  }catch(e){
+    recMsg('❌ ' + e.message, 'err');
+  }finally{
+    btn.disabled = false; btn.innerHTML = '📨 أرسل الرمز إلى تلكرام';
+  }
+});
+
+$('recSetBtn').addEventListener('click', async function(){
+  const code = $('recCode').value.trim();
+  const p1 = $('recPass1').value, p2 = $('recPass2').value;
+  if(!/^\d{6}$/.test(code)){ recMsg('❌ الرمز ستة أرقام', 'err'); return; }
+  if(p1.length < 10){ recMsg('❌ كلمة المرور ١٠ أحرف على الأقل', 'err'); return; }
+  if(!/[a-zA-Z]/.test(p1) || !/[0-9]/.test(p1)){ recMsg('❌ يجب أن تحوي حروفاً وأرقاماً', 'err'); return; }
+  if(/^(1234|0000|jood|admin|pass|qwer)/i.test(p1)){ recMsg('❌ كلمة مرور متوقّعة — اختر غيرها', 'err'); return; }
+  if(p1 !== p2){ recMsg('❌ الكلمتان غير متطابقتين', 'err'); return; }
+
+  const btn = this;
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> جاري التعيين...';
+  try{
+    const h = await hashPass(p1);          /* الكلمة لا تغادر المتصفح */
+    const d = await apiPost({ action:'confirmPassReset', code:code, newPassHash:h });
+    if(!d.success) throw new Error(d.error || 'فشل التعيين');
+    $('recStep2').classList.remove('show');
+    $('recCode').value=''; $('recPass1').value=''; $('recPass2').value='';
+    recMsg('✅ تغيّرت كلمة المرور. سجّل الدخول بها الآن.', 'ok');
+    $('passIn').focus();
+  }catch(e){
+    recMsg('❌ ' + e.message, 'err');
+  }finally{
+    btn.disabled = false; btn.innerHTML = '✔️ تعيين كلمة المرور';
+  }
+});
 
 /* ===== الأحداث ===== */
 $('loginBtn').addEventListener('click', doLogin);
@@ -984,6 +1701,23 @@ $('addRuleBtn').addEventListener('click',()=>{
   cur.push({maxPieces:(cur.length?Math.max(...cur.map(r=>r.maxPieces))+1:1), pct:40});
   renderPieceRules(cur); markDirty(); updatePreview();
 });
+/* ===== النصوص والضمانات والشارات ===== */
+$('txtSearch').addEventListener('input', function(){
+  filterTexts(this.value, $('txtOnlyMiss').checked);
+});
+$('txtOnlyMiss').addEventListener('change', function(){
+  filterTexts($('txtSearch').value, this.checked);
+});
+$('addTrustBtn').addEventListener('click', function(){
+  const box = $('trustList');
+  if(box.children.length >= 4){ toast('الحدّ أربعة ضمانات','err'); return; }
+  box.appendChild(trustRow({ i:'✅', t:'' })); markDirty();
+});
+$('addBnrBtn').addEventListener('click', function(){
+  $('bnrList').appendChild(bnrRow({ on:true, ico:'🎁', txt:'', place:'top', style:'yellow' }));
+  markDirty(); renderBnrPreview();
+});
+
 $('selSmall').addEventListener('click',()=>{ renderSizeGrid(SMALL_SIZES.map(String)); markDirty(); updatePreview(); });
 $('selNone').addEventListener('click',()=>{ renderSizeGrid([]); markDirty(); updatePreview(); });
 
@@ -999,6 +1733,25 @@ $('saveBtn').addEventListener('click', saveAll);
 $('discardBtn').addEventListener('click',()=>{ fillForm(); toast('تراجعت عن التغييرات'); });
 document.querySelectorAll('[data-bump]').forEach(b=>b.addEventListener('click',()=>bumpVersion(b.dataset.bump)));
 $('changePassBtn').addEventListener('click', changePass);
+const _cp = $('colsPick');
+if(_cp) _cp.addEventListener('click', function(e){
+  const b = e.target.closest('.colbtn'); if(!b) return;
+  _cp.querySelectorAll('.colbtn').forEach(function(x){ x.classList.toggle('on', x===b); });
+  markDirty();
+});
+const _np=$('newPass');
+if(_np) _np.addEventListener('input', function(){
+  const v=this.value, m=$('pwMeter'); if(!m) return;
+  let s=0;
+  if(v.length>=10) s++;
+  if(/[a-z]/.test(v) && /[A-Z]/.test(v)) s++;
+  if(/[0-9]/.test(v)) s++;
+  if(/[^a-zA-Z0-9]/.test(v) || v.length>=14) s++;
+  if(!v) s=-1;
+  m.className='pw-meter'+(s>=0?' pw-w'+Math.min(s,3):'');
+  m.querySelector('span').textContent = !v ? 'اكتب كلمة مرور قوية'
+    : s<=1 ? '⚠️ ضعيفة' : s===2 ? 'متوسطة' : s===3 ? '✅ جيدة' : '✅ قوية';
+});
 const _stb=$('saveToolsBtn'); if(_stb) _stb.addEventListener('click', saveToolPaths);
 const _atb=$('addToolBtn');   if(_atb) _atb.addEventListener('click', addCustomTool);
 ['ntName','ntUrl'].forEach(function(id){ const el=$(id); if(el) el.addEventListener('keydown',function(e){ if(e.key==='Enter') addCustomTool(); }); });

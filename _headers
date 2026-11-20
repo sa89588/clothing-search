@@ -3,39 +3,47 @@
   X-Content-Type-Options: nosniff
   X-XSS-Protection: 1; mode=block
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: interest-cohort=()
+  Permissions-Policy: interest-cohort=(), camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://connect.facebook.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://www.facebook.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'
 
+# ملفات الكود: مُرقّمة بالإصدار (?v=) فيُؤمَن تخزينها طويلاً.
+# رفع الإصدار من لوحة الإدارة يُجبر المتصفح على جلب النسخة الجديدة.
 /js/*
-  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
-  Pragma: no-cache
-  Expires: 0
+  Cache-Control: public, max-age=31536000, immutable
 
 /css/*
-  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
-  Pragma: no-cache
-  Expires: 0
+  Cache-Control: public, max-age=31536000, immutable
 
+# صفحات HTML: دائماً طازجة (هي التي تحمل أرقام الإصدار)
 /*.html
-  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
-  Pragma: no-cache
-  Expires: 0
+  Cache-Control: no-cache, must-revalidate
 
 /
-  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
-  Pragma: no-cache
-  Expires: 0
+  Cache-Control: no-cache, must-revalidate
 
 /manifest.json
-  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+  Cache-Control: public, max-age=3600
+
+# الصور: ثابتة، تُخزَّن طويلاً
+/WEBP/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/THUMB/*
+  Cache-Control: public, max-age=31536000, immutable
 
 /*.png
-  Cache-Control: public, max-age=3600
+  Cache-Control: public, max-age=604800
 
 /*.jpg
-  Cache-Control: public, max-age=3600
+  Cache-Control: public, max-age=604800
 
 /*.webp
-  Cache-Control: public, max-age=3600
+  Cache-Control: public, max-age=604800
 
 /*.ico
-  Cache-Control: public, max-age=3600
+  Cache-Control: public, max-age=604800
+
+# Service Worker: لا يُخزَّن حتى تصل التحديثات
+/sw.js
+  Cache-Control: no-cache, must-revalidate
+  Service-Worker-Allowed: /

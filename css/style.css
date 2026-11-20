@@ -191,7 +191,7 @@ footer{text-align:center;padding:14px;font-size:13px;background:var(--p);color:#
 /* ===== MEASUREMENTS FLOAT ===== */
 .measbtn{position:fixed;bottom:calc(var(--nh) + var(--sb) + 12px);inset-inline-start:14px;width:44px;height:44px;border:none;border-radius:50%;background:#e53935;color:#fff;cursor:pointer;font-size:19px;box-shadow:var(--sh);z-index:700;display:flex;align-items:center;justify-content:center;}
 /* Scroll Top */
-.stbtn{position:fixed;bottom:calc(var(--nh) + var(--sb) + 12px);inset-inline-end:14px;width:44px;height:44px;border:none;border-radius:50%;background:var(--p);color:#fff;cursor:pointer;font-size:19px;box-shadow:var(--sh);z-index:700;display:none;align-items:center;justify-content:center;}
+.stbtn{position:fixed;bottom:calc(var(--nh) + var(--sb) + 12px);inset-inline-start:14px;width:44px;height:44px;border:none;border-radius:50%;background:var(--p);color:#fff;cursor:pointer;font-size:19px;box-shadow:var(--sh);z-index:700;display:none;align-items:center;justify-content:center;}
 .stbtn.show{display:flex;}
 /* Measurements Panel */
 .fpanel{position:fixed;bottom:calc(var(--nh) + var(--sb) + 64px);inset-inline-start:14px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;max-width:240px;max-height:55vh;overflow-y:auto;box-shadow:var(--sh);z-index:698;display:none;}
@@ -627,3 +627,713 @@ body.dark .cheap-box{background:#451a03;border-color:#b45309;color:#fde68a}
 body.dark .cheap-box.ok{background:#14532d;border-color:#16a34a;color:#bbf7d0}
 body.dark .ci-star{background:#451a03;color:#fde68a}
 body.dark .ci-star.ok{background:#14532d;color:#bbf7d0}
+
+/* ===== الأزرار العائمة: لا تغطي أزرار القياس ===== */
+.measbtn, .stbtn{
+  width:40px; height:40px; font-size:17px;
+  opacity:.92;
+  bottom:calc(var(--nh) + var(--sb) + 56px);   /* أعلى من صف الأزرار */
+}
+.measbtn:active, .stbtn:active{ opacity:1; transform:scale(.94) }
+/* مساحة أمان أسفل الشبكة */
+#prodCont{ padding-bottom:84px }
+@media (max-width:420px){
+  .measbtn, .stbtn{ width:38px; height:38px; font-size:16px }
+}
+
+/* ════════════════════════════════════════════════════════════
+   الواجهة الجديدة — أقسام · أعمار · بطاقة المنتج
+   ════════════════════════════════════════════════════════════ */
+
+/* ===== أقسام التسوّق ===== */
+.shop-nav{ padding:10px 12px 4px; max-width:1800px; margin:0 auto }
+
+.cats{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:11px }
+.cat{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  padding:14px 8px; border-radius:16px; cursor:pointer;
+  border:2px solid var(--bdr); background:var(--card); color:var(--txt);
+  font-family:inherit; transition:transform .16s, border-color .16s, background .16s;
+  -webkit-tap-highlight-color:transparent;
+}
+.cat .cat-ico{ font-size:26px; line-height:1 }
+.cat .cat-lbl{ font-size:13.5px; font-weight:800 }
+.cat:active{ transform:scale(.97) }
+.cat.on{ color:#fff; border-color:transparent }
+.cat-all.on  { background:linear-gradient(135deg,#1565C0,#1E88E5) }
+.cat-boys.on { background:linear-gradient(135deg,#1565C0,#42A5F5) }
+.cat-girls.on{ background:linear-gradient(135deg,#C2185B,#EC407A) }
+.cat-boys:not(.on):hover { border-color:#42A5F5 }
+.cat-girls:not(.on):hover{ border-color:#EC407A }
+
+/* ===== شريط الأعمار ===== */
+.ages{
+  display:flex; gap:7px; overflow-x:auto; padding-bottom:4px;
+  scrollbar-width:none; -ms-overflow-style:none;
+}
+.ages::-webkit-scrollbar{ display:none }
+.age{
+  flex:0 0 auto; padding:8px 14px; border-radius:20px; cursor:pointer;
+  border:1.5px solid var(--bdr); background:var(--card); color:var(--txt2);
+  font-family:inherit; font-size:12.5px; font-weight:700; white-space:nowrap;
+  transition:all .15s; -webkit-tap-highlight-color:transparent;
+}
+.age:active{ transform:scale(.96) }
+.age.on{ background:var(--p); border-color:var(--p); color:#fff }
+
+/* ═══════════ بطاقة المنتج: الصورة هي البطل ═══════════ */
+
+/* شبكة أوسع قليلاً وبمساحة تنفّس */
+.pgrid{ grid-template-columns:repeat(auto-fill,minmax(172px,1fr)); gap:12px; padding:12px }
+
+.pcard{ border-radius:16px }
+
+/* نسبة ثابتة 3:4 — شبكة منتظمة ومساحة أكبر للصورة */
+.cimg-w{ aspect-ratio:3/4 }
+.cimg{ object-fit:cover }
+
+/* جسم أهدأ */
+.cbody{ padding:10px 10px 11px; gap:5px }
+
+/* السعر هو البطل */
+.cprices{ display:flex; align-items:baseline; gap:7px; flex-wrap:wrap; order:1 }
+.pnew{ font-size:17px; font-weight:900; letter-spacing:-.01em }
+.pold{ font-size:11.5px }
+
+/* رقم الموديل يتراجع لسطر رمادي صغير */
+.cid{
+  order:4; font-size:10.5px; font-weight:600; color:var(--muted);
+  justify-content:flex-start; gap:4px; margin-top:2px; opacity:.75;
+}
+.cid-icon{ font-size:9.5px }
+
+/* الخامة سطر خفيف */
+.cfabric{ order:2; font-size:10.5px; color:var(--txt2); opacity:.85 }
+
+/* «وفّرت» أقل صخباً */
+.savings{ order:3; font-size:10.5px }
+
+/* أزرار القياس: الفعل الأساسي — تبرز */
+.sz-pills-lbl{ order:5; font-size:10.5px; margin-top:4px; opacity:.8 }
+.sz-pills{ order:6 }
+.sz-pill{
+  background:rgba(21,101,192,.08);
+  border-width:1.5px; font-weight:800; font-size:11.5px;
+  padding:6px 11px; min-height:32px;
+}
+.sz-pill:active{ transform:scale(.95) }
+.sz-pill.sz-best{ background:rgba(21,101,192,.16); border-color:var(--p) }
+
+/* شارات: اثنتان بحد أقصى، أهدأ */
+.cbadges{ gap:4px }
+.badge{ font-size:9.5px; padding:3px 7px; border-radius:11px; font-weight:800 }
+
+/* شارة الجنس على البطاقة */
+.bgen{ background:rgba(255,255,255,.95); backdrop-filter:blur(4px) }
+.bgen-g{ color:#C2185B }
+.bgen-b{ color:#1565C0 }
+
+/* وضع داكن */
+body.dark .cat{ background:var(--card) }
+body.dark .sz-pill{ background:rgba(66,165,245,.12) }
+body.dark .bgen{ background:rgba(30,41,59,.95) }
+
+/* هاتف */
+@media (max-width:420px){
+  .pgrid{ grid-template-columns:repeat(2,1fr); gap:10px; padding:10px }
+  .cat{ padding:12px 6px }
+  .cat .cat-ico{ font-size:23px }
+  .cat .cat-lbl{ font-size:12.5px }
+  .pnew{ font-size:15.5px }
+  .shop-nav{ padding:8px 10px 4px }
+}
+
+/* ===== ضغط أعلى الصفحة: المنتج يظهر أسرع ===== */
+#fabricNote{
+  padding:6px 12px; font-size:11.5px; margin:0 12px 8px;
+  border-radius:9px; opacity:.9;
+}
+.srch-wrap{ padding:0 12px 8px }
+.srch-row{ display:flex; gap:7px; align-items:stretch }
+.srch-in{ flex:1; min-width:0 }
+.srch-row .flt-btn{
+  flex:0 0 auto; width:44px; padding:0; justify-content:center;
+  position:relative; border-radius:11px;
+}
+.srch-row .flt-btn .flt-badge{
+  position:absolute; top:-5px; inset-inline-end:-5px;
+  min-width:17px; height:17px; font-size:10px;
+}
+.srch-rst{ flex:0 0 auto }
+.rcount{ padding:0 12px 6px; font-size:11.5px; opacity:.7 }
+.promo{ padding-top:7px; padding-bottom:7px; font-size:12.5px }
+
+/* شريط الأعمار يبدأ من البداية في RTL */
+.ages{ direction:rtl }
+
+/* ===== أزرار القياس المضغوطة ===== */
+.sz-pill{ flex-direction:column; gap:0; padding:5px 9px; min-width:46px }
+.szp-n{ font-size:13px; font-weight:900; line-height:1.15 }
+.szp-age{ font-size:8.5px; font-weight:600; opacity:.72; line-height:1.2; white-space:nowrap }
+.szp-price{ font-size:9.5px; font-weight:800; opacity:.9; margin-top:1px }
+
+/* ===== زر دليل القياسات داخل شريط الأعمار ===== */
+.age-guide{
+  font-size:15px; padding:8px 12px; min-width:40px;
+  background:rgba(229,57,53,.1); border-color:rgba(229,57,53,.35); color:#e53935;
+}
+.age-guide.on, .age-guide:active{ background:#e53935; border-color:#e53935; color:#fff }
+
+/* الزر العائم الوحيد المتبقي: للأعلى */
+.stbtn{ opacity:.85 }
+.flt-ico{ font-size:18px; line-height:1 }
+
+
+/* ════════════════════════════════════════════════════════════
+   الشبكة المضغوطة — 3 أعمدة على الهاتف
+   ════════════════════════════════════════════════════════════ */
+.pgrid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; padding:10px }
+
+.cbody{ padding:7px 8px 8px; gap:2px }
+.cprices{ gap:5px; flex-direction:column; align-items:flex-start }
+.pnew{ font-size:14px; font-weight:900; line-height:1.2 }
+.pold{ font-size:10px; line-height:1.1 }
+
+/* عدد القياسات */
+.cszc{
+  order:3; font-size:9.5px; font-weight:800;
+  color:var(--p); opacity:.88; margin-top:2px;
+}
+.cid{ order:4; font-size:9px; opacity:.6; margin-top:1px }
+.cid-icon{ font-size:8px }
+
+/* شارات وأزرار أصغر */
+.cbadges{ gap:3px; top:6px; inset-inline-end:6px }
+.badge{ font-size:8.5px; padding:2px 6px; border-radius:9px }
+.fav-btn{ width:26px; height:26px; font-size:14px; top:6px; inset-inline-start:6px }
+
+@media (max-width:520px){
+  .pgrid{ grid-template-columns:repeat(3,1fr); gap:7px; padding:8px }
+  .pnew{ font-size:12.5px }
+  .pold{ font-size:9px }
+  .cszc{ font-size:8.5px }
+  .cid{ font-size:8px }
+  .cbody{ padding:6px 6px 7px }
+  .badge{ font-size:7.5px; padding:2px 5px }
+  .fav-btn{ width:23px; height:23px; font-size:12.5px; top:5px; inset-inline-start:5px }
+  .cbadges{ top:5px; inset-inline-end:5px; max-width:calc(100% - 34px) }
+}
+@media (max-width:340px){
+  .pgrid{ grid-template-columns:repeat(2,1fr) }
+}
+
+/* ===== ملاحظة الخامة: يتحكّم بها صاحب المتجر من اللوحة =====
+   مخفيّة ما لم يُكتب لها نص؛ الكود يُظهرها عندئذ (display:flex). */
+#fabricNote{ padding:5px 12px; font-size:11.5px; margin:6px 12px 2px;
+             border-radius:9px; opacity:.92; line-height:1.35 }
+#fabricNote i{ font-size:12px }
+.rcount{ display:none; padding:0 12px 5px; font-size:11px; opacity:.6; font-weight:600 }
+.rcount.show{ display:block }
+.srch-wrap{ padding-bottom:7px }
+
+/* ===== القياسات على البطاقة: أرقام واضحة في سطر واحد ===== */
+.cszc{
+  display:flex; flex-wrap:wrap; gap:0 4px;
+  font-variant-numeric:tabular-nums; letter-spacing:.015em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  font-weight:800;
+}
+.cszc .szl{ direction:ltr; unicode-bidi:isolate }
+.cszc .szmore{
+  direction:ltr; unicode-bidi:isolate;
+  opacity:.65; font-weight:700; margin-inline-start:3px;
+}
+/* القياس المطابق لفلتر العمر */
+.cszc .szhit{
+  background:rgba(21,101,192,.14); border-radius:4px;
+  padding:0 3px; font-weight:900;
+}
+body.dark .cszc .szhit{ background:rgba(66,165,245,.2) }
+/* سطر القياسات لا يلتف أبداً */
+.cszc{ flex-wrap:nowrap }
+
+/* ════════════════════════════════════════════════════════════
+   صفحة المنتج — عمودان: الصورة والتفاصيل جنباً إلى جنب
+   ════════════════════════════════════════════════════════════ */
+.sheet-tall{ max-height:92vh }
+
+/* ===== الصف العلوي ===== */
+.pv-top{
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
+  gap:12px; margin-bottom:14px; align-items:stretch;
+}
+.pv-img{
+  position:relative; border-radius:13px; overflow:hidden;
+  background:var(--bg); margin:0;
+  /* يتمدّد ليساوي العمود الجانبي فلا يبقى فراغ تحته */
+  height:100%; min-height:200px; max-height:46vh;
+}
+.pv-img img{ width:100%; height:100%; object-fit:cover; cursor:zoom-in; display:block }
+.pv-badges{
+  position:absolute; top:7px; inset-inline-start:7px;
+  display:flex; flex-direction:column; gap:4px; align-items:flex-start;
+}
+.pv-badges .badge{ font-size:9px; padding:3px 7px }
+
+/* ===== العمود الجانبي ===== */
+.pv-side{ display:flex; flex-direction:column; gap:11px; min-width:0 }
+
+.pv-prices{ display:flex; align-items:baseline; gap:5px; flex-wrap:wrap; line-height:1.15 }
+.pv-new{ font-size:23px; font-weight:900; color:var(--red); letter-spacing:-.02em }
+.pv-cur{ font-size:12px; font-weight:700; color:var(--red); opacity:.85 }
+.pv-old{
+  font-size:12.5px; color:var(--muted); text-decoration:line-through;
+  flex-basis:100%; margin-top:-1px;
+}
+
+/* صفوف التفاصيل — خفيفة بلا صناديق ثقيلة */
+.pv-meta{
+  display:flex; flex-direction:column;
+  border:1px solid var(--bdr); border-radius:11px; overflow:hidden;
+  background:var(--card);
+}
+.pv-row{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:7px 10px; border-bottom:1px solid var(--bdr); min-width:0;
+}
+.pv-row:last-child{ border-bottom:none }
+.pv-k{ font-size:10.5px; color:var(--muted); font-weight:600; white-space:nowrap }
+.pv-v{
+  font-size:12px; font-weight:800; text-align:end;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;
+}
+.pv-v[dir="ltr"]{ font-family:'Space Mono',ui-monospace,monospace; font-size:11px }
+
+/* ===== القياسات ===== */
+.pv-info{ display:flex; flex-direction:column; gap:11px }
+.pv-szlbl{ font-size:12.5px; font-weight:800; color:var(--txt) }
+.pv-sizes{ display:flex; flex-wrap:wrap; gap:8px }
+.pv-sz{
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  min-width:68px; padding:9px 11px; border-radius:12px; cursor:pointer;
+  border:1.5px solid var(--p); background:rgba(21,101,192,.06); color:var(--p);
+  font-family:inherit; transition:all .15s;
+}
+.pv-sz:hover{ background:rgba(21,101,192,.13) }
+.pv-sz:active{ transform:scale(.95) }
+.pv-sz-n{ font-size:16px; font-weight:900; line-height:1.1 }
+.pv-sz-a{ font-size:9px; font-weight:600; opacity:.7 }
+.pv-sz-p{ font-size:11px; font-weight:800; margin-top:1px }
+
+/* ===== ضمانات الشراء ===== */
+.pv-trust{
+  display:flex; flex-direction:column; gap:6px;
+  background:rgba(22,163,74,.07); border:1px solid rgba(22,163,74,.22);
+  border-radius:11px; padding:9px 11px;
+}
+.pv-tr{
+  display:flex; align-items:center; gap:7px;
+  font-size:11.5px; font-weight:700; color:#15803d; line-height:1.35;
+}
+.pv-tr-i{ font-size:13px; flex-shrink:0 }
+
+/* ===== الأزرار ===== */
+.pv-acts{ display:grid; grid-template-columns:1fr 1fr; gap:8px; padding-bottom:6px }
+.pv-share, .pv-wa{
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  padding:11px; border-radius:11px; font-family:inherit;
+  font-size:13px; font-weight:800; cursor:pointer; text-decoration:none;
+  border:1.5px solid var(--bdr); background:var(--bg); color:var(--txt);
+}
+.pv-wa{ background:#25D366; border-color:#25D366; color:#fff }
+.pv-share:active, .pv-wa:active{ transform:scale(.97) }
+
+/* ===== الوضع الداكن ===== */
+body.dark .pv-meta{ background:rgba(255,255,255,.03) }
+body.dark .pv-sz{ background:rgba(66,165,245,.1) }
+body.dark .pv-trust{ background:rgba(22,163,74,.12); border-color:rgba(74,222,128,.25) }
+body.dark .pv-tr{ color:#4ade80 }
+
+/* ===== شاشات ضيّقة ===== */
+@media (max-width:400px){
+  .pv-top{ gap:10px }
+  .pv-new{ font-size:20px }
+  .pv-k{ font-size:9.5px }
+  .pv-v{ font-size:11px }
+  .pv-row{ padding:6px 8px }
+  .pv-sz{ min-width:62px; padding:8px 9px }
+  .pv-sz-n{ font-size:15px }
+  .pv-tr{ font-size:11px }
+}
+/* شاشات واسعة: الصورة لا تتضخّم */
+@media (min-width:560px){
+  .pv-top{ grid-template-columns:minmax(0,260px) minmax(0,1fr) }
+}
+
+/* ===== البطاقة كلها قابلة للضغط ===== */
+.pcard.tappable{
+  cursor:pointer; -webkit-tap-highlight-color:transparent;
+  transition:transform .14s, box-shadow .14s;
+}
+.pcard.tappable:active{ transform:scale(.975) }
+.pcard.tappable:focus-visible{ outline:2.5px solid var(--p); outline-offset:2px }
+/* القلب والكود يبقيان قابلين للضغط وحدهما */
+.pcard .cid{ cursor:pointer; position:relative; z-index:5 }   /* القلب يبقى absolute */
+.pcard .cid:active{ opacity:.6 }
+
+/* ════════ المفضلة · شريط التوصيل · الشارات ════════
+   (استُعيدت — حُذفت سهواً عند إعادة بناء صفحة المنتج) */
+
+/* ===== شريط التوصيل المجاني ===== */
+.ship-bar{
+  position:fixed; inset-inline:0;
+  bottom:calc(var(--nh) + var(--sb));
+  background:var(--card); border-top:1px solid var(--bdr);
+  padding:8px 14px 9px; z-index:690;
+  transform:translateY(110%); transition:transform .3s;
+  box-shadow:0 -3px 14px rgba(0,0,0,.07);
+}
+.ship-bar.show{ transform:translateY(0) }
+.sb-txt{ font-size:12px; font-weight:700; color:var(--txt); margin-bottom:5px; text-align:center }
+.sb-track{ height:6px; border-radius:4px; background:var(--bg); overflow:hidden }
+.sb-fill{ height:100%; width:0; border-radius:4px; background:linear-gradient(90deg,#1565C0,#42A5F5); transition:width .35s }
+.ship-bar.done .sb-fill{ background:linear-gradient(90deg,#16a34a,#4ade80) }
+.ship-bar.done .sb-txt{ color:#15803d }
+body.dark .ship-bar.done .sb-txt{ color:#4ade80 }
+.ship-bar.show ~ .stbtn{ bottom:calc(var(--nh) + var(--sb) + 104px) }
+
+/* ===== زر المفضلة على البطاقة ===== */
+.fav-btn{
+  position:absolute; top:6px; inset-inline-start:6px; z-index:4;
+  width:28px; height:28px; border-radius:50%; cursor:pointer;
+  border:none; background:rgba(255,255,255,.93); backdrop-filter:blur(4px);
+  color:#c3cbd6; font-size:15px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .15s, color .15s; box-shadow:0 2px 7px rgba(0,0,0,.13);
+}
+.fav-btn:active{ transform:scale(.86) }
+.fav-btn.on{ color:#e11d48 }
+.fav-btn.on:active{ transform:scale(1.18) }
+body.dark .fav-btn{ background:rgba(30,41,59,.93); color:#64748b }
+body.dark .fav-btn.on{ color:#fb7185 }
+
+/* ===== قلب الشريط السفلي ===== */
+.bn-heart{ font-size:19px; line-height:1 }
+.bnavbtn.on .bn-heart{ color:var(--p) }
+
+/* ===== الشارات لا تتداخل مع القلب ===== */
+.cbadges{ max-width:calc(100% - 44px) }
+.cnav-wrap{ position:relative; display:inline-flex }
+.bnavbtn .cdot{ top:-4px; inset-inline-end:-8px }
+
+@media (max-width:520px){
+  .fav-btn{ width:24px; height:24px; font-size:13px; top:5px; inset-inline-start:5px }
+  .cbadges{ max-width:calc(100% - 36px) }
+}
+
+/* ════════ عدد الأعمدة — يُضبط من لوحة الإدارة ════════
+   auto = حسب عرض الشاشة (الافتراضي) */
+body[data-cols="2"] .pgrid{ grid-template-columns:repeat(2,1fr) }
+body[data-cols="3"] .pgrid{ grid-template-columns:repeat(3,1fr) }
+body[data-cols="4"] .pgrid{ grid-template-columns:repeat(4,1fr) }
+
+/* عمودان: مساحة أوسع فنكبّر النصوص */
+body[data-cols="2"] .pnew{ font-size:15px }
+body[data-cols="2"] .pold{ font-size:10.5px }
+body[data-cols="2"] .cszc{ font-size:10px }
+body[data-cols="2"] .cid{ font-size:9.5px }
+body[data-cols="2"] .fav-btn{ width:30px; height:30px; font-size:16px }
+
+/* أربعة أعمدة: نضغط أكثر */
+body[data-cols="4"] .pnew{ font-size:11.5px }
+body[data-cols="4"] .pold{ font-size:8.5px }
+body[data-cols="4"] .cszc{ font-size:8px }
+body[data-cols="4"] .cid{ font-size:7.5px }
+body[data-cols="4"] .badge{ font-size:7px; padding:1px 4px }
+body[data-cols="4"] .fav-btn{ width:21px; height:21px; font-size:11.5px }
+
+/* حدود السلامة: لا نسمح بأعمدة أضيق من أن تُقرأ،
+   مهما كان الإعداد في لوحة الإدارة */
+@media (max-width:379px){
+  body[data-cols="4"] .pgrid{ grid-template-columns:repeat(3,1fr) }
+}
+@media (max-width:340px){
+  body[data-cols="3"] .pgrid,
+  body[data-cols="4"] .pgrid{ grid-template-columns:repeat(2,1fr) }
+}
+
+/* ===== «الدفع عند الاستلام» في صفحة الطلب (استُعيد) ===== */
+.ck-pay{
+  background:rgba(22,163,74,.1); border:1px solid rgba(22,163,74,.3);
+  color:#15803d; border-radius:10px; padding:9px 12px;
+  font-size:12.5px; font-weight:600; margin-top:4px;
+}
+body.dark .ck-pay{ background:rgba(22,163,74,.14); color:#4ade80 }
+
+/* ════════════ «قد يعجبك أيضاً» ════════════ */
+.sg-box{
+  background:var(--card); border-radius:20px 20px 0 0;
+  width:100%; max-width:560px; margin:auto auto 0;
+  padding:16px 0 calc(12px + var(--sb));
+  max-height:86vh; display:flex; flex-direction:column;
+  position:relative; animation:sgUp .28s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes sgUp{ from{ transform:translateY(40px); opacity:0 } to{ transform:none; opacity:1 } }
+#sgOv{ align-items:flex-end; padding:0 }
+
+.sg-x{
+  position:absolute; top:12px; inset-inline-end:14px; z-index:2;
+  width:30px; height:30px; border-radius:50%; border:none; cursor:pointer;
+  background:var(--bg); color:var(--txt2); font-size:14px; line-height:1;
+}
+.sg-x:active{ transform:scale(.9) }
+
+.sg-hdr{ padding:0 16px 12px; text-align:start }
+.sg-ttl{ font-size:16.5px; font-weight:900; color:var(--txt) }
+.sg-sub{ font-size:12px; color:var(--txt2); margin-top:2px }
+
+/* شريط أفقي — لا يطيل الشاشة */
+.sg-list{
+  display:flex; gap:10px; overflow-x:auto; padding:2px 16px 12px;
+  scroll-snap-type:x mandatory; scrollbar-width:none;
+}
+.sg-list::-webkit-scrollbar{ display:none }
+
+.sg-card{
+  flex:0 0 132px; scroll-snap-align:start;
+  border:1.5px solid var(--bdr); border-radius:14px; overflow:hidden;
+  background:var(--card); display:flex; flex-direction:column;
+  transition:border-color .2s, opacity .2s;
+}
+.sg-card.added{ border-color:#16a34a; opacity:.8 }
+.sg-img{ position:relative; aspect-ratio:3/4; background:var(--bg) }
+.sg-img img{ width:100%; height:100%; object-fit:cover; display:block }
+.sg-last{
+  position:absolute; top:5px; inset-inline-start:5px;
+  background:#e53935; color:#fff; font-size:8px; font-weight:800;
+  padding:2px 6px; border-radius:9px; white-space:nowrap;
+}
+.sg-body{ padding:7px 8px 6px; display:flex; flex-direction:column; gap:3px }
+.sg-sz{ font-size:10px; font-weight:800; color:var(--p); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.sg-pr{ display:flex; align-items:baseline; gap:5px; flex-wrap:wrap }
+.sg-pr b{ font-size:13px; font-weight:900; color:var(--red) }
+.sg-pr s{ font-size:9.5px; color:var(--muted) }
+.sg-add{
+  margin:0 8px 8px; padding:7px; border-radius:9px; cursor:pointer;
+  border:1.5px solid var(--p); background:rgba(21,101,192,.07); color:var(--p);
+  font-family:inherit; font-size:11px; font-weight:800;
+}
+.sg-add:active{ transform:scale(.95) }
+.sg-add:disabled{ border-color:#16a34a; background:rgba(22,163,74,.1); color:#16a34a; cursor:default }
+
+.sg-foot{
+  padding:11px 16px 0; border-top:1px solid var(--bdr);
+  display:flex; flex-direction:column; gap:9px;
+}
+.sg-tot{ display:flex; justify-content:space-between; align-items:baseline; font-size:12.5px }
+.sg-tot span{ color:var(--txt2); font-weight:600 }
+.sg-tot b{ font-size:16px; font-weight:900; color:var(--txt) }
+.sg-go{
+  width:100%; padding:14px; border-radius:13px; border:none; cursor:pointer;
+  background:var(--p); color:#fff; font-family:inherit;
+  font-size:14.5px; font-weight:800;
+}
+.sg-go:active{ transform:scale(.98) }
+
+body.dark .sg-add{ background:rgba(66,165,245,.12) }
+body.dark .sg-x{ background:rgba(255,255,255,.07) }
+
+@media (max-width:360px){
+  .sg-card{ flex-basis:118px }
+  .sg-ttl{ font-size:15px }
+}
+
+/* ════════════════════════════════════════════════════════════
+   أعلى الصفحة المضغوط — المنتج يظهر فوراً
+   ════════════════════════════════════════════════════════════ */
+
+/* ===== شارة العرض: عائمة ثابتة في الزاوية ===== */
+.promo-chip{
+  /* الزاوية السفلى المقابلة لزر الصعود — لا تحجب البحث ولا المنتجات */
+  position:fixed; z-index:698;
+  bottom:calc(var(--nh) + var(--sb) + 12px); inset-inline-end:12px;
+  display:flex; align-items:stretch; gap:0;
+  background:linear-gradient(135deg,var(--yel),#FFB300);
+  border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,.18);
+  overflow:hidden; max-width:calc(100% - 20px);
+  animation:pcIn .4s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes pcIn{ from{ transform:translateY(14px); opacity:0 } to{ transform:none; opacity:1 } }
+.promo-chip.hide,
+.promo-chip.gone{ display:none }
+
+.pc-main{
+  display:flex; align-items:center; gap:7px;
+  padding:7px 10px; border:none; background:none; cursor:pointer;
+  font-family:inherit; color:#222; min-width:0;
+}
+.pc-ico{ font-size:15px; flex-shrink:0 }
+.pc-body{ display:flex; flex-direction:column; align-items:flex-start; gap:1px; min-width:0 }
+.pc-txt{
+  font-size:10.5px; font-weight:800; line-height:1.2; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; max-width:56vw;
+}
+.promo-chip .cd{ display:flex; align-items:center; gap:2px }
+.promo-chip .cdu{
+  background:rgba(0,0,0,.72); color:#fff; border-radius:4px;
+  padding:1px 4px; font-size:9.5px; font-weight:800;
+  font-variant-numeric:tabular-nums; min-width:19px; text-align:center;
+}
+.promo-chip .cdsep{ font-size:9px; font-weight:800; opacity:.6 }
+
+.pc-x{
+  border:none; background:rgba(0,0,0,.09); cursor:pointer;
+  width:26px; color:#222; font-size:11px; flex-shrink:0;
+}
+.pc-x:active{ background:rgba(0,0,0,.18) }
+
+/* ===== صف الفلاتر المجمّعة ===== */
+.pick-row{ display:flex; gap:7px; margin-top:7px; align-items:stretch }
+.pk-btn{
+  flex:1; min-width:0; display:flex; align-items:center; gap:5px;
+  padding:9px 11px; border-radius:11px; cursor:pointer;
+  border:1.5px solid var(--bdr); background:var(--card); color:var(--txt);
+  font-family:inherit; transition:all .15s; -webkit-tap-highlight-color:transparent;
+}
+.pk-btn:active{ transform:scale(.97) }
+.pk-btn.on{ border-color:var(--p); background:rgba(21,101,192,.07) }
+.pk-ico{ font-size:14px; flex-shrink:0; line-height:1 }
+.pk-lbl{
+  flex:1; font-size:12.5px; font-weight:800; text-align:start;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;
+}
+.pk-btn.on .pk-lbl{ color:var(--p) }
+.pk-car{ font-size:9px; opacity:.55; flex-shrink:0 }
+
+.pk-ruler{
+  flex:0 0 auto; width:40px; border-radius:11px; cursor:pointer;
+  border:1.5px solid rgba(229,57,53,.3); background:rgba(229,57,53,.08);
+  color:#e53935; font-size:15px; font-family:inherit;
+}
+.pk-ruler:active{ transform:scale(.95) }
+
+/* ===== لوحة الاختيار ===== */
+#pkOv{ align-items:flex-end; padding:0 }
+.pk-box{
+  background:var(--card); border-radius:20px 20px 0 0;
+  width:100%; max-width:480px; margin:auto auto 0;
+  padding:14px 0 calc(12px + var(--sb));
+  max-height:80vh; display:flex; flex-direction:column;
+  animation:sgUp .26s cubic-bezier(.2,.8,.2,1);
+}
+.pk-hdr{ display:flex; align-items:center; justify-content:space-between; padding:0 16px 10px }
+.pk-ttl{ font-size:16px; font-weight:900; color:var(--txt) }
+.pk-x{
+  width:30px; height:30px; border-radius:50%; border:none; cursor:pointer;
+  background:var(--bg); color:var(--txt2); font-size:13px;
+}
+.pk-list{ overflow-y:auto; padding:0 12px; display:flex; flex-direction:column; gap:6px }
+.pk-row{
+  display:flex; align-items:center; gap:10px; width:100%;
+  padding:12px 13px; border-radius:12px; cursor:pointer;
+  border:1.5px solid var(--bdr); background:var(--bg); color:var(--txt);
+  font-family:inherit; transition:all .14s;
+}
+.pk-row:active{ transform:scale(.985) }
+.pk-row.on{ border-color:var(--p); background:rgba(21,101,192,.08) }
+.pk-r-ico{ font-size:19px; flex-shrink:0; line-height:1 }
+.pk-r-txt{ flex:1; font-size:13.5px; font-weight:700; text-align:start }
+.pk-row.on .pk-r-txt{ color:var(--p); font-weight:800 }
+.pk-chk{
+  width:21px; height:21px; border-radius:50%; flex-shrink:0;
+  border:2px solid var(--bdr); position:relative; transition:all .15s;
+}
+.pk-row.on .pk-chk{ border-color:var(--p); background:var(--p) }
+.pk-row.on .pk-chk::after{
+  content:'✓'; position:absolute; inset:0; color:#fff;
+  font-size:12px; font-weight:900; display:flex; align-items:center; justify-content:center;
+}
+.pk-all{ border-style:dashed }
+
+.pk-done{
+  margin:12px 16px 0; padding:13px; border-radius:12px; border:none; cursor:pointer;
+  background:var(--p); color:#fff; font-family:inherit; font-size:14px; font-weight:800;
+}
+.pk-done:active{ transform:scale(.98) }
+
+body.dark .pk-row{ background:rgba(255,255,255,.03) }
+body.dark .pk-x{ background:rgba(255,255,255,.07) }
+
+@media (max-width:360px){
+  .pk-lbl{ font-size:11.5px }
+  .pc-txt{ max-width:30vw }
+}
+
+/* ===== بطاقة نفدت أثناء التصفّح =====
+   تبقى في مكانها فلا تزحف الشبكة تحت إصبع الزبون، لكنها
+   تُعتَّم وتُقفل. تختفي فعلياً عند أول فلترة أو فتح جديد. */
+.pcard.soldout{
+  position:relative; opacity:.45; filter:grayscale(.85);
+  pointer-events:none; cursor:default;
+  transition:opacity .3s ease, filter .3s ease;
+}
+.pcard.soldout .so-tag{
+  position:absolute; left:50%; top:40%;
+  transform:translate(-50%,-50%) rotate(-8deg);
+  background:#111; color:#fff; font-size:12px; font-weight:900;
+  padding:5px 14px; border-radius:8px; letter-spacing:.5px;
+  box-shadow:0 3px 10px rgba(0,0,0,.3); pointer-events:none; z-index:3;
+}
+body.dark .pcard.soldout .so-tag{ background:#000; color:#fca5a5 }
+
+/* ============================================================
+   الشارات والإعلانات — يضيفها صاحب المتجر من لوحة الإدارة
+   ============================================================ */
+.ubanners{ display:flex; flex-direction:column; gap:6px; padding:0 12px; margin:2px 0 }
+.ubanners:empty{ display:none }
+
+.ubanner{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 12px; border-radius:10px;
+  font-size:12.5px; font-weight:800; line-height:1.4;
+  text-decoration:none; border:1px solid transparent;
+}
+.ub-ico{ font-size:15px; flex-shrink:0 }
+.ub-txt{ min-width:0 }
+a.ubanner{ cursor:pointer }
+a.ubanner:active{ transform:scale(.99) }
+
+/* الألوان — يختارها صاحب المتجر */
+.u-yellow{ background:linear-gradient(135deg,#FFF3CD,#FFE69C); color:#7A5B00; border-color:#FFD54F }
+.u-green { background:linear-gradient(135deg,#f0fdf4,#dcfce7); color:#15803d; border-color:#86efac }
+.u-red   { background:linear-gradient(135deg,#fef2f2,#fee2e2); color:#b91c1c; border-color:#fca5a5 }
+.u-blue  { background:linear-gradient(135deg,#eff6ff,#dbeafe); color:#1d4ed8; border-color:#93c5fd }
+.u-dark  { background:linear-gradient(135deg,#1f2937,#111827); color:#fff; border-color:#374151 }
+
+body.dark .u-yellow{ background:#4a3800; color:#ffe08a; border-color:#6b5200 }
+body.dark .u-green { background:#14532d; color:#bbf7d0; border-color:#166534 }
+body.dark .u-red   { background:#4c1d1d; color:#fca5a5; border-color:#7f1d1d }
+body.dark .u-blue  { background:#1e3a5f; color:#bfdbfe; border-color:#1e40af }
+
+/* الشارات العائمة — تُرصّ فوق شارة العرض في الزاوية نفسها */
+.ufloat{
+  position:fixed; z-index:697;
+  bottom:calc(var(--nh) + var(--sb) + 60px); inset-inline-end:12px;
+  display:flex; flex-direction:column; gap:6px;
+  max-width:calc(100% - 24px); pointer-events:none;
+}
+.ufloat .ubanner{
+  pointer-events:auto; position:relative; padding-inline-end:30px;
+  font-size:11.5px; box-shadow:0 4px 14px rgba(0,0,0,.18);
+}
+.ub-x{
+  position:absolute; inset-inline-end:4px; top:50%; transform:translateY(-50%);
+  width:20px; height:20px; border:none; border-radius:50%; cursor:pointer;
+  background:rgba(0,0,0,.1); color:inherit; font-size:10px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+}
+.ub-x:active{ background:rgba(0,0,0,.2) }
+
+/* سطر الإعلان داخل صفحة المنتج */
+.pv-banners{ display:flex; flex-direction:column; gap:6px; margin:8px 0 }
+.pv-banners:empty{ display:none }

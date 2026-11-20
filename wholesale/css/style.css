@@ -613,3 +613,226 @@ body.dark .ws-unit{color:#94a3b8}
 body.dark .ws-sz{background:#334155;color:#cbd5e1}
 body.dark .ws-sz-lbl{color:#64748b}
 body.dark .ws-add.in-cart{background:#14532d;color:#bbf7d0}
+/* ===== الأزرار العائمة: لا تغطي أزرار القياس ===== */
+.measbtn, .stbtn{
+  width:40px; height:40px; font-size:17px;
+  opacity:.92;
+  bottom:calc(var(--nh) + var(--sb) + 56px);   /* أعلى من صف الأزرار */
+}
+.measbtn:active, .stbtn:active{ opacity:1; transform:scale(.94) }
+/* مساحة أمان أسفل الشبكة */
+#prodCont{ padding-bottom:84px }
+@media (max-width:420px){
+  .measbtn, .stbtn{ width:38px; height:38px; font-size:16px }
+}
+
+/* ════════════════════════════════════════════════════════════
+   الواجهة الجديدة — أقسام · أعمار · بطاقة المنتج
+   ════════════════════════════════════════════════════════════ */
+
+/* ===== أقسام التسوّق ===== */
+.shop-nav{ padding:10px 12px 4px; max-width:1800px; margin:0 auto }
+
+.cats{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:11px }
+.cat{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  padding:14px 8px; border-radius:16px; cursor:pointer;
+  border:2px solid var(--bdr); background:var(--card); color:var(--txt);
+  font-family:inherit; transition:transform .16s, border-color .16s, background .16s;
+  -webkit-tap-highlight-color:transparent;
+}
+.cat .cat-ico{ font-size:26px; line-height:1 }
+.cat .cat-lbl{ font-size:13.5px; font-weight:800 }
+.cat:active{ transform:scale(.97) }
+.cat.on{ color:#fff; border-color:transparent }
+.cat-all.on  { background:linear-gradient(135deg,#1565C0,#1E88E5) }
+.cat-boys.on { background:linear-gradient(135deg,#1565C0,#42A5F5) }
+.cat-girls.on{ background:linear-gradient(135deg,#C2185B,#EC407A) }
+.cat-boys:not(.on):hover { border-color:#42A5F5 }
+.cat-girls:not(.on):hover{ border-color:#EC407A }
+
+/* ===== شريط الأعمار ===== */
+.ages{
+  display:flex; gap:7px; overflow-x:auto; padding-bottom:4px;
+  scrollbar-width:none; -ms-overflow-style:none;
+}
+.ages::-webkit-scrollbar{ display:none }
+.age{
+  flex:0 0 auto; padding:8px 14px; border-radius:20px; cursor:pointer;
+  border:1.5px solid var(--bdr); background:var(--card); color:var(--txt2);
+  font-family:inherit; font-size:12.5px; font-weight:700; white-space:nowrap;
+  transition:all .15s; -webkit-tap-highlight-color:transparent;
+}
+.age:active{ transform:scale(.96) }
+.age.on{ background:var(--p); border-color:var(--p); color:#fff }
+
+/* ═══════════ بطاقة المنتج: الصورة هي البطل ═══════════ */
+
+/* شبكة أوسع قليلاً وبمساحة تنفّس */
+.pgrid{ grid-template-columns:repeat(auto-fill,minmax(172px,1fr)); gap:12px; padding:12px }
+
+.pcard{ border-radius:16px }
+
+/* نسبة ثابتة 3:4 — شبكة منتظمة ومساحة أكبر للصورة */
+.cimg-w{ aspect-ratio:3/4 }
+.cimg{ object-fit:cover }
+
+/* جسم أهدأ */
+.cbody{ padding:10px 10px 11px; gap:5px }
+
+/* السعر هو البطل */
+.cprices{ display:flex; align-items:baseline; gap:7px; flex-wrap:wrap; order:1 }
+.pnew{ font-size:17px; font-weight:900; letter-spacing:-.01em }
+.pold{ font-size:11.5px }
+
+/* رقم الموديل يتراجع لسطر رمادي صغير */
+.cid{
+  order:4; font-size:10.5px; font-weight:600; color:var(--muted);
+  justify-content:flex-start; gap:4px; margin-top:2px; opacity:.75;
+}
+.cid-icon{ font-size:9.5px }
+
+/* الخامة سطر خفيف */
+.cfabric{ order:2; font-size:10.5px; color:var(--txt2); opacity:.85 }
+
+/* «وفّرت» أقل صخباً */
+.savings{ order:3; font-size:10.5px }
+
+/* أزرار القياس: الفعل الأساسي — تبرز */
+.sz-pills-lbl{ order:5; font-size:10.5px; margin-top:4px; opacity:.8 }
+.sz-pills{ order:6 }
+.sz-pill{
+  background:rgba(21,101,192,.08);
+  border-width:1.5px; font-weight:800; font-size:11.5px;
+  padding:6px 11px; min-height:32px;
+}
+.sz-pill:active{ transform:scale(.95) }
+.sz-pill.sz-best{ background:rgba(21,101,192,.16); border-color:var(--p) }
+
+/* شارات: اثنتان بحد أقصى، أهدأ */
+.cbadges{ gap:4px }
+.badge{ font-size:9.5px; padding:3px 7px; border-radius:11px; font-weight:800 }
+
+/* شارة الجنس على البطاقة */
+.bgen{ background:rgba(255,255,255,.95); backdrop-filter:blur(4px) }
+.bgen-g{ color:#C2185B }
+.bgen-b{ color:#1565C0 }
+
+/* وضع داكن */
+body.dark .cat{ background:var(--card) }
+body.dark .sz-pill{ background:rgba(66,165,245,.12) }
+body.dark .bgen{ background:rgba(30,41,59,.95) }
+
+/* هاتف */
+@media (max-width:420px){
+  .pgrid{ grid-template-columns:repeat(2,1fr); gap:10px; padding:10px }
+  .cat{ padding:12px 6px }
+  .cat .cat-ico{ font-size:23px }
+  .cat .cat-lbl{ font-size:12.5px }
+  .pnew{ font-size:15.5px }
+  .shop-nav{ padding:8px 10px 4px }
+}
+
+/* ===== ضغط أعلى الصفحة: المنتج يظهر أسرع ===== */
+#fabricNote{
+  padding:6px 12px; font-size:11.5px; margin:0 12px 8px;
+  border-radius:9px; opacity:.9;
+}
+.srch-wrap{ padding:0 12px 8px }
+.srch-row{ display:flex; gap:7px; align-items:stretch }
+.srch-in{ flex:1; min-width:0 }
+.srch-row .flt-btn{
+  flex:0 0 auto; width:44px; padding:0; justify-content:center;
+  position:relative; border-radius:11px;
+}
+.srch-row .flt-btn .flt-badge{
+  position:absolute; top:-5px; inset-inline-end:-5px;
+  min-width:17px; height:17px; font-size:10px;
+}
+.srch-rst{ flex:0 0 auto }
+.rcount{ padding:0 12px 6px; font-size:11.5px; opacity:.7 }
+.promo{ padding-top:7px; padding-bottom:7px; font-size:12.5px }
+
+/* شريط الأعمار يبدأ من البداية في RTL */
+.ages{ direction:rtl }
+
+/* ===== أزرار القياس المضغوطة ===== */
+.sz-pill{ flex-direction:column; gap:0; padding:5px 9px; min-width:46px }
+.szp-n{ font-size:13px; font-weight:900; line-height:1.15 }
+.szp-age{ font-size:8.5px; font-weight:600; opacity:.72; line-height:1.2; white-space:nowrap }
+.szp-price{ font-size:9.5px; font-weight:800; opacity:.9; margin-top:1px }
+
+/* ===== زر دليل القياسات داخل شريط الأعمار ===== */
+.age-guide{
+  font-size:15px; padding:8px 12px; min-width:40px;
+  background:rgba(229,57,53,.1); border-color:rgba(229,57,53,.35); color:#e53935;
+}
+.age-guide.on, .age-guide:active{ background:#e53935; border-color:#e53935; color:#fff }
+
+/* الزر العائم الوحيد المتبقي: للأعلى */
+.stbtn{ opacity:.85 }
+.flt-ico{ font-size:18px; line-height:1 }
+
+
+/* ضغط أعلى الصفحة */
+#fabricNote{ padding:6px 12px; font-size:11.5px; margin:0 12px 8px; border-radius:9px; opacity:.9 }
+.rcount{ padding:0 12px 6px; font-size:11.5px; opacity:.7 }
+.promo{ padding-top:7px; padding-bottom:7px; font-size:12.5px }
+.ages{ direction:rtl }
+/* ════════════════════════════════════════════════════════════
+   الشبكة المضغوطة — 3 أعمدة على الهاتف
+   ════════════════════════════════════════════════════════════ */
+.pgrid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; padding:10px }
+
+.cbody{ padding:7px 8px 8px; gap:2px }
+.cprices{ gap:5px; flex-direction:column; align-items:flex-start }
+.pnew{ font-size:14px; font-weight:900; line-height:1.2 }
+.pold{ font-size:10px; line-height:1.1 }
+
+/* عدد القياسات */
+.cszc{
+  order:3; font-size:9.5px; font-weight:800;
+  color:var(--p); opacity:.88; margin-top:2px;
+}
+.cid{ order:4; font-size:9px; opacity:.6; margin-top:1px }
+.cid-icon{ font-size:8px }
+
+/* شارات وأزرار أصغر */
+.cbadges{ gap:3px; top:6px; inset-inline-end:6px }
+.badge{ font-size:8.5px; padding:2px 6px; border-radius:9px }
+.fav-btn{ width:26px; height:26px; font-size:14px; top:6px; inset-inline-start:6px }
+
+@media (max-width:520px){
+  .pgrid{ grid-template-columns:repeat(3,1fr); gap:7px; padding:8px }
+  .pnew{ font-size:12.5px }
+  .pold{ font-size:9px }
+  .cszc{ font-size:8.5px }
+  .cid{ font-size:8px }
+  .cbody{ padding:6px 6px 7px }
+  .badge{ font-size:7.5px; padding:2px 5px }
+  .fav-btn{ width:23px; height:23px; font-size:12.5px; top:5px; inset-inline-start:5px }
+  .cbadges{ top:5px; inset-inline-end:5px; max-width:calc(100% - 34px) }
+}
+@media (max-width:340px){
+  .pgrid{ grid-template-columns:repeat(2,1fr) }
+}
+
+/* ===== ضغط أعلى الصفحة: الخامة انتقلت لصفحة المنتج ===== */
+#fabricNote{ display:none }
+.rcount{ display:none; padding:0 12px 5px; font-size:11px; opacity:.6; font-weight:600 }
+.rcount.show{ display:block }
+.srch-wrap{ padding-bottom:7px }
+
+/* ═══ الجملة: عمودان — البطاقة تحمل القياسات وزر الموديل ═══ */
+@media (max-width:520px){
+  .pgrid{ grid-template-columns:repeat(2,1fr) !important; gap:9px !important; padding:9px !important }
+  .pnew{ font-size:14px !important }
+  .pold{ font-size:10px !important }
+  .ws-add{ font-size:11px !important; padding:8px 6px !important; line-height:1.3 }
+  .ws-sz{ font-size:9.5px !important; padding:2px 6px !important }
+  .cid{ font-size:9px !important }
+  .fav-btn{ display:none }           /* لا مفضلة في الجملة */
+}
+@media (max-width:340px){
+  .pgrid{ grid-template-columns:1fr !important }
+}

@@ -4,6 +4,8 @@
 /* ==================== TRANSLATIONS ==================== */
 const L = {
   ar:{
+    szOne:'قياس متوفر',szMany:'قياسات متوفرة',
+    catAll:'الكل',catBoys:'ولادي',catGirls:'بناتي',ageAll:'كل الأعمار',ageBaby:'0-10 شهر',ageToddler:'1-2 سنة',ageKid:'3-5 سنوات',ageBig:'6-9 سنوات',ageTeen:'10+ سنة',
     dir:'rtl',
     /* ===== الجملة ===== */
     pieces:'قطعة',models:'الموديلات',perPiece:'سعر القطعة',modelTotal:'إجمالي الموديل',
@@ -35,7 +37,7 @@ const L = {
     yes:'نعم',no:'إلغاء',
     sentQ:'هل تم إرسال رسالة الطلب بنجاح؟',sentY:'نعم، تم الإرسال',sentN:'لم يتم الإرسال',
     clrAfQ:'هل تريد تفريغ السلة الآن؟',clrAY:'نعم، أفرغها',clrAN:'لا، أبقِها',
-    footer:'© 2025 متجر جود العباس — جميع الحقوق محفوظة',
+    footer:'© 2026 متجر جود العباس — جميع الحقوق محفوظة',
     navHome:'رئيسية',navSearch:'بحث',navCart:'سلتي',navWish:'مفضلة',navContact:'تواصل',
     fpTitle:'📏 شرح القياسات',fpClose:'إغلاق',
     pwaTxt:'📲 ثبّت التطبيق على هاتفك!',pwaInst:'تثبيت',pwaSkip:'لاحقاً',
@@ -55,6 +57,8 @@ const L = {
     copyBtn:'نسخ نص الطلب',savingOrder:'جاري تسجيل طلبك...',savingSub:'لحظة من فضلك، لا تغلق الصفحة',confirmOrder:'تأكيد الطلب',orderNoteNew:'سيتم تسجيل طلبك وسنتواصل معك قريباً',orderSuccess:'تم تسجيل طلبك بنجاح! سنتواصل معك قريباً 🎉',orderSuccessOk:'حسناً',orderFail:'تعذّر تسجيل الطلب، حاول مرة أخرى',tryAgain:'إعادة المحاولة',orderPending:'📦 يتم تأكيد وصول طلبك... قد يستغرق لحظات. يمكنك التحقق من حالته عبر تتبع الطلب.',orderPendingCheck:'تتبّع طلبي الآن',notesPh:'ملاحظات للتوصيل (اختياري)...',phoneInvalid:'⚠️ رقم الهاتف يجب أن يبدأ بـ 07 ويتكوّن من 11 رقماً',freeShip:'مجاني',freeShipHint:'أضف {n} قطعة للتوصيل المجاني!',freeShipBanner:'🎉 التوصيل مجاني عند شراء 6 قطع أو أكثر',itemsRemoved:'⚠️ نفدت بعض المنتجات وحُذفت من سلتك',itemsSoldOut:'عذراً، نفدت هذه المنتجات ولم تعد متوفرة. حُذفت من سلتك:',navTrack:'تتبع طلبي',trackShTitle:'تتبع طلبي',trIntro:'أدخل رقم الطلب لمعرفة حالته',enterOrderId:'أدخل رقم الطلب',orderNotFound:'رقم الطلب غير موجود، تأكد منه',yourOrderId:'رقم طلبك',copy:'نسخ',copied:'تم النسخ',keepOrderId:'احتفظ بهذا الرقم لمتابعة طلبك من تبويب «تتبع طلبي»',stReview:'قيد المراجعة',stReviewSub:'جاري التأكيد...',stConfirmed:'تم التأكيد',stConfirmedSub:'جاري التجهيز...',stPrepared:'تم التجهيز',stPreparedSub:'في طريقه إلى محافظتك...',stCourier:'في عهدة المندوب',stCourierSub:'جاري التسليم...',stDelivered:'تم التسليم',stDeliveredSub:'شكراً لثقتك!',stCancelled:'تم إلغاء هذا الطلب'
   },
   en:{
+    szOne:'size available',szMany:'sizes available',
+    catAll:'All',catBoys:'Boys',catGirls:'Girls',ageAll:'All ages',ageBaby:'0-10 mo',ageToddler:'1-2 yr',ageKid:'3-5 yr',ageBig:'6-9 yr',ageTeen:'10+ yr',
     dir:'ltr',
     /* ===== Wholesale ===== */
     pieces:'pcs',models:'Models',perPiece:'Unit price',modelTotal:'Model total',
@@ -86,7 +90,7 @@ const L = {
     yes:'Yes',no:'Cancel',
     sentQ:'Was the order message sent successfully?',sentY:'Yes, sent',sentN:'Not sent',
     clrAfQ:'Empty the cart now?',clrAY:'Yes, empty it',clrAN:'No, keep it',
-    footer:'© 2025 Jood ALabbas Store — All rights reserved',
+    footer:'© 2026 Jood ALabbas Store — All rights reserved',
     navHome:'Home',navSearch:'Search',navCart:'Cart',navWish:'Wishlist',navContact:'Contact',
     fpTitle:'📏 Size Guide',fpClose:'Close',
     pwaTxt:'📲 Install the app on your phone!',pwaInst:'Install',pwaSkip:'Later',
@@ -106,6 +110,8 @@ const L = {
     copyBtn:'Copy order text',savingOrder:'Saving your order...',savingSub:'Please wait, do not close the page',confirmOrder:'Confirm Order',orderNoteNew:'Your order will be registered and we will contact you soon',orderSuccess:'Your order registered successfully! We will contact you soon 🎉',orderSuccessOk:'OK',orderFail:'Failed to register order, please try again',tryAgain:'Try Again',orderPending:'📦 Confirming your order... this may take a moment. You can check its status via order tracking.',orderPendingCheck:'Track my order now',notesPh:'Delivery notes (optional)...',phoneInvalid:'⚠️ Phone must start with 07 and be 11 digits',freeShip:'FREE',freeShipHint:'Add {n} more item(s) for free delivery!',freeShipBanner:'🎉 Free delivery on 6 items or more',itemsRemoved:'⚠️ Some items sold out and were removed from your cart',itemsSoldOut:'Sorry, these items are sold out and no longer available. Removed from your cart:',navTrack:'Track Order',trackShTitle:'Track My Order',trIntro:'Enter your order ID to check its status',enterOrderId:'Enter order ID',orderNotFound:'Order ID not found, please check it',yourOrderId:'Your Order ID',copy:'Copy',copied:'Copied',keepOrderId:'Keep this ID to track your order from the «Track Order» tab',stReview:'Under Review',stReviewSub:'Confirming...',stConfirmed:'Confirmed',stConfirmedSub:'Preparing...',stPrepared:'Prepared',stPreparedSub:'On its way to your city...',stCourier:'With Courier',stCourierSub:'Out for delivery...',stDelivered:'Delivered',stDeliveredSub:'Thank you!',stCancelled:'This order was cancelled'
   },
   ku:{
+    szOne:'قەبارە بەردەستە',szMany:'قەبارە بەردەستن',
+    catAll:'هەموو',catBoys:'کوڕان',catGirls:'کچان',ageAll:'هەموو تەمەنەکان',ageBaby:'٠-١٠ مانگ',ageToddler:'١-٢ ساڵ',ageKid:'٣-٥ ساڵ',ageBig:'٦-٩ ساڵ',ageTeen:'١٠+ ساڵ',
     dir:'rtl',
     /* ===== کۆمەڵ ===== */
     pieces:'دانە',models:'مۆدێلەکان',perPiece:'نرخی دانە',modelTotal:'کۆی مۆدێل',
