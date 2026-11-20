@@ -107,6 +107,14 @@ let fSea = '', fTyp = '', fSort = '', fFav = false;
 let fGenSet = new Set();
 let fAgeSet = new Set();
 
+/* ===== تخزين آمن =====
+   بعض المتصفحات ترفض localStorage (تصفّح خاص، حظر بيانات المواقع)
+   فترمي عند مجرّد اللمس. بلا حارس يموت السكربت ويرى الزبون متجراً
+   فارغاً — والتخزين كلّه راحة لا ضرورة. */
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(_){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); return true; }catch(_){ return false; } }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(_){} }
+
 /* ===== تجاوزات النصوص من لوحة الإدارة =====
    أيّ نص في المتجر يمكن تغييره من اللوحة بلا لمس الكود. الشكل:
      { "hTitle":"...", "footer":"..." }            ← لكل اللغات
@@ -304,7 +312,7 @@ function applySettingsToUI(){
 async function loadSettings(){
   // ① الكاش (فوري)
   try{
-    const c = JSON.parse(localStorage.getItem('cfg')||'null');
+    const c = JSON.parse(lsGet('cfg')||'null');
     if(c && c.s){ applySettings(c.s); }
   }catch(_){}
 
@@ -314,7 +322,7 @@ async function loadSettings(){
     const d = await r.json();
     if(d && d.success && d.settings){
       applySettings(d.settings);
-      localStorage.setItem('cfg', JSON.stringify({s:d.settings, ts:Date.now()}));
+      lsSet('cfg', JSON.stringify({s:d.settings, ts:Date.now()}));
       checkAssetVersion(d.settings.assetVersion);
       return true;
     }
@@ -325,15 +333,15 @@ async function loadSettings(){
 /* كسر التخزين المؤقت: لو نُشر إصدار أحدث، نعيد التحميل بنسخة جديدة */
 function checkAssetVersion(remote){
   if(!remote) return;
-  const stored = localStorage.getItem('assetV');
+  const stored = lsGet('assetV');
 
   /* أول زيارة: نحفظ الإصدار بصمت — لا إعادة تحميل (تسبب وميضاً مربكاً) */
-  if(!stored){ localStorage.setItem('assetV', String(remote)); return; }
+  if(!stored){ lsSet('assetV', String(remote)); return; }
 
   if(String(remote) === String(stored)) return;
 
   /* إصدار جديد فعلاً: نحفظه ونعيد التحميل مرة واحدة */
-  localStorage.setItem('assetV', String(remote));
+  lsSet('assetV', String(remote));
   if(sessionStorage.getItem('vReloaded') === String(remote)) return;
   sessionStorage.setItem('vReloaded', String(remote));
   console.log('🔄 إصدار جديد ('+remote+') — إعادة تحميل');
@@ -448,7 +456,7 @@ document.getElementById('darkBtn').addEventListener('click',()=>{
   document.body.classList.toggle('dark');
   const d=document.body.classList.contains('dark');
   document.getElementById('darkBtn').innerHTML=d?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
-  localStorage.setItem('dk',d?'1':'0');
+  lsSet('dk',d?'1':'0');
 });
 
 /* ==================== RIPPLE ==================== */
@@ -532,7 +540,7 @@ if (_stBtn) {
 /* ==================== HELP BUTTON (tutorial on demand) ==================== */
 const _helpBtn = document.getElementById('helpBtn');
 if (_helpBtn) _helpBtn.addEventListener('click',()=>{
-  localStorage.removeItem('tut');
+  lsDel('tut');
   showTutorial();
 });
 
@@ -1481,7 +1489,7 @@ async function fetchProducts(){
   const r = await fetch(API,{mode:'cors'});
   if(!r.ok) throw new Error('HTTP '+r.status);
   allData = await r.json();
-  localStorage.setItem('pc', JSON.stringify({d:allData, ts:Date.now()}));
+  lsSet('pc', JSON.stringify({d:allData, ts:Date.now()}));
   return allData;
 }
 
@@ -1499,7 +1507,7 @@ function renderAll(){
 /* الرجوع للنسخة المخزّنة عند فشل الشبكة */
 function useCachedProducts(){
   try{
-    const c = localStorage.getItem('pc');
+    const c = lsGet('pc');
     if(!c){ showError(); return false; }
     const parsed = JSON.parse(c);
     allData = parsed.d || parsed;
@@ -1530,13 +1538,13 @@ async function fetchData(){
   try{
     const r=await fetch(API,{mode:'cors'}); if(!r.ok) throw new Error('HTTP '+r.status);
     allData=await r.json();
-    localStorage.setItem('pc',JSON.stringify({d:allData,ts:Date.now()}));
+    lsSet('pc',JSON.stringify({d:allData,ts:Date.now()}));
     document.getElementById('offlineBar').classList.remove('show');
     addJsonLD(allData); updateFilterCounts(); doFilter(false); seedDataHash();
     cleanCart(false); // حذف ما نفد من السلة وتنبيه الزبون
   }catch(e){
     try{
-      const c=localStorage.getItem('pc');
+      const c=lsGet('pc');
       if(c){ const parsed=JSON.parse(c); allData=parsed.d||parsed; const age=parsed.ts?Math.round((Date.now()-parsed.ts)/60000):0; document.getElementById('offlineTxt').textContent=t('offline')+(age>0?' ('+age+' min)':''); document.getElementById('offlineBar').classList.add('show'); updateFilterCounts(); doFilter(false); seedDataHash(); }
       else showError();
     }catch(_){ showError(); }
@@ -1572,7 +1580,7 @@ function createCard(item){
   const badges=document.createElement('div'); badges.className='cbadges';
   const bdis=document.createElement('span');
   bdis.className='badge bdis'+(clear?' bclear':'');
-  const _lg=(localStorage.getItem('lang')||'ar');
+  const _lg=(lsGet('lang')||'ar');
   const _pctTxt = mixed ? (rng.min+'-'+rng.max+'%') : (pct+'%');
   bdis.textContent = _lg==='en' ? (_pctTxt+' '+t('discPrefix')) : (t('discPrefix')+' '+_pctTxt);
   badges.appendChild(bdis);
@@ -1693,8 +1701,8 @@ if(_ckCopyLblEl) _ckCopyLblEl.textContent=t('copyBtn');
 /* ==================== WISHLIST ==================== */
 
 /* ==================== CART ==================== */
-function loadCart(){ cart=JSON.parse(localStorage.getItem('ct')||'[]'); updateCartBadge(); }
-function saveCart(){ localStorage.setItem('ct',JSON.stringify(cart)); }
+function loadCart(){ try{ cart=JSON.parse(lsGet('ct')||'[]'); }catch(_){ cart=[]; } if(!Array.isArray(cart)) cart=[]; updateCartBadge(); }
+function saveCart(){ lsSet('ct',JSON.stringify(cart)); }
 function updateCartBadge(){
   try{ updateShipBar(); }catch(_){} const dot=document.getElementById('cdot'); dot.textContent=cart.length; dot.classList.toggle('show',cart.length>0); }
 function bounceCart(){ const w=document.querySelector('#bnCart .cnav-wrap'); if(w){w.classList.remove('cart-bounce');void w.offsetWidth;w.classList.add('cart-bounce');} }
@@ -2554,12 +2562,12 @@ function showTutorial(){
   // Reset listeners by cloning
   const newNext=next.cloneNode(true); next.parentNode.replaceChild(newNext,next);
   const newSkip=skip.cloneNode(true); skip.parentNode.replaceChild(newSkip,skip);
-  function closeTut(){ panel.classList.remove('open'); localStorage.setItem('tut','1'); document.body.style.overflow=''; }
+  function closeTut(){ panel.classList.remove('open'); lsSet('tut','1'); document.body.style.overflow=''; }
   document.getElementById('tutNext').addEventListener('click',()=>{ if(step<steps().length-1) show(step+1); else closeTut(); });
   document.getElementById('tutSkip').addEventListener('click',closeTut);
   show(0); panel.classList.add('open'); document.body.style.overflow='hidden';
 }
-function initTutorial(){ if(!localStorage.getItem('tut')) showTutorial(); }
+function initTutorial(){ if(!lsGet('tut')) showTutorial(); }
 
 /* ==================== التحديث التلقائي ====================
    كل 25 ثانية: يجلب البيانات، وإن تغيّرت يُحدّث البطاقات.
@@ -2659,7 +2667,7 @@ setInterval(async()=>{
     const hash = dataHash(newData);
 
     document.getElementById('offlineBar').classList.remove('show');
-    localStorage.setItem('pc', JSON.stringify({d:newData, ts:Date.now()}));
+    lsSet('pc', JSON.stringify({d:newData, ts:Date.now()}));
 
     if(hash === _lastDataHash){ allData = newData; return; }  // لا تغيير
     _lastDataHash = hash;
@@ -2701,7 +2709,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   setupPWA(); startCountdown(); loadCart(); initPTR();
   initInAppBanner();
   initShopNav(); restoreShopNav();
-  if(localStorage.getItem('dk')==='1'){ document.body.classList.add('dark'); document.getElementById('darkBtn').innerHTML='<i class="fas fa-sun"></i>'; }
+  if(lsGet('dk')==='1'){ document.body.classList.add('dark'); document.getElementById('darkBtn').innerHTML='<i class="fas fa-sun"></i>'; }
   initPromoChip();
   bootstrap().then(openProductFromURL).catch(openProductFromURL);
   setTimeout(initTutorial,500);
