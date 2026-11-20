@@ -781,6 +781,17 @@ function sizesInAge(ageKey){
 }
 
 
+/* خطوات الشرح — تمرّ على تجاوزات اللوحة (المفاتيح tut0 … tut6)
+   فيستطيع صاحب المتجر تغيير نصّ كل خطوة بلغاتها الثلاث */
+function tutSteps(){
+  const base = (L[lang] && L[lang].tut) || L.ar.tut || [];
+  return base.map(function(s, i){
+    const key = 'tut' + i;
+    const o = t(key);
+    return (o && o !== key) ? o : s;
+  });
+}
+
 /* ==================== الشارات والإعلانات ====================
    يضيفها صاحب المتجر من اللوحة بلا تعديل الكود. كل شارة:
      { txt, ico, style, place, on, from, to, link }
@@ -2520,9 +2531,11 @@ function showTutorial(){
   const next=document.getElementById('tutNext');
   const skip=document.getElementById('tutSkip');
   const dotsEl=document.getElementById('tutDots');
-  const steps=()=>L[lang].tut;
+  const steps=tutSteps;
   function buildDots(){ dotsEl.innerHTML=''; steps().forEach((_,i)=>{const d=document.createElement('div');d.className='tut-dot'+(i===step?' on':'');dotsEl.appendChild(d);}); }
-  function show(s){ step=s; document.getElementById('tutTxt').innerHTML=steps()[s]; document.getElementById('tutStep').textContent=(s+1)+' / '+steps().length; next.textContent=s<steps().length-1?'التالي':t('fpClose'); buildDots(); }
+  /* نُعيد الاستعلام عن الزر: النسخة الأصلية تُستبدل بنسخة منها أدناه
+     لإزالة المستمعين، فالكتابة على المتغيّر القديم لا تظهر للزبون */
+  function show(s){ step=s; document.getElementById('tutTxt').innerHTML=steps()[s]; document.getElementById('tutStep').textContent=(s+1)+' / '+steps().length; const nb=document.getElementById('tutNext'); if(nb) nb.textContent=s<steps().length-1?t('tutNext'):t('fpClose'); buildDots(); }
   // Reset listeners by cloning
   const newNext=next.cloneNode(true); next.parentNode.replaceChild(newNext,next);
   const newSkip=skip.cloneNode(true); skip.parentNode.replaceChild(newSkip,skip);

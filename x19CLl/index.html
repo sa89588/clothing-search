@@ -160,11 +160,13 @@
   .txg-h.open .txg-car{transform:rotate(180deg)}
   .txg-b{display:none;padding:10px 12px;border-top:1.5px solid var(--line)}
   .txg-b.open{display:block}
-  .txr{display:grid;grid-template-columns:1fr 34px;gap:7px 9px;padding:9px 0;
-       border-bottom:1px dashed var(--line)}
+  .txr{display:grid;grid-template-columns:1fr auto;gap:6px 9px;padding:9px 0;
+       border-bottom:1px dashed var(--line);align-items:center}
+  .txr .txr-i{grid-column:1}
+  .txr .txr-r{grid-column:2;width:34px;height:34px}
   .txr:last-child{border-bottom:none}
-  .txr-l{grid-column:1/-1;font-size:11.5px;color:var(--ink3);line-height:1.5;
-         overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .txr-l{grid-column:1;font-size:11.5px;color:var(--ink3);line-height:1.5;
+         overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
   .txr-i{padding:9px 11px;border:1.5px solid var(--line);border-radius:9px;
          font-size:13.5px;font-family:inherit;background:var(--card);color:var(--ink);
          outline:none;resize:vertical;min-width:0}
@@ -205,6 +207,27 @@
                           border-radius:8px;font-size:16px;outline:none}
   #trustList .rule .t-txt{flex:1;min-width:120px;padding:8px 11px;border:1.5px solid var(--line);
                           border-radius:8px;font-size:13.5px;outline:none}
+
+  /* تبويبات اللغة داخل محرّر النصوص */
+  .lgbar{display:flex;gap:7px;margin-bottom:12px}
+  .lgb{flex:1;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;
+       background:var(--card);color:var(--ink2);font-family:inherit;font-size:13.5px;
+       font-weight:700;cursor:pointer;transition:all .15s}
+  .lgb.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .miss-badge{font-size:12.5px;font-weight:700;padding:9px 13px;border-radius:9px;margin-bottom:13px}
+  .miss-badge.ok{background:#f0fdf4;color:#15803d;border:1px solid #86efac}
+  .miss-badge.warn{background:#fffbeb;color:#92400e;border:1px solid #fcd34d}
+  .only-miss{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
+             color:var(--ink2);margin-top:9px;cursor:pointer}
+  .only-miss input{width:auto}
+  /* نقاط اللغات */
+  .txr-d{display:flex;gap:3px;align-items:center}
+  .txd{font-style:normal;font-size:9px;font-weight:800;line-height:1;
+       padding:3px 5px;border-radius:5px;background:var(--line);color:var(--ink3);
+       text-transform:uppercase}
+  .txd.on{background:var(--brand);color:#fff}
+  .txr.partial{background:#fffdf5;border-radius:8px;padding-inline:7px}
+  .txr.partial .txr-l{color:#92400e}
 </style>
 </head>
 <body>
@@ -524,10 +547,17 @@
         <span class="desc">كل كلمة يراها الزبون — غيّرها من هنا بلا لمس الكود</span>
       </div>
       <div class="panel-body">
+        <div class="lgbar" id="txtLangs"></div>
+        <div class="miss-badge ok" id="txtMiss"></div>
         <div class="fld">
           <input type="search" id="txtSearch" placeholder="🔎 ابحث عن نص… (مثلاً: التوصيل، الطلب، السلة)">
+          <label class="only-miss">
+            <input type="checkbox" id="txtOnlyMiss"> أظهر ما ينقصه ترجمة فقط
+          </label>
           <div class="hint">
-            النص الذي تكتبه يظهر لكل اللغات. اترك الحقل فارغاً ليعود النص الأصلي.
+            كل نص له ثلاث لغات. غيّر العربية ثم بدّل التبويب لتكتب الإنجليزية والكردية.
+            النقاط <i class="txd on">ع</i> بجانب كل نص تريك اللغات التي كتبتها.
+            الحقل الفارغ يعني «اترك النص الأصلي» — وهو مترجَم أصلاً.
           </div>
         </div>
         <div id="txtGroups"></div>
@@ -774,6 +804,8 @@ function fillForm(){
   $('fabricText').value  = S.fabricText || '';
   $('verCur').textContent = S.assetVersion || '—';
   fillCheap();
+  loadTexts();
+  renderLangTabs();
   renderTextGroups();
   renderTrust();
   renderBanners();
@@ -1114,93 +1146,210 @@ const TXT_GROUPS = [
       'desktopStep1','desktopStep2','desktopStep3','swipeHint'] },
   { t:'📏 دليل القياسات', k:['fpTitle','fpClose','s55','s60','s65','s70','s75','s80','s90',
       's100','s110','s120','s130','s140','s150','s160','s170'] },
-  { t:'💬 رسائل الحالة', k:['loading','errMsg','retry','offline','ptrTxt','saved','hide'] }
+  { t:'💬 رسائل الحالة', k:['loading','errMsg','retry','offline','ptrTxt','saved','hide'] },
+  { t:'🧭 نوافذ أخرى', k:['wishT','contactT','shareCart'] },
+  { t:'🎓 شرح الموقع (7 خطوات)', k:['tut0','tut1','tut2','tut3','tut4','tut5','tut6','tutNext'] }
 ];
 
-/* النص الأصلي من ملف اللغات */
-function defTxt(k){
-  try{ return (L && L.ar && L.ar[k] != null) ? String(L.ar[k]) : ''; }catch(_){ return ''; }
+/* ===== اللغات الثلاث ===== */
+const LANGS = [
+  { v:'ar', t:'العربية' },
+  { v:'en', t:'English' },
+  { v:'ku', t:'کوردی' }
+];
+let txtLang = 'ar';                 /* اللغة التي نحرّرها الآن */
+let TXTEDIT = { ar:{}, en:{}, ku:{} };   /* التعديلات قبل الحفظ */
+
+/* النص الأصلي من ملف اللغات للّغة المطلوبة */
+function defTxt(k, lg){
+  lg = lg || 'ar';
+  try{
+    /* خطوات الشرح مصفوفة في ملف اللغات: tut0 … tut6 */
+    const m = /^tut(\d+)$/.exec(k);
+    if(m){
+      const arr = (L && L[lg] && L[lg].tut) || (L && L.ar && L.ar.tut) || [];
+      return arr[Number(m[1])] != null ? String(arr[Number(m[1])]) : '';
+    }
+    const v = (L && L[lg]) ? L[lg][k] : undefined;
+    if(v != null && typeof v === 'string') return v;
+    const a = (L && L.ar) ? L.ar[k] : undefined;
+    return (a != null && typeof a === 'string') ? a : '';
+  }catch(_){ return ''; }
 }
 
-function parseTexts(){
+/* قراءة المحفوظ: يقبل الشكل القديم المسطّح والجديد المفصّل باللغة */
+function loadTexts(){
+  TXTEDIT = { ar:{}, en:{}, ku:{} };
+  let o = {};
   try{
     const raw = S.storeTexts;
-    if(!raw) return {};
-    const o = (typeof raw === 'string') ? JSON.parse(raw) : raw;
-    return (o && typeof o === 'object') ? o : {};
-  }catch(_){ return {}; }
+    o = !raw ? {} : (typeof raw === 'string' ? JSON.parse(raw) : raw);
+    if(!o || typeof o !== 'object') o = {};
+  }catch(_){ o = {}; }
+  Object.keys(o).forEach(function(k){
+    const v = o[k];
+    if(v && typeof v === 'object'){
+      /* { ar:{...}, en:{...} } */
+      if(TXTEDIT[k]) Object.keys(v).forEach(function(kk){ TXTEDIT[k][kk] = String(v[kk]); });
+    } else if(typeof v === 'string' && v){
+      /* الشكل القديم: نص واحد لكل اللغات → نضعه في الثلاثة */
+      LANGS.forEach(function(l){ TXTEDIT[l.v][k] = v; });
+    }
+  });
+}
+
+/* كم لغة بقيت بلا ترجمة لهذا المفتاح؟ */
+function txtDots(k){
+  return LANGS.map(function(l){
+    return '<i class="txd' + (TXTEDIT[l.v][k] ? ' on' : '') + '" title="' + l.t + '">' + l.v + '</i>';
+  }).join('');
+}
+
+/* المفاتيح الناقصة: عُدّلت في لغة ولم تُعدَّل في أخرى */
+function missingKeys(){
+  const out = [];
+  TXT_GROUPS.forEach(function(g){
+    g.k.forEach(function(k){
+      if(!defTxt(k,'ar')) return;
+      const n = LANGS.filter(function(l){ return !!TXTEDIT[l.v][k]; }).length;
+      if(n > 0 && n < LANGS.length) out.push(k);
+    });
+  });
+  return out;
+}
+
+function updateMissBadge(){
+  const el = $('txtMiss'); if(!el) return;
+  const m = missingKeys().length;
+  el.textContent = m ? ('⚠️ ' + m + ' نصاً غيّرته بلغة ولم تُترجمه للباقي') : '✅ كل ما غيّرته مترجَم للغات الثلاث';
+  el.className = 'miss-badge' + (m ? ' warn' : ' ok');
+}
+
+function renderLangTabs(){
+  const host = $('txtLangs'); if(!host) return;
+  host.innerHTML = '';
+  LANGS.forEach(function(l){
+    const b = document.createElement('button');
+    b.className = 'lgb' + (l.v === txtLang ? ' on' : '');
+    b.type = 'button'; b.textContent = l.t;
+    b.addEventListener('click', function(){
+      txtLang = l.v;
+      renderLangTabs();
+      renderTextGroups();
+      filterTexts($('txtSearch').value, $('txtOnlyMiss').checked);
+    });
+    host.appendChild(b);
+  });
 }
 
 function renderTextGroups(){
   const host = $('txtGroups'); if(!host) return;
-  const cur = parseTexts();
+  const openNow = {};
+  host.querySelectorAll('.txg').forEach(function(sec,i){
+    openNow[i] = sec.querySelector('.txg-b').classList.contains('open');
+  });
   host.innerHTML = '';
+  host.dir = (txtLang === 'en') ? 'ltr' : 'rtl';
+
   TXT_GROUPS.forEach(function(g, gi){
     const sec = document.createElement('div'); sec.className = 'txg';
+    const isOpen = (openNow[gi] !== undefined) ? openNow[gi] : (gi === 0);
     const head = document.createElement('button');
-    head.className = 'txg-h' + (gi === 0 ? ' open' : '');
-    head.type = 'button';
+    head.className = 'txg-h' + (isOpen ? ' open' : '');
+    head.type = 'button'; head.dir = 'rtl';
     head.innerHTML = '<span>'+esc(g.t)+'</span><span class="txg-n">'+g.k.length+'</span><span class="txg-car">▾</span>';
     const body = document.createElement('div');
-    body.className = 'txg-b' + (gi === 0 ? ' open' : '');
+    body.className = 'txg-b' + (isOpen ? ' open' : '');
     head.addEventListener('click', function(){
       head.classList.toggle('open'); body.classList.toggle('open');
     });
 
     g.k.forEach(function(k){
-      const d = defTxt(k);
-      if(!d) return;                                   /* مفتاح غير موجود */
+      const d = defTxt(k, txtLang);
+      if(!defTxt(k,'ar')) return;                      /* مفتاح غير موجود */
       const row = document.createElement('div');
       row.className = 'txr'; row.dataset.k = k;
-      row.dataset.s = (k + ' ' + d).toLowerCase();     /* للبحث */
+      row.dataset.s = (k + ' ' + d + ' ' + defTxt(k,'ar')).toLowerCase();
+
       const lbl = document.createElement('div'); lbl.className='txr-l';
       lbl.textContent = d;
+      lbl.dir = (txtLang === 'en') ? 'ltr' : 'rtl';
+
+      const dots = document.createElement('div'); dots.className='txr-d';
+      dots.innerHTML = txtDots(k);
+
       const long = d.length > 60;
       const inp = document.createElement(long ? 'textarea' : 'input');
       inp.className = 'txr-i'; if(long) inp.rows = 2; else inp.type = 'text';
       inp.placeholder = d;
-      inp.value = (typeof cur[k] === 'string') ? cur[k] : '';
+      inp.dir = (txtLang === 'en') ? 'ltr' : 'rtl';
+      inp.value = TXTEDIT[txtLang][k] || '';
       if(inp.value) row.classList.add('edited');
+
       inp.addEventListener('input', function(){
-        row.classList.toggle('edited', !!inp.value.trim());
-        markDirty();
+        const v = inp.value.trim();
+        if(v) TXTEDIT[txtLang][k] = v; else delete TXTEDIT[txtLang][k];
+        row.classList.toggle('edited', !!v);
+        dots.innerHTML = txtDots(k);
+        row.classList.toggle('partial', (function(){
+          const n = LANGS.filter(function(l){ return !!TXTEDIT[l.v][k]; }).length;
+          return n > 0 && n < LANGS.length;
+        })());
+        updateMissBadge(); markDirty();
       });
+
       const rst = document.createElement('button');
       rst.className='txr-r'; rst.type='button'; rst.title='إرجاع النص الأصلي'; rst.textContent='↺';
       rst.addEventListener('click', function(){
-        inp.value=''; row.classList.remove('edited'); markDirty();
+        inp.value=''; delete TXTEDIT[txtLang][k];
+        row.classList.remove('edited');
+        dots.innerHTML = txtDots(k);
+        updateMissBadge(); markDirty();
       });
-      row.appendChild(lbl); row.appendChild(inp); row.appendChild(rst);
+
+      const n0 = LANGS.filter(function(l){ return !!TXTEDIT[l.v][k]; }).length;
+      if(n0 > 0 && n0 < LANGS.length) row.classList.add('partial');
+
+      row.appendChild(lbl); row.appendChild(dots);
+      row.appendChild(inp); row.appendChild(rst);
       body.appendChild(row);
     });
 
     sec.appendChild(head); sec.appendChild(body);
     host.appendChild(sec);
   });
+  updateMissBadge();
 }
 
-function filterTexts(q){
+function filterTexts(q, onlyMiss){
   q = String(q||'').trim().toLowerCase();
+  const miss = onlyMiss ? missingKeys() : null;
   document.querySelectorAll('#txtGroups .txg').forEach(function(sec){
     let hits = 0;
     sec.querySelectorAll('.txr').forEach(function(r){
-      const ok = !q || r.dataset.s.indexOf(q) > -1;
+      let ok = !q || r.dataset.s.indexOf(q) > -1;
+      if(ok && miss) ok = miss.indexOf(r.dataset.k) > -1;
       r.style.display = ok ? '' : 'none';
       if(ok) hits++;
     });
     sec.style.display = hits ? '' : 'none';
-    if(q && hits){
+    if((q || onlyMiss) && hits){
       sec.querySelector('.txg-h').classList.add('open');
       sec.querySelector('.txg-b').classList.add('open');
     }
   });
 }
 
+/* يُحفظ مفصّلاً باللغة: { ar:{...}, en:{...}, ku:{...} } */
 function collectTexts(){
   const o = {};
-  document.querySelectorAll('#txtGroups .txr').forEach(function(r){
-    const v = r.querySelector('.txr-i').value.trim();
-    if(v) o[r.dataset.k] = v;
+  LANGS.forEach(function(l){
+    const g = {};
+    Object.keys(TXTEDIT[l.v]).forEach(function(k){
+      const v = String(TXTEDIT[l.v][k]||'').trim();
+      if(v) g[k] = v;
+    });
+    if(Object.keys(g).length) o[l.v] = g;
   });
   return o;
 }
@@ -1441,7 +1590,12 @@ $('addRuleBtn').addEventListener('click',()=>{
   renderPieceRules(cur); markDirty(); updatePreview();
 });
 /* ===== النصوص والضمانات والشارات ===== */
-$('txtSearch').addEventListener('input', function(){ filterTexts(this.value); });
+$('txtSearch').addEventListener('input', function(){
+  filterTexts(this.value, $('txtOnlyMiss').checked);
+});
+$('txtOnlyMiss').addEventListener('change', function(){
+  filterTexts($('txtSearch').value, this.checked);
+});
 $('addTrustBtn').addEventListener('click', function(){
   const box = $('trustList');
   if(box.children.length >= 4){ toast('الحدّ أربعة ضمانات','err'); return; }
