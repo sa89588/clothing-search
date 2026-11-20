@@ -827,8 +827,11 @@ body.dark .bgen{ background:rgba(30,41,59,.95) }
   .pgrid{ grid-template-columns:repeat(2,1fr) }
 }
 
-/* ===== ضغط أعلى الصفحة: الخامة انتقلت لصفحة المنتج ===== */
-#fabricNote{ display:none }
+/* ===== ملاحظة الخامة: يتحكّم بها صاحب المتجر من اللوحة =====
+   مخفيّة ما لم يُكتب لها نص؛ الكود يُظهرها عندئذ (display:flex). */
+#fabricNote{ padding:5px 12px; font-size:11.5px; margin:6px 12px 2px;
+             border-radius:9px; opacity:.92; line-height:1.35 }
+#fabricNote i{ font-size:12px }
 .rcount{ display:none; padding:0 12px 5px; font-size:11px; opacity:.6; font-weight:600 }
 .rcount.show{ display:block }
 .srch-wrap{ padding-bottom:7px }
@@ -1282,3 +1285,55 @@ body.dark .pk-x{ background:rgba(255,255,255,.07) }
   box-shadow:0 3px 10px rgba(0,0,0,.3); pointer-events:none; z-index:3;
 }
 body.dark .pcard.soldout .so-tag{ background:#000; color:#fca5a5 }
+
+/* ============================================================
+   الشارات والإعلانات — يضيفها صاحب المتجر من لوحة الإدارة
+   ============================================================ */
+.ubanners{ display:flex; flex-direction:column; gap:6px; padding:0 12px; margin:2px 0 }
+.ubanners:empty{ display:none }
+
+.ubanner{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 12px; border-radius:10px;
+  font-size:12.5px; font-weight:800; line-height:1.4;
+  text-decoration:none; border:1px solid transparent;
+}
+.ub-ico{ font-size:15px; flex-shrink:0 }
+.ub-txt{ min-width:0 }
+a.ubanner{ cursor:pointer }
+a.ubanner:active{ transform:scale(.99) }
+
+/* الألوان — يختارها صاحب المتجر */
+.u-yellow{ background:linear-gradient(135deg,#FFF3CD,#FFE69C); color:#7A5B00; border-color:#FFD54F }
+.u-green { background:linear-gradient(135deg,#f0fdf4,#dcfce7); color:#15803d; border-color:#86efac }
+.u-red   { background:linear-gradient(135deg,#fef2f2,#fee2e2); color:#b91c1c; border-color:#fca5a5 }
+.u-blue  { background:linear-gradient(135deg,#eff6ff,#dbeafe); color:#1d4ed8; border-color:#93c5fd }
+.u-dark  { background:linear-gradient(135deg,#1f2937,#111827); color:#fff; border-color:#374151 }
+
+body.dark .u-yellow{ background:#4a3800; color:#ffe08a; border-color:#6b5200 }
+body.dark .u-green { background:#14532d; color:#bbf7d0; border-color:#166534 }
+body.dark .u-red   { background:#4c1d1d; color:#fca5a5; border-color:#7f1d1d }
+body.dark .u-blue  { background:#1e3a5f; color:#bfdbfe; border-color:#1e40af }
+
+/* الشارات العائمة — تُرصّ فوق شارة العرض في الزاوية نفسها */
+.ufloat{
+  position:fixed; z-index:697;
+  bottom:calc(var(--nh) + var(--sb) + 60px); inset-inline-end:12px;
+  display:flex; flex-direction:column; gap:6px;
+  max-width:calc(100% - 24px); pointer-events:none;
+}
+.ufloat .ubanner{
+  pointer-events:auto; position:relative; padding-inline-end:30px;
+  font-size:11.5px; box-shadow:0 4px 14px rgba(0,0,0,.18);
+}
+.ub-x{
+  position:absolute; inset-inline-end:4px; top:50%; transform:translateY(-50%);
+  width:20px; height:20px; border:none; border-radius:50%; cursor:pointer;
+  background:rgba(0,0,0,.1); color:inherit; font-size:10px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+}
+.ub-x:active{ background:rgba(0,0,0,.2) }
+
+/* سطر الإعلان داخل صفحة المنتج */
+.pv-banners{ display:flex; flex-direction:column; gap:6px; margin:8px 0 }
+.pv-banners:empty{ display:none }

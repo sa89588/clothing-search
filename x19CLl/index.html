@@ -41,6 +41,9 @@
   .tabs::-webkit-scrollbar{display:none}
   .tab{padding:8px 15px;border:1.5px solid var(--line);border-radius:20px;background:var(--card);color:var(--ink2);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s}
   .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  /* تسعة تبويبات: تلتفّ على الشاشات الواسعة وتنزلق على الضيّقة */
+  @media(min-width:700px){ .tabs{flex-wrap:wrap;overflow-x:visible;row-gap:7px} }
+  @media(max-width:699px){ .tab{padding:8px 12px;font-size:12.5px} }
 
   .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
   .panel-head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
@@ -145,6 +148,63 @@
 .colprev i{flex:1;background:var(--line);border-radius:3px;display:block}
 .colbtn.on .colprev i{background:var(--brand);opacity:.65}
 @media(max-width:520px){ .cols-pick{grid-template-columns:repeat(2,1fr)} }
+
+  /* ===== محرّر النصوص ===== */
+  .txg{border:1.5px solid var(--line);border-radius:11px;margin-bottom:9px;overflow:hidden}
+  .txg-h{width:100%;display:flex;align-items:center;gap:9px;padding:12px 14px;border:none;
+         background:#fafbfc;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:700;
+         color:var(--ink);text-align:start}
+  .txg-h span:first-child{flex:1}
+  .txg-n{background:var(--line);color:var(--ink2);border-radius:20px;padding:1px 9px;font-size:11px;font-weight:700}
+  .txg-car{transition:transform .2s;font-size:11px;color:var(--ink3)}
+  .txg-h.open .txg-car{transform:rotate(180deg)}
+  .txg-b{display:none;padding:10px 12px;border-top:1.5px solid var(--line)}
+  .txg-b.open{display:block}
+  .txr{display:grid;grid-template-columns:1fr 34px;gap:7px 9px;padding:9px 0;
+       border-bottom:1px dashed var(--line)}
+  .txr:last-child{border-bottom:none}
+  .txr-l{grid-column:1/-1;font-size:11.5px;color:var(--ink3);line-height:1.5;
+         overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .txr-i{padding:9px 11px;border:1.5px solid var(--line);border-radius:9px;
+         font-size:13.5px;font-family:inherit;background:var(--card);color:var(--ink);
+         outline:none;resize:vertical;min-width:0}
+  .txr-i:focus{border-color:var(--brand)}
+  .txr.edited .txr-i{border-color:var(--brand);background:#f0f7ff}
+  .txr.edited .txr-l{color:var(--brand);font-weight:600}
+  .txr-r{border:none;background:var(--line);color:var(--ink2);border-radius:9px;
+         cursor:pointer;font-size:15px}
+  .txr-r:active{background:var(--ink3);color:#fff}
+
+  /* ===== الشارات ===== */
+  .bnr{border:1.5px solid var(--line);border-radius:12px;padding:13px;margin-bottom:11px;background:#fafbfc}
+  .bnr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .bnr-on{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink)}
+  .bnr-grid{display:grid;grid-template-columns:80px 1fr;gap:10px}
+  .bnr-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .bnr-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .bnr .fld{margin-bottom:10px}
+  .bnr .b-del{width:32px;height:32px}
+  @media(max-width:560px){ .bnr-grid3,.bnr-grid2{grid-template-columns:1fr} }
+
+  /* معاينة الشارات */
+  .bnr-pv-h{font-size:11.5px;font-weight:700;color:var(--ink3);margin:12px 0 6px}
+  .bnr-pv-h:first-child{margin-top:0}
+  .bnr-pv-empty{font-size:13px;color:var(--ink3);text-align:center;padding:18px}
+  .bnr-pv .ubanner{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;
+                   font-size:12.5px;font-weight:800;margin-bottom:6px;border:1px solid transparent}
+  .bnr-pv .ub-ico{font-size:15px}
+  .bnr-pv-off{margin-inline-start:auto;font-size:10.5px;font-weight:600;opacity:.8}
+  .u-yellow{background:linear-gradient(135deg,#FFF3CD,#FFE69C);color:#7A5B00;border-color:#FFD54F}
+  .u-green {background:linear-gradient(135deg,#f0fdf4,#dcfce7);color:#15803d;border-color:#86efac}
+  .u-red   {background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#b91c1c;border-color:#fca5a5}
+  .u-blue  {background:linear-gradient(135deg,#eff6ff,#dbeafe);color:#1d4ed8;border-color:#93c5fd}
+  .u-dark  {background:linear-gradient(135deg,#1f2937,#111827);color:#fff;border-color:#374151}
+
+  /* صفّا الضمانات */
+  #trustList .rule .t-ico{width:60px;text-align:center;padding:8px;border:1.5px solid var(--line);
+                          border-radius:8px;font-size:16px;outline:none}
+  #trustList .rule .t-txt{flex:1;min-width:120px;padding:8px 11px;border:1.5px solid var(--line);
+                          border-radius:8px;font-size:13.5px;outline:none}
 </style>
 </head>
 <body>
@@ -185,7 +245,9 @@
       <button class="tab" data-p="disc">💰 الخصومات</button>
       <button class="tab" data-p="cheap">⭐ القطع المميزة</button>
       <button class="tab" data-p="ship">🚚 التوصيل</button>
-      <button class="tab" data-p="disp">🎨 العرض والنصوص</button>
+      <button class="tab" data-p="disp">🎨 العرض</button>
+      <button class="tab" data-p="txt">✏️ النصوص</button>
+      <button class="tab" data-p="bnr">🎁 الشارات والعروض</button>
       <button class="tab" data-p="ver">📦 إصدار الملفات</button>
       <button class="tab" data-p="sec">🔑 الأمان</button>
     </div>
@@ -454,6 +516,59 @@
     </div>
   </div>
 
+  <!-- ===== كل نصوص المتجر ===== -->
+  <div class="page" id="page-txt">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>✏️ نصوص المتجر</h2>
+        <span class="desc">كل كلمة يراها الزبون — غيّرها من هنا بلا لمس الكود</span>
+      </div>
+      <div class="panel-body">
+        <div class="fld">
+          <input type="search" id="txtSearch" placeholder="🔎 ابحث عن نص… (مثلاً: التوصيل، الطلب، السلة)">
+          <div class="hint">
+            النص الذي تكتبه يظهر لكل اللغات. اترك الحقل فارغاً ليعود النص الأصلي.
+          </div>
+        </div>
+        <div id="txtGroups"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>🛡️ ضمانات الشراء</h2>
+        <span class="desc">تظهر داخل صفحة المنتج لتطمئن الزبون قبل الطلب</span>
+      </div>
+      <div class="panel-body">
+        <div id="trustList"></div>
+        <button class="btn btn-ghost btn-sm" id="addTrustBtn">➕ إضافة ضمان</button>
+        <div class="hint" style="margin-top:8px">أربعة كحدّ أقصى. احذف الكل لتعود الضمانات الافتراضية.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== الشارات والعروض ===== -->
+  <div class="page" id="page-bnr">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>🎁 الشارات والعروض</h2>
+        <span class="desc">أضف أي إعلان جديد يظهر للزبون — بلا انتظار تعديل برمجي</span>
+      </div>
+      <div class="panel-body">
+        <div id="bnrList"></div>
+        <button class="btn btn-ghost btn-sm" id="addBnrBtn">➕ إضافة شارة جديدة</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>🔍 معاينة</h2>
+        <span class="desc">كما ستظهر للزبون</span>
+      </div>
+      <div class="panel-body"><div id="bnrPreview" class="bnr-pv"></div></div>
+    </div>
+  </div>
+
   <!-- ===== إصدار الملفات ===== -->
   <div class="page" id="page-ver">
     <div class="panel">
@@ -518,6 +633,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="../js/lang.js"></script>
 <script>
 /* ============================================================
    لوحة إدارة متجر جود العباس
@@ -658,6 +774,9 @@ function fillForm(){
   $('fabricText').value  = S.fabricText || '';
   $('verCur').textContent = S.assetVersion || '—';
   fillCheap();
+  renderTextGroups();
+  renderTrust();
+  renderBanners();
   renderTools();
   renderToolPaths();
   updatePreview();
@@ -961,6 +1080,269 @@ function updateCheapPreview(){
 }
 
 /* ===== الحفظ ===== */
+
+/* ============================================================
+   نصوص المتجر — كل كلمة يراها الزبون قابلة للتغيير من هنا
+   المصدر: js/lang.js المحمّل أعلاه، فلا تكرار ولا تعارض.
+   ============================================================ */
+
+const TXT_GROUPS = [
+  { t:'🏠 الترويسة والتذييل', k:['hTitle','hSub','welcome','footer'] },
+  { t:'🎉 العرض والخصم', k:['promo','discount','discPrefix','upTo','lastSize','soldOut',
+      'specialTag','specialOn','specialOff','specialWon','specialWonSub','specialAlmost','specialSave'] },
+  { t:'🔍 البحث والفلاتر', k:['search','rst','fltBtn','applyFlt','resetFlt','seaLbl','typLbl','sortLbl',
+      'all','sum','win','spr','out','hom','sortDef','sortAsc','sortDesc','res','noRes',
+      'genLbl','ageLbl','catAll','catBoys','catGirls','ageAll','ageBaby','ageToddler','ageKid','ageBig','ageTeen','ageMany','pkDone'] },
+  { t:'🛍️ البطاقة وصفحة المنتج', k:['prodTitle','sizes','szOne','szMany','dinar','share','copyId','linkCopied',
+      'fabricLbl','askAbout','askBtn','tapSizeToAdd','addCart','szTitle'] },
+  { t:'🛡️ ضمانات الشراء (الافتراضية)', k:['trustCheck','trustReturn','trustCOD'] },
+  { t:'♥ المفضلة', k:['favT','navFav','favAdded','favRemoved','favEmpty'] },
+  { t:'🛒 السلة والتوصيل', k:['cartT','checkout','clearCart','cartEmpty','sub','ship','tot','subDisc',
+      'cartAdded','already','delQ','clrQ','yes','no','freeShip','freeShipHint','freeShipBanner',
+      'freeShipNeed','freeShipWon','itemsRemoved','itemsSoldOut'] },
+  { t:'📦 إتمام الطلب', k:['ckTitle','namePh','phonePh','addrPh','addrPh2','govPh','notesPh','codNote',
+      'confirmOrder','orderNoteNew','savingOrder','savingSub','orderSuccess','orderSuccessOk','orderFail',
+      'tryAgain','orderPending','orderPendingCheck','phoneInvalid','copyBtn','yourOrderId','keepOrderId',
+      'copy','copied','cancel','back'] },
+  { t:'🚚 تتبّع الطلب', k:['navTrack','trackShTitle','trIntro','trackPh','enterOrderId','orderNotFound','trackPhoneHint',
+      'stReview','stReviewSub','stConfirmed','stConfirmedSub','stPrepared','stPreparedSub',
+      'stCourier','stCourierSub','stDelivered','stDeliveredSub','stCancelled'] },
+  { t:'✨ قد يعجبك أيضاً', k:['sgTitle','sgSub','sgGo'] },
+  { t:'📱 الشريط السفلي', k:['navHome','navSearch','navCart','navWish','navContact','navInstall'] },
+  { t:'⬇️ التثبيت على الهاتف', k:['pwaTxt','pwaInst','pwaSkip','appInstalled','alreadyInstalled',
+      'androidInstallDesc','installNow','iosStep1','iosStep2','iosStep3','iosStep4',
+      'desktopStep1','desktopStep2','desktopStep3','swipeHint'] },
+  { t:'📏 دليل القياسات', k:['fpTitle','fpClose','s55','s60','s65','s70','s75','s80','s90',
+      's100','s110','s120','s130','s140','s150','s160','s170'] },
+  { t:'💬 رسائل الحالة', k:['loading','errMsg','retry','offline','ptrTxt','saved','hide'] }
+];
+
+/* النص الأصلي من ملف اللغات */
+function defTxt(k){
+  try{ return (L && L.ar && L.ar[k] != null) ? String(L.ar[k]) : ''; }catch(_){ return ''; }
+}
+
+function parseTexts(){
+  try{
+    const raw = S.storeTexts;
+    if(!raw) return {};
+    const o = (typeof raw === 'string') ? JSON.parse(raw) : raw;
+    return (o && typeof o === 'object') ? o : {};
+  }catch(_){ return {}; }
+}
+
+function renderTextGroups(){
+  const host = $('txtGroups'); if(!host) return;
+  const cur = parseTexts();
+  host.innerHTML = '';
+  TXT_GROUPS.forEach(function(g, gi){
+    const sec = document.createElement('div'); sec.className = 'txg';
+    const head = document.createElement('button');
+    head.className = 'txg-h' + (gi === 0 ? ' open' : '');
+    head.type = 'button';
+    head.innerHTML = '<span>'+esc(g.t)+'</span><span class="txg-n">'+g.k.length+'</span><span class="txg-car">▾</span>';
+    const body = document.createElement('div');
+    body.className = 'txg-b' + (gi === 0 ? ' open' : '');
+    head.addEventListener('click', function(){
+      head.classList.toggle('open'); body.classList.toggle('open');
+    });
+
+    g.k.forEach(function(k){
+      const d = defTxt(k);
+      if(!d) return;                                   /* مفتاح غير موجود */
+      const row = document.createElement('div');
+      row.className = 'txr'; row.dataset.k = k;
+      row.dataset.s = (k + ' ' + d).toLowerCase();     /* للبحث */
+      const lbl = document.createElement('div'); lbl.className='txr-l';
+      lbl.textContent = d;
+      const long = d.length > 60;
+      const inp = document.createElement(long ? 'textarea' : 'input');
+      inp.className = 'txr-i'; if(long) inp.rows = 2; else inp.type = 'text';
+      inp.placeholder = d;
+      inp.value = (typeof cur[k] === 'string') ? cur[k] : '';
+      if(inp.value) row.classList.add('edited');
+      inp.addEventListener('input', function(){
+        row.classList.toggle('edited', !!inp.value.trim());
+        markDirty();
+      });
+      const rst = document.createElement('button');
+      rst.className='txr-r'; rst.type='button'; rst.title='إرجاع النص الأصلي'; rst.textContent='↺';
+      rst.addEventListener('click', function(){
+        inp.value=''; row.classList.remove('edited'); markDirty();
+      });
+      row.appendChild(lbl); row.appendChild(inp); row.appendChild(rst);
+      body.appendChild(row);
+    });
+
+    sec.appendChild(head); sec.appendChild(body);
+    host.appendChild(sec);
+  });
+}
+
+function filterTexts(q){
+  q = String(q||'').trim().toLowerCase();
+  document.querySelectorAll('#txtGroups .txg').forEach(function(sec){
+    let hits = 0;
+    sec.querySelectorAll('.txr').forEach(function(r){
+      const ok = !q || r.dataset.s.indexOf(q) > -1;
+      r.style.display = ok ? '' : 'none';
+      if(ok) hits++;
+    });
+    sec.style.display = hits ? '' : 'none';
+    if(q && hits){
+      sec.querySelector('.txg-h').classList.add('open');
+      sec.querySelector('.txg-b').classList.add('open');
+    }
+  });
+}
+
+function collectTexts(){
+  const o = {};
+  document.querySelectorAll('#txtGroups .txr').forEach(function(r){
+    const v = r.querySelector('.txr-i').value.trim();
+    if(v) o[r.dataset.k] = v;
+  });
+  return o;
+}
+
+/* ===================== ضمانات الشراء ===================== */
+function parseTrust(){
+  try{
+    const raw = S.trustItems;
+    if(!raw) return null;
+    const a = (typeof raw === 'string') ? JSON.parse(raw) : raw;
+    return Array.isArray(a) ? a : null;
+  }catch(_){ return null; }
+}
+
+function trustRow(it){
+  const d = document.createElement('div'); d.className = 'rule';
+  d.innerHTML =
+    '<input type="text" class="t-ico" maxlength="4" value="'+esc(it && it.i || '✅')+'" title="رمز">' +
+    '<input type="text" class="t-txt" value="'+esc(it && it.t || '')+'" placeholder="مثلاً: الفحص قبل الاستلام">' +
+    '<button class="r-del" title="حذف">🗑</button>';
+  d.querySelector('.r-del').addEventListener('click', function(){ d.remove(); markDirty(); });
+  d.querySelectorAll('input').forEach(function(i){ i.addEventListener('input', markDirty); });
+  return d;
+}
+
+function renderTrust(){
+  const box = $('trustList'); if(!box) return;
+  box.innerHTML = '';
+  const arr = parseTrust() || [
+    { i:'🔍', t: defTxt('trustCheck') },
+    { i:'🔄', t: defTxt('trustReturn') },
+    { i:'💵', t: defTxt('trustCOD') }
+  ];
+  arr.slice(0,4).forEach(function(it){ box.appendChild(trustRow(it)); });
+}
+
+function collectTrust(){
+  return [...document.querySelectorAll('#trustList .rule')].map(function(d){
+    return { i: d.querySelector('.t-ico').value.trim() || '✅',
+             t: d.querySelector('.t-txt').value.trim() };
+  }).filter(function(x){ return x.t; }).slice(0,4);
+}
+
+/* ===================== الشارات والعروض ===================== */
+const BNR_PLACES = [
+  { v:'top',   t:'شريط أعلى المنتجات' },
+  { v:'float', t:'شارة عائمة في الزاوية' },
+  { v:'prod',  t:'داخل صفحة المنتج' }
+];
+const BNR_STYLES = [
+  { v:'yellow', t:'أصفر' }, { v:'green', t:'أخضر' },
+  { v:'red', t:'أحمر' },    { v:'blue', t:'أزرق' }, { v:'dark', t:'داكن' }
+];
+
+function parseBanners(){
+  try{
+    const raw = S.banners;
+    if(!raw) return [];
+    const a = (typeof raw === 'string') ? JSON.parse(raw) : raw;
+    return Array.isArray(a) ? a : [];
+  }catch(_){ return []; }
+}
+
+function bnrRow(b){
+  b = b || {};
+  const d = document.createElement('div'); d.className = 'bnr';
+  d.innerHTML =
+    '<div class="bnr-top">' +
+      '<label class="bnr-on"><input type="checkbox" class="b-on"' + (b.on === false ? '' : ' checked') + '> ظاهرة</label>' +
+      '<button class="r-del b-del" title="حذف">🗑</button>' +
+    '</div>' +
+    '<div class="bnr-grid">' +
+      '<div class="fld"><label>الرمز</label><input type="text" class="b-ico" maxlength="4" value="'+esc(b.ico||'🎁')+'"></div>' +
+      '<div class="fld"><label>النص</label><input type="text" class="b-txt" value="'+esc(b.txt||'')+'" placeholder="مثلاً: توصيل مجاني لبغداد هذا الأسبوع"></div>' +
+    '</div>' +
+    '<div class="bnr-grid3">' +
+      '<div class="fld"><label>المكان</label><select class="b-place">' +
+        BNR_PLACES.map(function(p){ return '<option value="'+p.v+'"'+((b.place||'top')===p.v?' selected':'')+'>'+esc(p.t)+'</option>'; }).join('') +
+      '</select></div>' +
+      '<div class="fld"><label>اللون</label><select class="b-style">' +
+        BNR_STYLES.map(function(p){ return '<option value="'+p.v+'"'+((b.style||'yellow')===p.v?' selected':'')+'>'+esc(p.t)+'</option>'; }).join('') +
+      '</select></div>' +
+      '<div class="fld"><label>رابط (اختياري)</label><input type="url" class="b-link" value="'+esc(b.link||'')+'" placeholder="https://"></div>' +
+    '</div>' +
+    '<div class="bnr-grid2">' +
+      '<div class="fld"><label>تبدأ من (اختياري)</label><input type="date" class="b-from" value="'+esc(b.from||'')+'"></div>' +
+      '<div class="fld"><label>تنتهي في (اختياري)</label><input type="date" class="b-to" value="'+esc(b.to||'')+'"></div>' +
+    '</div>';
+  d.querySelector('.b-del').addEventListener('click', function(){ d.remove(); markDirty(); renderBnrPreview(); });
+  d.querySelectorAll('input,select').forEach(function(i){
+    i.addEventListener('input', function(){ markDirty(); renderBnrPreview(); });
+    i.addEventListener('change', function(){ markDirty(); renderBnrPreview(); });
+  });
+  return d;
+}
+
+function renderBanners(){
+  const box = $('bnrList'); if(!box) return;
+  box.innerHTML = '';
+  parseBanners().forEach(function(b){ box.appendChild(bnrRow(b)); });
+  renderBnrPreview();
+}
+
+function collectBanners(){
+  return [...document.querySelectorAll('#bnrList .bnr')].map(function(d){
+    return {
+      on:    d.querySelector('.b-on').checked,
+      ico:   d.querySelector('.b-ico').value.trim() || '🎁',
+      txt:   d.querySelector('.b-txt').value.trim(),
+      place: d.querySelector('.b-place').value,
+      style: d.querySelector('.b-style').value,
+      link:  d.querySelector('.b-link').value.trim(),
+      from:  d.querySelector('.b-from').value,
+      to:    d.querySelector('.b-to').value
+    };
+  }).filter(function(b){ return b.txt; });
+}
+
+function renderBnrPreview(){
+  const pv = $('bnrPreview'); if(!pv) return;
+  const list = collectBanners().filter(function(b){ return b.on; });
+  pv.innerHTML = '';
+  if(!list.length){ pv.innerHTML = '<div class="bnr-pv-empty">لا توجد شارات ظاهرة</div>'; return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+  BNR_PLACES.forEach(function(pl){
+    const here = list.filter(function(b){ return (b.place||'top') === pl.v; });
+    if(!here.length) return;
+    const h = document.createElement('div'); h.className='bnr-pv-h'; h.textContent = pl.t;
+    pv.appendChild(h);
+    here.forEach(function(b){
+      const el = document.createElement('div');
+      el.className = 'ubanner u-' + b.style;
+      el.innerHTML = '<span class="ub-ico">'+esc(b.ico)+'</span><span class="ub-txt">'+esc(b.txt)+'</span>';
+      let off = '';
+      if(b.from && new Date(b.from) > today) off = 'تبدأ ' + b.from;
+      if(b.to   && new Date(b.to)   < today) off = 'انتهت ' + b.to;
+      if(off){ el.style.opacity = '.4'; const n=document.createElement('span'); n.className='bnr-pv-off'; n.textContent='('+off+')'; el.appendChild(n); }
+      pv.appendChild(el);
+    });
+  });
+}
+
 async function saveAll(){
   const btn=$('saveBtn'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span> جاري الحفظ...';
   try{
@@ -979,12 +1361,27 @@ async function saveAll(){
       promoEnabled: $('promoEnabled').checked ? '1' : '0',
       fabricNote:   $('fabricNote').value.trim(),
       fabricText:   $('fabricText').value.trim(),
-      cheapRule:    JSON.stringify(collectCheap())
+      cheapRule:    JSON.stringify(collectCheap()),
+      storeTexts:   JSON.stringify(collectTexts()),
+      banners:      JSON.stringify(collectBanners()),
+      trustItems:   JSON.stringify(collectTrust())
     };
     const d = await apiPost({ action:'saveSettings', data:JSON.stringify(data) });
     if(!d.success) throw new Error(d.error||'فشل الحفظ');
     S = d.settings;
     clearDirty();
+
+    /* تحقّق أن السكربت قَبِل المفاتيح الجديدة فعلاً.
+       لو كان saveSettings يسمح بقائمة مفاتيح محدّدة، تُحفظ القديمة
+       وتُهمَل الجديدة بصمت — فنُخبر صاحب المتجر بدل أن يظن أنها حُفظت. */
+    const dropped = ['storeTexts','banners','trustItems'].filter(function(k){
+      return data[k] && data[k] !== '{}' && data[k] !== '[]' && !S[k];
+    });
+    if(dropped.length){
+      toast('⚠️ حُفظ الباقي، لكن السكربت لم يقبل: ' + dropped.join('، ') +
+            ' — يحتاج saveSettings في GAS أن يقبل أي مفتاح', 'err');
+      return;
+    }
     toast('✅ حُفظت التغييرات — ستظهر للزبائن فوراً','ok');
   }catch(e){
     toast('❌ '+e.message,'err');
@@ -1043,6 +1440,18 @@ $('addRuleBtn').addEventListener('click',()=>{
   cur.push({maxPieces:(cur.length?Math.max(...cur.map(r=>r.maxPieces))+1:1), pct:40});
   renderPieceRules(cur); markDirty(); updatePreview();
 });
+/* ===== النصوص والضمانات والشارات ===== */
+$('txtSearch').addEventListener('input', function(){ filterTexts(this.value); });
+$('addTrustBtn').addEventListener('click', function(){
+  const box = $('trustList');
+  if(box.children.length >= 4){ toast('الحدّ أربعة ضمانات','err'); return; }
+  box.appendChild(trustRow({ i:'✅', t:'' })); markDirty();
+});
+$('addBnrBtn').addEventListener('click', function(){
+  $('bnrList').appendChild(bnrRow({ on:true, ico:'🎁', txt:'', place:'top', style:'yellow' }));
+  markDirty(); renderBnrPreview();
+});
+
 $('selSmall').addEventListener('click',()=>{ renderSizeGrid(SMALL_SIZES.map(String)); markDirty(); updatePreview(); });
 $('selNone').addEventListener('click',()=>{ renderSizeGrid([]); markDirty(); updatePreview(); });
 

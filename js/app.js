@@ -22,6 +22,9 @@ const SETTINGS = {
   freeShipQty:  6,
   sortDefault:  'pieces_asc',
   fabricText:   'قطني 100%',
+  storeTexts:   {},               // تجاوزات النصوص من اللوحة
+  banners:      [],               // الشارات والإعلانات المضافة من اللوحة
+  trustItems:   '',               // ضمانات الشراء
   fabricNote:   '',
   promoText:    '',
   promoEnabled: true,
@@ -104,7 +107,21 @@ let fSea = '', fTyp = '', fSort = '', fFav = false;
 let fGenSet = new Set();
 let fAgeSet = new Set();
 
-function t(k){ return (L[lang]&&L[lang][k]) ? L[lang][k] : (L.ar[k]||k); }
+/* ===== تجاوزات النصوص من لوحة الإدارة =====
+   أيّ نص في المتجر يمكن تغييره من اللوحة بلا لمس الكود. الشكل:
+     { "hTitle":"...", "footer":"..." }            ← لكل اللغات
+     { "ar":{...}, "en":{...}, "ku":{...} }        ← لكل لغة على حدة
+   ويجوز الخلط: المفتاح الخاص باللغة يتقدّم على العام. */
+let TXT = {};
+
+function t(k){
+  if(TXT){
+    const perLang = TXT[lang];
+    if(perLang && typeof perLang === 'object' && perLang[k]) return perLang[k];
+    if(typeof TXT[k] === 'string' && TXT[k]) return TXT[k];
+  }
+  return (L[lang]&&L[lang][k]) ? L[lang][k] : (L.ar[k]||k);
+}
 
 
 /* يبحث عن عمود بمرونة: يتجاهل حالة الأحرف والمسافات */
@@ -229,6 +246,17 @@ function applySettings(s){
     if(s.promoText  !== undefined) SETTINGS.promoText  = String(s.promoText);
     if(s.promoEnabled !== undefined) SETTINGS.promoEnabled = String(s.promoEnabled)==='1' || s.promoEnabled===true;
     if(s.assetVersion) SETTINGS.assetVersion = String(s.assetVersion);
+    /* نصوص اللوحة وشاراتها */
+    if(s.storeTexts !== undefined){
+      const st = typeof s.storeTexts==='string' ? (s.storeTexts ? JSON.parse(s.storeTexts) : {}) : s.storeTexts;
+      TXT = (st && typeof st==='object') ? st : {};
+      SETTINGS.storeTexts = TXT;
+    }
+    if(s.banners !== undefined){
+      const bn = typeof s.banners==='string' ? (s.banners ? JSON.parse(s.banners) : []) : s.banners;
+      SETTINGS.banners = Array.isArray(bn) ? bn : [];
+    }
+    if(s.trustItems !== undefined) SETTINGS.trustItems = s.trustItems;
     if(s.cheapRule){
       const cr = typeof s.cheapRule==='string' ? JSON.parse(s.cheapRule) : s.cheapRule;
       if(cr && typeof cr==='object') SETTINGS.cheapRule = cr;
@@ -238,6 +266,10 @@ function applySettings(s){
 
 /* تطبيق النصوص القابلة للتخصيص على الصفحة */
 function applySettingsToUI(){
+  /* النصوص أولاً: applyTrans يكتب النصوص من ملف اللغات (ومن تجاوزات
+     اللوحة)، فلو جاء بعدها لمَسَح ما تضعه الإعدادات أدناه — كنصّ العرض. */
+  try{ applyTrans(); }catch(_){}
+
   /* عدد أعمدة الشبكة — يُضبط من لوحة الإدارة
      'auto' = حسب عرض الشاشة (الافتراضي) · أو 2 / 3 / 4 */
   try{
@@ -245,13 +277,13 @@ function applySettingsToUI(){
     document.body.dataset.cols = /^[234]$/.test(c) ? c : 'auto';
   }catch(_){}
 
-  // ملاحظة الخامة
+  /* ملاحظة الخامة — مخفيّة ما لم يكتب صاحب المتجر نصّاً لها */
   const note = document.getElementById('fabricNote');
   if(note){
     if(SETTINGS.fabricNote){
       const sp = note.querySelector('span');
-      if(sp) sp.innerHTML = sanitize(SETTINGS.fabricNote);
-      note.style.display = '';
+      if(sp) sp.textContent = String(SETTINGS.fabricNote);
+      note.style.display = 'flex';
     } else { note.style.display = 'none'; }
   }
   // شريط العرض
@@ -259,8 +291,13 @@ function applySettingsToUI(){
   const ptxt  = document.getElementById('promoTxt');
   if(promo){
     if(!SETTINGS.promoEnabled){ promo.style.display='none'; }
-    else if(SETTINGS.promoText && ptxt){ ptxt.textContent = SETTINGS.promoText; }
+    else {
+      promo.style.display = '';
+      if(ptxt && SETTINGS.promoText) ptxt.textContent = SETTINGS.promoText;
+    }
   }
+  /* الشارات المضافة من اللوحة */
+  renderBanners();
 }
 
 /* جلب الإعدادات — كاش محلي للسرعة ثم تحديث بالخلفية */
@@ -351,7 +388,7 @@ function setLang(l){
 }
 function applyTrans(){
   const map={
-    hTitle:'hTitle',hSub:'hSub',welcomeEl:'welcome',promoTxt:'promo',
+    hTitle:'hTitle',hSub:'hSub',welcomeEl:'welcome',
     pkDone:'pkDone',
     navFav:'navFav',prodShTitle:'prodTitle',navInstall:'navInstall',
     rstBtn:'rst',fltBtnLbl:'fltBtn',applyFltLbl:'applyFlt',resetFltLbl:'resetFlt',
@@ -378,6 +415,9 @@ function applyTrans(){
   const _g0=document.querySelector('#ckGov option[value=""]'); if(_g0) _g0.textContent=t('govPh');
   const _cp=document.querySelector('.ck-pay b'); if(_cp) _cp.textContent=t('codNote');
   const _tr=document.getElementById('trackIn'); if(_tr) _tr.placeholder=t('trackPh');
+  /* نصّ العرض: ما كتبه صاحب المتجر في اللوحة يتقدّم على نص اللغة */
+  { const _p=document.getElementById('promoTxt');
+    if(_p) _p.textContent = SETTINGS.promoText || t('promo'); }
   /* نصّا الزرّين المجمّعين يُبنيان من المجموعات، لا من خريطة ثابتة */
   if(typeof syncPickBtns === 'function') syncPickBtns();
   { const _n=document.getElementById('ckNotes'); if(_n) _n.placeholder=t('notesPh'); }
@@ -741,6 +781,76 @@ function sizesInAge(ageKey){
 }
 
 
+/* ==================== الشارات والإعلانات ====================
+   يضيفها صاحب المتجر من اللوحة بلا تعديل الكود. كل شارة:
+     { txt, ico, style, place, on, from, to, link }
+   المكان (place):  top = شريط أعلى المنتجات
+                    float = شارة عائمة في الزاوية
+                    prod  = سطر داخل صفحة المنتج
+   from/to: تاريخان اختياريان (YYYY-MM-DD) — خارجهما لا تظهر.
+   ============================================================ */
+
+function activeBanners(place){
+  const all = SETTINGS.banners;
+  if(!Array.isArray(all) || !all.length) return [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  return all.filter(function(b){
+    if(!b || b.on === false || b.on === '0') return false;
+    if(!String(b.txt||'').trim()) return false;
+    if(String(b.place||'top') !== place) return false;
+    if(b.from){ const d=new Date(b.from); if(!isNaN(d) && today < d.setHours(0,0,0,0)) return false; }
+    if(b.to){   const d=new Date(b.to);   if(!isNaN(d) && today > d.setHours(0,0,0,0)) return false; }
+    return true;
+  });
+}
+
+function buildBanner(b){
+  const hasLink = !!String(b.link||'').trim();
+  const el = document.createElement(hasLink ? 'a' : 'div');
+  el.className = 'ubanner u-' + (String(b.style||'yellow').replace(/[^a-z]/g,'') || 'yellow');
+  if(hasLink){ el.href = String(b.link); el.target = '_blank'; el.rel = 'noopener noreferrer'; }
+  const ic = document.createElement('span'); ic.className='ub-ico'; ic.textContent = String(b.ico||'🎁');
+  const tx = document.createElement('span'); tx.className='ub-txt'; tx.textContent = String(b.txt||'');
+  el.appendChild(ic); el.appendChild(tx);
+  return el;
+}
+
+/* الشريط أعلى المنتجات */
+function renderTopBanners(){
+  const host = document.getElementById('uBanners');
+  if(!host) return;
+  host.innerHTML = '';
+  activeBanners('top').forEach(function(b){ host.appendChild(buildBanner(b)); });
+}
+
+/* الشارات العائمة — تُرصّ فوق شارة العرض */
+function renderFloatBanners(){
+  let host = document.getElementById('uFloat');
+  const list = activeBanners('float');
+  if(!list.length){ if(host) host.remove(); return; }
+  if(!host){
+    host = document.createElement('div');
+    host.id = 'uFloat'; host.className = 'ufloat';
+    document.body.appendChild(host);
+  }
+  host.innerHTML = '';
+  list.forEach(function(b){
+    const el = buildBanner(b);
+    el.classList.add('ub-float');
+    const x = document.createElement('button');
+    x.className = 'ub-x'; x.type='button'; x.textContent='✕';
+    x.setAttribute('aria-label', t('hide')||'إخفاء');
+    x.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); el.remove();
+      if(!host.children.length) host.remove(); });
+    el.appendChild(x);
+    host.appendChild(el);
+  });
+}
+
+function renderBanners(){
+  try{ renderTopBanners(); renderFloatBanners(); }catch(_){}
+}
+
 /* ==================== شارة العرض العائمة ====================
    كانت شريطاً بعرض الشاشة يأكل مساحة المنتجات. صارت شارة صغيرة
    مثبّتة في زاوية، تُخفى بضغطة ويعود إظهارها بزر 🎉 صغير.
@@ -1003,6 +1113,10 @@ function openProduct(id, push){
     trust.appendChild(d);
   });
 
+  /* إعلانات صاحب المتجر المخصّصة لصفحة المنتج */
+  const pvb = document.createElement('div'); pvb.className='pv-banners';
+  activeBanners('prod').forEach(function(b){ pvb.appendChild(buildBanner(b)); });
+
   /* ===== مشاركة واستفسار ===== */
   const acts = document.createElement('div'); acts.className='pv-acts';
   const sh = document.createElement('button'); sh.className='pv-share';
@@ -1015,7 +1129,7 @@ function openProduct(id, push){
   acts.appendChild(sh); acts.appendChild(wa);
 
   info.appendChild(szl); info.appendChild(szs);
-  info.appendChild(trust); info.appendChild(acts);
+  info.appendChild(trust); info.appendChild(pvb); info.appendChild(acts);
   body.appendChild(top); body.appendChild(info);
 
   /* عنوان النافذة والرابط */
