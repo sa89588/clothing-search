@@ -753,29 +753,14 @@ function initPromoChip(){
   setHH();
   window.addEventListener('resize', setHH);
 
-  /* زر إعادة الإظهار */
-  let re = document.getElementById('promoRe');
-  if(!re){
-    re = document.createElement('button');
-    re.id = 'promoRe'; re.className = 'promo-reopen';
-    re.type = 'button'; re.textContent = '🎉';
-    re.setAttribute('aria-label', 'إظهار العرض');
-    document.body.appendChild(re);
-  }
-
+  /* الإخفاء نهائي لهذه الجلسة — بلا زر عائم يبقى على الشاشة.
+     تعود الشارة عند فتح الموقع من جديد. */
   const hide = function(persist){
     chip.classList.add('gone');
-    re.classList.add('show');
     if(persist){ try{ sessionStorage.setItem('promoHid','1'); }catch(_){} }
-  };
-  const show = function(){
-    chip.classList.remove('gone');
-    re.classList.remove('show');
-    try{ sessionStorage.removeItem('promoHid'); }catch(_){}
   };
 
   if(x) x.addEventListener('click', function(){ hide(true); });
-  re.addEventListener('click', show);
 
   let hidden = false;
   try{ hidden = sessionStorage.getItem('promoHid') === '1'; }catch(_){}
