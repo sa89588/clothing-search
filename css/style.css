@@ -930,3 +930,24 @@ body.dark .fav-btn.on{ color:#fb7185 }
 .rcount{ display:none; padding:0 12px 5px; font-size:11px; opacity:.6; font-weight:600 }
 .rcount.show{ display:block }
 .srch-wrap{ padding-bottom:7px }
+
+/* ===== القياسات على البطاقة: أرقام واضحة في سطر واحد ===== */
+.cszc{
+  display:flex; flex-wrap:wrap; gap:0 4px;
+  font-variant-numeric:tabular-nums; letter-spacing:.015em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  font-weight:800;
+}
+.cszc .szl{ direction:ltr; unicode-bidi:isolate }
+.cszc .szmore{
+  direction:ltr; unicode-bidi:isolate;
+  opacity:.65; font-weight:700; margin-inline-start:3px;
+}
+/* القياس المطابق لفلتر العمر */
+.cszc .szhit{
+  background:rgba(21,101,192,.14); border-radius:4px;
+  padding:0 3px; font-weight:900;
+}
+body.dark .cszc .szhit{ background:rgba(66,165,245,.2) }
+/* سطر القياسات لا يلتف أبداً */
+.cszc{ flex-wrap:nowrap }

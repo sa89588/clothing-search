@@ -1137,9 +1137,42 @@ function createCard(item){
     : (disc.toLocaleString()+' '+t('dinar'));
   pr.appendChild(op); pr.appendChild(np);
   // Savings
-  /* عدد القياسات المتوفرة — الاختيار يتم في صفحة المنتج */
+  /* القياسات المتوفرة بأرقامها — الأم تعرف قياس طفلها فتوفّر فتح البطاقة.
+     البطاقة ضيّقة، فنعرض أول أربعة ونختصر الباقي بـ«+N». */
   const szc=document.createElement('div'); szc.className='cszc';
-  szc.textContent = sizes.length + ' ' + (sizes.length===1 ? t('szOne') : t('szMany'));
+  /* ميزانية حروف بدل عدد ثابت: الأرقام الثلاثية (100+) أعرض من
+     الثنائية، فلو ثبّتنا العدد انقصّ الصف على الشاشات الضيّقة. */
+  const SZ_BUDGET = 20;   /* مُعايَرة تجريبياً: صفر قصّ من 320 إلى 430px */
+
+  /* عند تفعيل فلتر العمر نُقدّم قياساته — فلا تُزاح خلف «+N» */
+  const _match = fAge ? sizesInAge(fAge) : [];
+  const ordered = _match.length
+      ? sizes.slice().sort(function(a,b){
+          const ia = _match.indexOf(String(a)) > -1 ? 0 : 1;
+          const ib = _match.indexOf(String(b)) > -1 ? 0 : 1;
+          return ia - ib;   /* المطابق أولاً، والترتيب الأصلي محفوظ داخل كل مجموعة */
+        })
+      : sizes;
+
+  let shown = [], used = 0;
+  for(let k = 0; k < ordered.length; k++){
+    const s = ordered[k];
+    const add = String(s).length + (shown.length ? 3 : 0);   // 3 = ' · '
+    /* نحجز مكان «+N» حين يبقى غيرُه، وإلا نزل لسطر ثانٍ وأطال البطاقة */
+    const tail = (k < ordered.length - 1) ? 3 : 0;
+    if(used + add + tail > SZ_BUDGET && shown.length) break;
+    shown.push(s); used += add;
+  }
+  const rest = ordered.length - shown.length;
+
+  /* الأرقام والزائد بـdir=ltr وإلا عُرض «+2» كـ«2+» في العربية */
+  const html = shown.map(function(s){
+    const on = _match.indexOf(String(s)) > -1;
+    return on ? '<b class="szhit">' + sanitize(String(s)) + '</b>' : sanitize(String(s));
+  }).join(' · ');
+  szc.innerHTML = '<span class="szl" dir="ltr">' + html + '</span>' +
+      (rest > 0 ? '<span class="szmore" dir="ltr">+' + rest + '</span>' : '');
+  szc.title = t('sizes') + ': ' + sizes.join(' · ');
   body.appendChild(pr); body.appendChild(szc); body.appendChild(idEl);
   card.appendChild(iw); card.appendChild(body);
   return card;
